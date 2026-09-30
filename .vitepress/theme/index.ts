@@ -5,12 +5,14 @@ import {
   NolebasePagePropertiesPlugin,
 } from '@nolebase/vitepress-plugin-page-properties/client'
 import '@nolebase/vitepress-plugin-page-properties/client/style.css'
+import QwStory from './components/QwStory.vue'
 import './custom.css'
 
 export default {
   extends: DefaultTheme,
   enhanceApp({ app }) {
     app.component('NolebasePageProperties', NolebasePageProperties)
+    app.component('QwStory', QwStory)
     app.use(NolebasePagePropertiesPlugin(), {
       properties: {
         'zh-CN': [

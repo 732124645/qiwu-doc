@@ -11,3 +11,14 @@
   --vp-c-brand-3: #1f6feb;
   --vp-c-brand-soft: rgba(76, 141, 255, 0.14);
 }
+
+/* 首页滚动叙事：全屏沉浸，隐藏 VitePress 自带的导航栏、"回到顶部"栏和页脚（组件自带导航） */
+.qw-story-page .VPNav,
+.qw-story-page .VPLocalNav,
+.qw-story-page .VPFooter {
+  display: none;
+}
+.qw-story-page .VPContent {
+  margin-top: 0 !important;
+  padding-top: 0 !important;
+}
