@@ -277,7 +277,7 @@ export class DemoRealtimeController {
 
 | 检查 | 要求 |
 | --- | --- |
-| action-log | 每个非 GET 接口都有 `@ActionLog` 或 `@SkipActionLog()`；动作名必须在 `audit.seed.ts` 的 `VERBS` 中登记 |
+| action-log | 每个非 GET 接口都有 `@ActionLog` 或 `@SkipActionLog()`；动作名必须在平台的 `VERBS` 或项目的 `PROJECT_ACTION_VERBS` 中登记，项目动作不能和平台重名 |
 | scoped-access | 带数据范围的实体，其带 `:id` 或 `ids` 的修改接口，必须经过 `lockScopedIds` |
 | no-sql-concat | 不能把变量拼接进 SQL |
 
@@ -338,15 +338,23 @@ export class CustomerController {
 ```
 
 ::: warning 自定义动作名要登记
-`@ActionLog` 的 `verb` 必须是已经登记过的动作名，否则 `pnpm verify` 会报错。登记的位置是 `apps/server/src/db/seeds/audit/audit.seed.ts` 的 `VERBS` 数组（它也是字典 `audit.verb` 的种子，操作日志页面靠它显示中英文名称）：
+`@ActionLog` 的 `verb` 必须是已经登记过的动作名，否则 `pnpm verify` 会报错。登记过的动作也是字典 `audit.verb` 的项，操作日志页面靠它显示中英文名称。
+
+**平台已经登记的动作**（在平台文件 `audit.seed.ts` 中，不要修改）：`create` `modify` `remove` `import` `export` `upload` `grant` `revoke` `reset-password` `kick` `publish` `clean` `sync` `run` `test` `send` `approve` `reject` `cancel` 等。**能用平台已有的动作名时，优先用已有的。**
+
+**项目自己的新动作**，登记在项目文件 `apps/server/src/db/seeds/project/action-verbs.seed.ts`：
 
 ```ts
-const VERBS: [value: string, zh: string, en: string, tagType?: string][] = [
-  ['create', '新增', 'Create', 'success'],
-  // …
-  ['upgrade', '升级', 'Upgrade', 'primary'],      // 新增的动作
+export const PROJECT_ACTION_VERBS: ProjectActionVerb[] = [
+  // [值, 中文, 英文, 标签颜色（可选）]
+  ['upgrade', '升级', 'Upgrade', 'primary'],
 ]
 ```
 
-已经登记的动作有：`create` `modify` `remove` `import` `export` `upload` `grant` `revoke` `reset-password` `kick` `publish` `clean` `sync` `run` `test` `send` `approve` `reject` `cancel` 等。**能用已有的动作名时，优先用已有的。**
+- 值只能用小写字母、数字和短横线（比如 `send-back`），最长 32 个字符；
+- **不能和平台的动作重名**，重名时检查会报错，提示改用平台的那个；
+- 标签颜色可选：`primary`、`success`、`info`、`warning`、`danger`；
+- 执行 `pnpm db:seed` 后，它会作为字典 `audit.verb` 的新项插入（只插入不存在的；管理员改过的名称、删除过的项都不会被覆盖或恢复）。
+
+代码生成器生成的控制器只用平台的动作，所以这个文件只在**手写的自定义操作**需要新动作时才用到。
 :::

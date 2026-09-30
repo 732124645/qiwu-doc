@@ -184,7 +184,7 @@ import { seedCustomer } from '../../modules/crm/customer/customer.seed.js'
 
 const SEEDS: Record<string, Seed[]> = {
   // …
-  project: [seedProjectMenuGroups, seedCustomer],     // 加在 seedProjectMenuGroups 后面
+  project: [seedProjectMenuGroups, seedProjectActionVerbs, seedCustomer],   // 加在最后
 }
 ```
 

@@ -183,14 +183,14 @@ export class ProjectModule {}
 
 ### ② 种子
 
-`apps/server/src/db/seeds/index.ts`，把模块的种子函数加进 `SEEDS.project`（放在 `seedProjectMenuGroups` 后面）：
+`apps/server/src/db/seeds/index.ts`，把模块的种子函数加进 `SEEDS.project` 的最后：
 
 ```ts
 import { seedCustomer } from '../../modules/crm/customer/customer.seed.js'
 
 const SEEDS: Record<string, Seed[]> = {
   // …
-  project: [seedProjectMenuGroups, seedCustomer],
+  project: [seedProjectMenuGroups, seedProjectActionVerbs, seedCustomer],
 }
 ```
 
@@ -209,6 +209,10 @@ export * from './crm/customer.schema.js'
 ```
 
 **忘了这一步，后端和前端都 import 不到这个模块的规则和类型。**
+
+### 另外：手写接口的新动作名
+
+代码生成器生成的接口只用平台已有的动作名（新增、修改、删除、导入、导出）。如果你手写的接口在 `@ActionLog` 中用了新的动作名（比如 `upgrade`），还要登记到项目文件 `apps/server/src/db/seeds/project/action-verbs.seed.ts`，详见[控制器](/core/controller#一个完整的例子)。
 
 前端**不需要**注册：路由来自后端下发的菜单，页面文件和翻译文件都会被自动找到。
 

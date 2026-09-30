@@ -217,11 +217,11 @@ const SEEDS: Record<string, Seed[]> = {
   // …
   demo: [seedDemo, seedBook, seedTopic, seedInvoice, seedDemoRealtime],
   // 最后执行：项目的菜单分组，然后是各模块
-  project: [seedProjectMenuGroups, seedCustomer, seedSaleOrder],
+  project: [seedProjectMenuGroups, seedProjectActionVerbs, seedCustomer, seedSaleOrder],
 }
 ```
 
-- 按顺序执行：`seedProjectMenuGroups` 必须是第一个，模块的种子放在它后面；
+- 按顺序执行：`seedProjectMenuGroups`（项目菜单分组）和 `seedProjectActionVerbs`（项目自己的操作日志动作名）在最前面，模块的种子放在它们后面；
 - `pnpm db:seed -- --only project` 只执行项目的种子。
 
 ## 其他常见的种子

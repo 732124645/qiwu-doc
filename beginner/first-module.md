@@ -221,7 +221,7 @@ import { seedCourse } from '../../modules/biz/course/course.seed.js'   // ← �
 
 const SEEDS: Record<string, Seed[]> = {
   // …原来的内容不动…
-  project: [seedProjectMenuGroups, seedCourse],                       // ← 在 project 这一行的最后加上
+  project: [seedProjectMenuGroups, seedProjectActionVerbs, seedCourse],   // ← 在 project 这一行的最后加上
 }
 ```
 
