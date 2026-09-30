@@ -179,6 +179,7 @@ upgrade(@Param('id', ParseIntPipe) id: number) {
 - 接口地址是 `PUT /api/biz/customers/:id/upgrade`。按照项目约定，**操作写成子资源**，而不是 `/upgradeCustomer?id=` 这种形式；
 - `@RequirePerm`：没有这个权限返回 403；
 - `@ActionLog`：每个非 GET 接口**必须**有操作日志（或者显式声明 `@SkipActionLog()`），否则 `pnpm verify` 会失败；
+- 动作名 `upgrade` 是新的，**必须先登记**：在 `apps/server/src/db/seeds/audit/audit.seed.ts` 的 `VERBS` 数组里加一行 `['upgrade', '升级', 'Upgrade', 'primary']`，否则 `pnpm verify` 会报错。这个数组同时是操作日志页面显示动作名称的字典。能用已有的动作名（比如 `modify`）时，就不用登记；
 - 控制器只有一行逻辑，调用服务就行。
 
 ## ⑧ 种子：把按钮权限写进菜单
