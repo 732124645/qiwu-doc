@@ -48,8 +48,14 @@ Redis 的所有键都带 `qw:` 前缀，可以和其他项目共用一个 Redis�
 
 ```bash
 cd apps/server
-cp .env.example .env      # 普通配置：端口、库名、Redis 库号……
-touch .env.local          # 密钥：数据库和 Redis 账号、APP_SECRET
+cp .env.example .env      # 普通配置：端口、库名、Redis 库号、APP_SECRET……
+touch .env.local          # 账号密码：数据库和 Redis
+```
+
+在 `.env` 里找到 `APP_SECRET=` 这一行，填上至少 32 位的随机字符串。可以用这条命令生成：
+
+```bash
+node -e "console.log(require('crypto').randomBytes(32).toString('base64url'))"
 ```
 
 在 `.env.local` 里填写：
@@ -59,14 +65,11 @@ DB_USER=qiwu
 DB_PASSWORD=换成你的密码
 REDIS_USERNAME=           # Redis 没有 ACL 用户时留空
 REDIS_PASSWORD=
-APP_SECRET=至少32位的随机字符串
 ```
 
-`APP_SECRET` 可以用这条命令生成：
-
-```bash
-node -e "console.log(require('crypto').randomBytes(32).toString('base64url'))"
-```
+::: warning 同一个变量以 `.env` 为准
+服务端先读 `.env`，再读 `.env.local`，两个文件里都有的变量**以 `.env` 为准**，空值也算。模板里已经有 `APP_SECRET=` 这一行，所以 `APP_SECRET` 要填在 `.env` 里，写在 `.env.local` 里不会生效。
+:::
 
 配置在启动时会校验，缺少或者格式不对的话，服务会直接拒绝启动，并提示是哪一项有问题。所有配置项的含义见[环境变量](/reference/env)。
 
@@ -111,7 +114,7 @@ node scripts/fetch-ip2region.mjs
 ## 常见问题
 
 **启动时报 `APP_SECRET` 相关错误**
-`.env.local` 里没有填，或者长度不够 32 位。
+`.env` 里的 `APP_SECRET=` 没有填，或者长度不够 32 位。只填在 `.env.local` 里是不生效的，见上面第 3 步。
 
 **`db:reset refused`**
 库名不是以 `_dev`、`_test` 或 `_e2e` 结尾，或者设置了 `NODE_ENV=production`。

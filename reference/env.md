@@ -6,10 +6,10 @@
 | --- | --- | --- |
 | `.env.example` | 提交 | 模板，复制为 `.env` 使用 |
 | `.env` | 不提交 | 开发配置 |
-| `.env.local` | 不提交 | **密钥**：数据库和 Redis 账号、`APP_SECRET` |
+| `.env.local` | 不提交 | **账号密码**：数据库和 Redis 账号、微信小程序的 AppSecret |
 | `.env.test` / `.env.e2e` | 提交 | 测试配置（不含密钥） |
 
-加载顺序：先加载当前模式的文件（默认 `.env`），再加载 `.env.local`；进程中已经存在的环境变量优先。启动时所有配置都会经过校验，不合法就拒绝启动。
+加载顺序：先加载当前模式的文件（默认 `.env`），再加载 `.env.local`；**同一个变量以先加载的文件为准**，空值也算，所以 `.env` 里已经写了（哪怕是 `KEY=`）的变量，放进 `.env.local` 不会生效。`APP_SECRET` 在模板里就有一行，要填在 `.env` 里。进程中已经存在的环境变量优先于这两个文件。启动时所有配置都会经过校验，不合法就拒绝启动。
 
 ## 服务
 
@@ -43,6 +43,14 @@
 | `ALLOW_PRIVATE_ENDPOINTS` | `false` | 是否允许连接内网的 S3/SMTP，只在测试时打开 |
 | `OUTBOUND_S3_PORTS` | | S3 额外允许的端口，比如 `9000` |
 | `OUTBOUND_SMTP_PORTS` | | SMTP 额外允许的端口 |
+| `WX_MP_APPID` | | 微信小程序的 AppID |
+| `WX_MP_SECRET` | | 微信小程序的 AppSecret |
+
+`WX_MP_APPID`、`WX_MP_SECRET` 和参数 `auth.wx_mp.enabled` 都配置好之后，才能用微信小程序登录，见[微信小程序登录](/features/security#微信小程序登录)。
+
+::: warning 这两个变量只写在 `.env.local`
+服务端先读 `apps/server/.env`，再读 `apps/server/.env.local`，**同一个变量以 `.env` 为准**。所以不要在 `.env` 里写这两个变量，写成空值也不行，否则会盖住 `.env.local` 里的值。两个文件都已经被 git 忽略，不会提交。
+:::
 
 ## 功能
 

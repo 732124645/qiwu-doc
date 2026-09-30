@@ -116,21 +116,25 @@ mysql -u qiwu -pqiwu123456 -h 127.0.0.1 -e "SHOW DATABASES;"
 
 ```bash
 cd apps/server
-cp .env.example .env
+node -e "const fs=require('fs');const s=require('crypto').randomBytes(32).toString('base64url');const t=fs.readFileSync('.env.example','utf8').replace(/^APP_SECRET=.*\r?\n?/m,'');fs.writeFileSync('.env',t+'\nAPP_SECRET='+s+'\n')"
 ```
 
-`cp` 是复制文件：把模板 `.env.example` 复制一份，命名为 `.env`。
-
-然后创建存放密码的文件 `.env.local`。复制下面整段执行（第一行会自动生成一个随机密钥）：
+这条命令把模板 `.env.example` 复制一份，命名为 `.env`，同时在里面填好一个随机生成的密钥 `APP_SECRET`（服务端用它加密保存的第三方密码）。检查一下：
 
 ```bash
-SECRET=$(node -e "console.log(require('crypto').randomBytes(32).toString('base64url'))")
+node -e "console.log(require('fs').readFileSync('.env','utf8').match(/^APP_SECRET=.*/m)[0].length)"
+```
+
+应该输出 `54`（`APP_SECRET=` 这 11 个字符，加上 43 个字符的密钥）。
+
+然后创建存放数据库和 Redis 账号密码的文件 `.env.local`。复制下面整段执行：
+
+```bash
 cat > .env.local <<EOF
 DB_USER=qiwu
 DB_PASSWORD=qiwu123456
 REDIS_USERNAME=
 REDIS_PASSWORD=
-APP_SECRET=$SECRET
 EOF
 cat .env.local
 ```
@@ -142,8 +146,11 @@ DB_USER=qiwu
 DB_PASSWORD=qiwu123456
 REDIS_USERNAME=
 REDIS_PASSWORD=
-APP_SECRET=（一串 43 个字符的随机字母和数字）
 ```
+
+::: tip 为什么 `APP_SECRET` 不写在 `.env.local` 里
+服务端先读 `.env`，再读 `.env.local`，两个文件里都有的变量以 `.env` 为准，空值也算。模板里本来就有一行空的 `APP_SECRET=`，所以密钥要写在 `.env` 里才会生效。
+:::
 
 ::: danger 这两个文件不能上传
 `.env` 和 `.env.local` 里有密码，项目已经设置好不会把它们提交到 Git。**不要把它们发给别人，也不要截图发到网上。**
@@ -223,7 +230,7 @@ pnpm dev
 
 | 现象 | 原因和解决办法 |
 | --- | --- |
-| 启动时报错，提到 `APP_SECRET` | 第 4 步的 `.env.local` 没有创建成功。执行 `cat apps/server/.env.local` 看看内容对不对 |
+| 启动时报错，提到 `APP_SECRET` | 第 4 步的 `.env` 里没有填好密钥。重新执行第 4 步的第一条命令，再用它下面的检查命令确认输出 `54` |
 | 报错 `Access denied for user 'qiwu'` | 数据库的用户名或密码不对。检查第 3 步和第 4 步的密码是否一致 |
 | 报错 `ECONNREFUSED 127.0.0.1:3306` | MySQL 没有启动。Mac：`brew services start mysql`；Windows：在"服务"里启动 MySQL 服务；WSL2：`sudo service mysql start` |
 | 报错 `ECONNREFUSED 127.0.0.1:6379` | Redis 没有启动。Mac：`brew services start redis`；Windows：在"服务"里启动 Memurai；WSL2：`sudo service redis-server start` |
