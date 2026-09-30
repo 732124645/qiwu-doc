@@ -69,7 +69,7 @@ if (has(userPerms.export)) { /* … */ }
 
 ```ts
 @DataScoped({ dept: 'dept_id', owner: 'created_by' })
-@Entity('biz_customer')
+@Entity('crm_customer')
 export class Customer extends BaseEntity { /* … */ }
 ```
 

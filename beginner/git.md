@@ -25,13 +25,13 @@ git status
 
 ```text
 Changes not staged for commit:          ← 修改过的已有文件
-        modified:   apps/server/src/modules/biz/biz.module.ts
+        modified:   apps/server/src/modules/project.module.ts
         modified:   apps/server/src/db/seeds/index.ts
         …
 
 Untracked files:                        ← 新建的文件
         apps/server/src/db/migrations/20261001100000-biz-course.ts
-        apps/server/src/modules/biz/biz/course/
+        apps/server/src/modules/biz/course/
         …
 ```
 

@@ -153,8 +153,8 @@ qb.andWhere('t.code = :code', { code })
 索引就像书的目录：按某一列事先排好序，查找时可以直接跳到对应的位置。
 
 ```sql
-KEY idx_biz_customer_dept (dept_id)                 -- 普通索引：加快查询
-UNIQUE KEY uk_biz_customer_code (code, alive)       -- 唯一索引：加快查询，并且不允许重复
+KEY idx_crm_customer_dept (dept_id)                 -- 普通索引：加快查询
+UNIQUE KEY uk_crm_customer_code (code, alive)       -- 唯一索引：加快查询，并且不允许重复
 ```
 
 什么时候要加索引：
@@ -208,16 +208,16 @@ return this.txHost.withTransaction(async () => {
 迁移就是**把表结构的每一次修改都写成代码**，和源码一起提交到 git：
 
 ```ts
-// apps/server/src/db/migrations/20261001100000-biz-customer-vip.ts
-export class BizCustomerVip20261001100000 implements MigrationInterface {
-  name = 'BizCustomerVip20261001100000'
+// apps/server/src/db/migrations/20261001100000-crm-customer-vip.ts
+export class CrmCustomerVip20261001100000 implements MigrationInterface {
+  name = 'CrmCustomerVip20261001100000'
 
   async up(q: QueryRunner): Promise<void> {       // 升级：执行修改
-    await q.query(`ALTER TABLE biz_customer ADD COLUMN vip_since datetime(3) NULL COMMENT '成为 VIP 的时间'`)
+    await q.query(`ALTER TABLE crm_customer ADD COLUMN vip_since datetime(3) NULL COMMENT '成为 VIP 的时间'`)
   }
 
   async down(q: QueryRunner): Promise<void> {     // 回退：撤销修改
-    await q.query('ALTER TABLE biz_customer DROP COLUMN vip_since')
+    await q.query('ALTER TABLE crm_customer DROP COLUMN vip_since')
   }
 }
 ```

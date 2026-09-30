@@ -72,7 +72,7 @@ Error: connect ECONNREFUSED 127.0.0.1:3306          ← 就是这一行！
 | `xxx is not defined` | 用了一个没有定义的变量，或者忘了 import | 检查拼写，检查有没有导入 |
 | `Cannot read properties of undefined (reading 'xxx')` | 对一个空值取了属性 | 找到是哪个变量为空，想想它为什么没有值 |
 | `Nest can't resolve dependencies of …` | 后端的服务没有注册到模块里 | 检查模块文件的 `providers` 和 `imports` |
-| `the biz menu group is missing` | 生成的模块没有选择父菜单 | 在代码生成的"生成信息"里选择父菜单，重新生成 |
+| `the xxx menu group is missing` | 模块的父菜单分组不存在 | 把分组加到 `apps/server/src/db/seeds/project/menu-groups.seed.ts`（代码生成器的注册代码里有这一段），或者在代码生成的"生成信息"里换一个父菜单后重新生成 |
 
 ### 页面上的错误
 

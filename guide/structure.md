@@ -22,7 +22,10 @@ src/
 │  ├─ platform/        # 平台模块：iam（用户/角色/菜单/部门/岗位）、settings、messaging、
 │  │                   #           audit、storage、scheduler、codegen、monitor、geo
 │  ├─ workflow/        # 工作流：引擎、模型、运行时、审批中心、管理
-│  └─ biz/             # 你的业务代码放这里；biz.module.ts 是唯一的注册入口
+│  ├─ biz/             # 项目业务：内置的"业务管理"领域（请假示例）
+│  ├─ demo/            # 示例：图书、知识主题、发票、实时推送
+│  ├─ <你的领域>/       # 比如 crm/、erp/：每个领域一个目录
+│  └─ project.module.ts  # 所有项目领域唯一的注册入口
 ├─ i18n/{zh-CN,en-US}/ # 后端消息翻译
 └─ db/
    ├─ migrations/      # 数据库迁移（只用迁移改表，从不自动同步）
@@ -38,11 +41,11 @@ test/                  # e2e 测试
 | 层 | 可以依赖 | 不可以依赖 |
 | --- | --- | --- |
 | `core` | 第三方包 | 任何 `modules` |
-| `platform` | `core` | `workflow`、`biz` |
-| `workflow` | `core`、`platform` | `biz` |
-| `biz` | 以上全部 | — |
+| `platform` | `core` | `workflow`、任何项目领域 |
+| `workflow` | `core`、`platform` | 任何项目领域 |
+| 项目领域（`biz`、`demo`、`crm`……） | 以上全部 | — |
 
-所以**新项目的业务代码只放在 `modules/biz` 和 `views/biz` 里**。这样以后升级模板时，平台部分和你的业务代码冲突最少。
+`core`、`platform`、`workflow` 是模板代码，**其他顶层目录都是你的项目代码**，一个目录一个领域。以后升级模板时，只会改动模板代码，和你的业务代码不会冲突。详见[模块结构与注册](/core/module)。
 
 ### 一个模块长什么样
 

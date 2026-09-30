@@ -52,7 +52,7 @@ public List<SysUser> selectUserList(SysUser user) { … }
 ```ts [本项目]
 // 在实体上声明一次
 @DataScoped({ dept: 'dept_id', owner: 'created_by' })
-@Entity('biz_customer')
+@Entity('crm_customer')
 export class Customer extends BaseEntity { … }
 // 之后所有读取经过 scopedQb()、所有修改经过 lockScopedIds()，都会自动加上条件
 ```

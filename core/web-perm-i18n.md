@@ -59,7 +59,7 @@ const { t } = useI18n()
 带参数：
 
 ```ts
-t('biz.customer.upgradeConfirm', { name: row.name })
+t('crm.customer.upgradeConfirm', { name: row.name })
 // 翻译文件："确定把客户「{name}」升级为 VIP 吗？"
 ```
 
@@ -99,7 +99,7 @@ tx('运维工程师')                 // → "运维工程师"（这个键不存
 | 文件名 | 规则 | 例子 |
 | --- | --- | --- |
 | 不带点，比如 `crud.json` | 文件名就是命名空间，文件内容直接写键 | `{ "action": { "save": "保存" } }` → `crud.action.save` |
-| 带点，比如 `biz.customer.json` | 文件内容要写完整的顶层结构 | 见下面的例子 |
+| 带点，比如 `crm.customer.json` | 文件内容要写完整的顶层结构 | 见下面的例子 |
 
 生成的模块使用第二种方式，一个文件里可以同时包含模块自己的文字和菜单名称：
 

@@ -157,17 +157,17 @@ await positionApi.setEnabled(3, false)
 - **不能写中文**：页面上的文字一律用 `t('翻译键')`，翻译写在 `src/locales/` 里。参见[权限与翻译](/core/web-perm-i18n)；
 - **不能写死颜色**：颜色、圆角、阴影只能使用 `--qw-*` CSS 变量；
 - **提交按钮**在请求期间要显示 loading 并禁用；
-- 新页面放在 `src/views/biz/` 下，接口文件放在 `src/api/biz/` 下。
+- 新页面放在 `src/views/<领域>/` 下，接口文件放在 `src/api/<领域>/` 下，比如 `views/crm/customer/`、`api/crm/customer.ts`。
 
 ## 去哪里找示例
 
 | 想做什么 | 参考文件 |
 | --- | --- |
 | 最简单的列表 + 表单 | `src/views/platform/iam/position/` |
-| 带图片上传、字典、部门的表单 | `src/views/biz/demo/book/` |
-| 树形表格 | `src/views/biz/demo/topic/` |
-| 主子表（一张单据带多行明细） | `src/views/biz/demo/invoice/` |
+| 带图片上传、字典、部门的表单 | `src/views/demo/book/` |
+| 树形表格 | `src/views/demo/topic/` |
+| 主子表（一张单据带多行明细） | `src/views/demo/invoice/` |
 | 复杂页面（左侧部门树、详情抽屉、更多操作） | `src/views/platform/iam/user/` |
-| 接入审批流程的业务表单 | `src/views/biz/biz/leave/` |
+| 接入审批流程的业务表单 | `src/views/biz/leave/` |
 
 改一改这些示例，是最快的学习方法。

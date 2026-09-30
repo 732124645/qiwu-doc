@@ -184,7 +184,7 @@ upgrade(id: number): Promise<void> {
   return this.txHost.withTransaction(async () => {
     await this.lockScopedIds([id])            // SELECT … FOR UPDATE，并检查数据范围
     const row = await this.repo.findOneByOrFail({ id })
-    if (!row.enabled) throw new BizError(Err.BIZ_CUSTOMER_DISABLED)
+    if (!row.enabled) throw new BizError(Err.CRM_CUSTOMER_DISABLED)
     await this.repo.update(id, { level: 'vip' })
   })
 }

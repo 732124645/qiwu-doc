@@ -58,11 +58,11 @@ import { upsert } from '../../../../db/seeds/upsert.js'
 await upsert(
   q,
   'cfg_param',
-  { param_key: 'biz.customer.vip_threshold' },            // 按键名查找
+  { param_key: 'crm.customer.vip_threshold' },            // 按键名查找
   {
     name: 'VIP 消费门槛（元）',
     name_i18n: { 'zh-CN': 'VIP 消费门槛（元）', 'en-US': 'VIP spending threshold' },
-    group_code: 'biz',
+    group_code: 'crm',
     is_builtin: 1,                                        // 内置参数不能被删除
     is_public: 0,
   },

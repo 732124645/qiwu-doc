@@ -2,7 +2,7 @@
 
 ## 路径
 
-- 前缀：`/api`，按域划分：`/api/iam/*`、`/api/settings/*`、`/api/messaging/*`、`/api/audit/*`、`/api/storage/*`、`/api/scheduler/*`、`/api/codegen/*`、`/api/monitor/*`、`/api/geo/*`、`/api/wf/*`、`/api/biz/*`
+- 前缀：`/api`，按域划分：`/api/iam/*`、`/api/settings/*`、`/api/messaging/*`、`/api/audit/*`、`/api/storage/*`、`/api/scheduler/*`、`/api/codegen/*`、`/api/monitor/*`、`/api/geo/*`、`/api/wf/*`；项目领域是 `/api/<领域>/*`，比如 `/api/biz/*`、`/api/demo/*`、`/api/crm/*`
 - 认证：`/api/auth/*`
 - 资源名用复数、短横线连接：`/api/iam/users`、`/api/settings/dict-entries`
 

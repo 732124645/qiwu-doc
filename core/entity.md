@@ -116,10 +116,10 @@ referencedBy('demo_invoice', { table: 'demo_invoice_line', column: 'invoice_id',
 
 另外，新增或修改时，如果引用的 id 指向不存在或已删除的行，返回 **404**。
 
-引用平台表的情况（比如业务表的 `dept_id` 引用部门），在 `biz.module.ts` 中声明：
+引用平台表的情况（比如业务表的 `dept_id` 引用部门），在 `project.module.ts` 中声明：
 
 ```ts
-// biz.module.ts
+// project.module.ts
 referencedBy('iam_dept', { table: 'demo_book', column: 'dept_id' })
 ```
 

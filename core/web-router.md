@@ -15,9 +15,9 @@
 菜单的 `component` 字段对应 `src/views/` 下的文件：
 
 ```text
-菜单 component = 'biz/demo/book/index'
+菜单 component = 'demo/book/index'
          ↓
-文件  src/views/biz/demo/book/index.vue
+文件  src/views/demo/book/index.vue
 ```
 
 找不到对应的文件时，这个页面会显示 404。
@@ -36,7 +36,7 @@
 | --- | --- |
 | 分组 `group` | 侧边栏中的目录，本身不是页面 |
 | 页面 `page`，`link_type = route` | 普通页面，加载 `component` 对应的 `.vue` 文件 |
-| 页面，`link_type = iframe` | 在布局中用 iframe 显示 `link_url`，比如"系统接口"（Swagger） |
+| 页面，`link_type = iframe` | 在布局中用 iframe 显示 `link_url`，比如"系统接口"（Swagger）。切换到别的标签再回来，iframe **不会重新加载**；关闭标签后移除，点标签的"刷新"会重新加载 |
 | 页面，`link_type = external` | 不注册路由，点击菜单时在新标签页中打开 `link_url` |
 | 按钮 `action` | 不是页面，只提供权限点 |
 
@@ -48,7 +48,7 @@
 2. 菜单的 `component_name` 和页面组件的名字**完全一致**：
 
    ```ts
-   // src/views/biz/demo/book/index.vue
+   // src/views/demo/book/index.vue
    defineOptions({ name: 'DemoBook' })      // 必须和菜单的 component_name 相同
    ```
 

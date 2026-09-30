@@ -92,14 +92,14 @@ it('name filter: seeded rows are found by their text in any language', async () 
 
 ```bash
 # 运行一个测试文件（用文件名，不带 .ts；不要加 --）
-pnpm --filter @qiwu/server test biz-customer-extra.e2e
+pnpm --filter @qiwu/server test crm-customer-extra.e2e
 
 # 只运行名称里包含 upgrade 的用例
-pnpm --filter @qiwu/server test biz-customer-extra.e2e -t upgrade
+pnpm --filter @qiwu/server test crm-customer-extra.e2e -t upgrade
 ```
 
 ::: warning 测试文件名要全局唯一
-Vitest 按文件路径的**子串**过滤。如果你有 `customer.e2e-spec.ts` 和 `biz-customer.e2e-spec.ts`，运行 `test customer.e2e` 会把两个都跑一遍。所以项目要求测试文件名在整个仓库里唯一，并且不能是别的文件名的一部分。
+Vitest 按文件路径的**子串**过滤。如果你有 `customer.e2e-spec.ts` 和 `crm-customer.e2e-spec.ts`，运行 `test customer.e2e` 会把两个都跑一遍。所以项目要求测试文件名在整个仓库里唯一，并且不能是别的文件名的一部分。
 :::
 
 ## 测试用的数据库

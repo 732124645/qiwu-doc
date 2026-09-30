@@ -95,7 +95,7 @@ import { ApiError } from '@/core/request/http'
 try {
   await customerApi.upgrade(id)
 } catch (e) {
-  if (e instanceof ApiError && e.code === Err.BIZ_CUSTOMER_DISABLED.code) {
+  if (e instanceof ApiError && e.code === Err.CRM_CUSTOMER_DISABLED.code) {
     // 特殊处理
   }
 }

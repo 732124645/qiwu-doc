@@ -4,30 +4,30 @@
 
 **需求**：客户列表的每一行加一个"升级为 VIP"按钮。
 
-- 需要单独的权限 `biz.customer.upgrade`，不是所有能修改客户的人都能升级；
+- 需要单独的权限 `crm.customer.upgrade`，不是所有能修改客户的人都能升级；
 - 已停用的客户不能升级，要提示"客户已停用，不能升级"；
 - 升级时记录成为 VIP 的时间；
 - 要记操作日志。
 
 ::: tip 前提
-先按[新增业务模块](/guide/new-module)生成好客户模块 `biz_customer`。下面的步骤是在生成的代码上继续开发。
+先按[新增业务模块](/guide/new-module)生成好客户模块 `crm_customer`。下面的步骤是在生成的代码上继续开发。
 :::
 
 我们会依次修改这些文件：
 
 ```text
-① apps/server/src/db/migrations/…-biz-customer-vip.ts   加一列
-② apps/server/src/modules/biz/…/customer.entity.ts        实体加字段
-③ packages/shared/src/biz/…/customer.schema.ts            权限常量、返回字段
+① apps/server/src/db/migrations/…-crm-customer-vip.ts   加一列
+② apps/server/src/modules/crm/customer/customer.entity.ts        实体加字段
+③ packages/shared/src/crm/customer.schema.ts            权限常量、返回字段
 ④ packages/shared/src/common/error-codes.ts               错误码
 ⑤ apps/server/src/i18n/{zh-CN,en-US}/error.json           错误信息翻译
-⑥ apps/server/src/modules/biz/…/customer.service.ts       业务逻辑
-⑦ apps/server/src/modules/biz/…/customer.controller.ts    接口
-⑧ apps/server/src/modules/biz/…/customer.seed.ts          按钮权限写进菜单
-⑨ apps/web/src/api/biz/…/customer.ts                       前端接口
-⑩ apps/web/src/views/biz/…/customer/index.vue              按钮
+⑥ apps/server/src/modules/crm/customer/customer.service.ts       业务逻辑
+⑦ apps/server/src/modules/crm/customer/customer.controller.ts    接口
+⑧ apps/server/src/modules/crm/customer/customer.seed.ts          按钮权限写进菜单
+⑨ apps/web/src/api/crm/customer.ts                       前端接口
+⑩ apps/web/src/views/crm/customer/index.vue              按钮
 ⑪ apps/web/src/locales/{zh-CN,en-US}/*.json                界面翻译
-⑫ apps/server/test/e2e/biz-customer-extra.e2e-spec.ts      测试
+⑫ apps/server/test/e2e/crm-customer-extra.e2e-spec.ts      测试
 ```
 
 看起来文件很多，但每个文件只改几行。**这就是全栈开发的日常：一个功能会贯穿好几层。**
@@ -37,20 +37,20 @@
 要记录"成为 VIP 的时间"，表里需要一个新列。表结构只能通过迁移修改：
 
 ```ts
-// apps/server/src/db/migrations/20261002100000-biz-customer-vip.ts
+// apps/server/src/db/migrations/20261002100000-crm-customer-vip.ts
 import type { MigrationInterface, QueryRunner } from 'typeorm'
 
-export class BizCustomerVip20261002100000 implements MigrationInterface {
-  name = 'BizCustomerVip20261002100000'
+export class CrmCustomerVip20261002100000 implements MigrationInterface {
+  name = 'CrmCustomerVip20261002100000'
 
   async up(q: QueryRunner): Promise<void> {
     await q.query(
-      `ALTER TABLE biz_customer ADD COLUMN vip_since datetime(3) NULL COMMENT '成为 VIP 的时间' AFTER level`,
+      `ALTER TABLE crm_customer ADD COLUMN vip_since datetime(3) NULL COMMENT '成为 VIP 的时间' AFTER level`,
     )
   }
 
   async down(q: QueryRunner): Promise<void> {
-    await q.query('ALTER TABLE biz_customer DROP COLUMN vip_since')
+    await q.query('ALTER TABLE crm_customer DROP COLUMN vip_since')
   }
 }
 ```
@@ -76,9 +76,9 @@ vipSince: Date | null
 
 ```ts
 export const customerPerms = {
-  browse: 'biz.customer.browse',
+  browse: 'crm.customer.browse',
   // …生成的其他权限
-  upgrade: 'biz.customer.upgrade',        // 新增
+  upgrade: 'crm.customer.upgrade',        // 新增
 } as const
 
 export const customerVo = z.object({
@@ -94,7 +94,7 @@ export const customerVo = z.object({
 业务错误码使用 `E1xxx` 号段。在 `packages/shared/src/common/error-codes.ts` 的 `Err` 对象里加一行（编号选一个还没用过的）：
 
 ```ts
-BIZ_CUSTOMER_DISABLED: def('E1001', 422, 'error.biz.customer_disabled'),
+CRM_CUSTOMER_DISABLED: def('E1001', 422, 'error.crm.customer_disabled'),
 ```
 
 三个参数分别是：错误码（前端可以根据它做判断）、HTTP 状态码（422 表示"请求格式没问题，但业务规则不允许"）、翻译键。
@@ -111,7 +111,7 @@ pnpm --filter @qiwu/shared build
 
 ```json
 {
-  "biz": {
+  "crm": {
     "customer_disabled": "客户已停用，不能升级"
   }
 }
@@ -121,13 +121,13 @@ pnpm --filter @qiwu/shared build
 
 ```json
 {
-  "biz": {
+  "crm": {
     "customer_disabled": "The customer is disabled and cannot be upgraded"
   }
 }
 ```
 
-（如果文件里已经有 `biz` 这一项，就加到它下面。）
+（如果文件里已经有 `crm` 这一项，就加到它下面。）
 
 ## ⑥ 服务：业务逻辑
 
@@ -135,14 +135,14 @@ pnpm --filter @qiwu/shared build
 
 ```ts
 import { Err } from '@qiwu/shared'
-import { BizError } from '../../../../core/http/biz-error.js'
+import { BizError } from '../../../core/http/biz-error.js'
 
 /** 升级为 VIP：已停用的客户不能升级；已经是 VIP 的不再改动 */
 upgrade(id: number): Promise<void> {
   return this.txHost.withTransaction(async () => {
     await this.lockScopedIds([id])                              // 1
     const row = await this.repo.findOneByOrFail({ id })         // 2
-    if (!row.enabled) throw new BizError(Err.BIZ_CUSTOMER_DISABLED)   // 3
+    if (!row.enabled) throw new BizError(Err.CRM_CUSTOMER_DISABLED)   // 3
     if (row.level === 'vip') return                             // 4
     await this.repo.update(id, { level: 'vip', vipSince: new Date() })  // 5
   })
@@ -168,7 +168,7 @@ upgrade(id: number): Promise<void> {
 ```ts
 @Put(':id/upgrade')
 @RequirePerm(customerPerms.upgrade)
-@ActionLog({ domain: 'biz.customer', verb: 'upgrade' })
+@ActionLog({ domain: 'crm.customer', verb: 'upgrade' })
 @ApiOperation({ summary: 'Upgrade a customer to VIP' })
 @ApiEnvelope()
 upgrade(@Param('id', ParseIntPipe) id: number) {
@@ -176,7 +176,7 @@ upgrade(@Param('id', ParseIntPipe) id: number) {
 }
 ```
 
-- 接口地址是 `PUT /api/biz/customers/:id/upgrade`。按照项目约定，**操作写成子资源**，而不是 `/upgradeCustomer?id=` 这种形式；
+- 接口地址是 `PUT /api/crm/customers/:id/upgrade`。按照项目约定，**操作写成子资源**，而不是 `/upgradeCustomer?id=` 这种形式；
 - `@RequirePerm`：没有这个权限返回 403；
 - `@ActionLog`：每个非 GET 接口**必须**有操作日志（或者显式声明 `@SkipActionLog()`），否则 `pnpm verify` 会失败；
 - 动作名 `upgrade` 是新的，**必须先登记**：在 `apps/server/src/db/seeds/audit/audit.seed.ts` 的 `VERBS` 数组里加一行 `['upgrade', '升级', 'Upgrade', 'primary']`，否则 `pnpm verify` 会报错。这个数组同时是操作日志页面显示动作名称的字典。能用已有的动作名（比如 `modify`）时，就不用登记；
@@ -204,7 +204,7 @@ pnpm db:seed      # 种子可以重复执行，已存在的数据会被更新而
 
 ## ⑨ 前端接口
 
-`apps/web/src/api/biz/…/customer.ts`：
+`apps/web/src/api/crm/customer.ts`：
 
 ```ts
 export const customerApi = {
@@ -224,7 +224,7 @@ import { ElMessage, ElMessageBox } from 'element-plus'
 async function upgrade(row: CustomerVo) {
   try {
     await ElMessageBox.confirm(
-      t('biz.customer.upgradeConfirm', { name: row.name }),
+      t('crm.customer.upgradeConfirm', { name: row.name }),
       t('crud.confirm.title'),
       { type: 'warning' },
     )
@@ -232,7 +232,7 @@ async function upgrade(row: CustomerVo) {
     return                                 // 用户点了取消
   }
   await customerApi.upgrade(row.id)        // 失败时请求层会自动弹出错误信息，这里不用处理
-  ElMessage.success(t('biz.customer.upgraded'))
+  ElMessage.success(t('crm.customer.upgraded'))
   await refresh()
 }
 ```
@@ -249,7 +249,7 @@ async function upgrade(row: CustomerVo) {
     type="primary"
     @click="upgrade(row)"
   >
-    {{ t('biz.customer.upgrade') }}
+    {{ t('crm.customer.upgrade') }}
   </el-button>
 </template>
 ```
@@ -264,11 +264,11 @@ async function upgrade(row: CustomerVo) {
 
 项目**不允许在 `.vue` 和 `.ts` 里写中文**，所有文字都要放在翻译文件里，并且中英文必须同时添加。
 
-`apps/web/src/locales/zh-CN/biz.customer.json`（生成器已经创建了这个文件，往里面加）：
+`apps/web/src/locales/zh-CN/crm.customer.json`（生成器已经创建了这个文件，往里面加）：
 
 ```json
 {
-  "biz": {
+  "crm": {
     "customer": {
       "upgrade": "升级为 VIP",
       "upgradeConfirm": "确定把客户「{name}」升级为 VIP 吗？",
@@ -278,11 +278,11 @@ async function upgrade(row: CustomerVo) {
 }
 ```
 
-`apps/web/src/locales/en-US/biz.customer.json`：
+`apps/web/src/locales/en-US/crm.customer.json`：
 
 ```json
 {
-  "biz": {
+  "crm": {
     "customer": {
       "upgrade": "Upgrade to VIP",
       "upgradeConfirm": "Upgrade customer \"{name}\" to VIP?",
@@ -304,7 +304,7 @@ pnpm i18n:check
 
 后端功能一定要写 e2e 测试，至少覆盖这几种情况：**成功、没有权限（403）、违反业务规则（422）、超出范围或不存在（404）**。
 
-生成的 `biz-customer.e2e-spec.ts` 不要修改（模板更新后它会被重新生成），自定义功能的测试写在旁边的 `biz-customer-extra.e2e-spec.ts` 里：
+生成的 `crm-customer.e2e-spec.ts` 不要修改（模板更新后它会被重新生成），自定义功能的测试写在旁边的 `crm-customer-extra.e2e-spec.ts` 里：
 
 ```ts
 it('upgrade: an enabled customer becomes VIP, with vipSince set', async () => {
@@ -319,7 +319,7 @@ it('upgrade: an enabled customer becomes VIP, with vipSince set', async () => {
 it('upgrade: a disabled customer → 422 with the translated message', async () => {
   const { id } = await addCustomer({ enabled: false })
   const res = await call('put', `/${id}/upgrade`).set('Accept-Language', 'zh-CN').expect(422)
-  expect(res.body.code).toBe(Err.BIZ_CUSTOMER_DISABLED.code)
+  expect(res.body.code).toBe(Err.CRM_CUSTOMER_DISABLED.code)
   expect(res.body.msg).toBe('客户已停用，不能升级')
 })
 
@@ -328,12 +328,12 @@ it('upgrade: an unknown id → 404', async () => {
 })
 ```
 
-没有权限（403）的测试，需要准备一个没有 `biz.customer.upgrade` 权限的用户，可以参考生成的测试文件里 `reader` 用户的写法。测试文件的完整结构（启动应用、登录、清理数据）请看[写测试](/backend/testing)。
+没有权限（403）的测试，需要准备一个没有 `crm.customer.upgrade` 权限的用户，可以参考生成的测试文件里 `reader` 用户的写法。测试文件的完整结构（启动应用、登录、清理数据）请看[写测试](/backend/testing)。
 
 运行：
 
 ```bash
-pnpm --filter @qiwu/server test biz-customer-extra.e2e
+pnpm --filter @qiwu/server test crm-customer-extra.e2e
 ```
 
 ## 最后：检查

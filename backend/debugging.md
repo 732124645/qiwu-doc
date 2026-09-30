@@ -44,8 +44,8 @@ mysql -u qiwu -p qiwu_dev
 
 ```sql
 SHOW TABLES;
-DESCRIBE biz_customer;                                            -- 查看表结构
-SELECT * FROM biz_customer ORDER BY id DESC LIMIT 10;             -- 最新的 10 条
+DESCRIBE crm_customer;                                            -- 查看表结构
+SELECT * FROM crm_customer ORDER BY id DESC LIMIT 10;             -- 最新的 10 条
 SELECT * FROM meta_migrations ORDER BY id DESC LIMIT 5;           -- 最近执行的迁移
 ```
 
@@ -68,7 +68,7 @@ SELECT * FROM meta_migrations ORDER BY id DESC LIMIT 5;           -- 最近执�
 
 **接口返回 404，但代码明明写了**
 
-- 新模块没有注册到 `biz.module.ts` 的 `imports` 里；
+- 新模块没有注册到 `project.module.ts` 的 `imports` 里；
 - 路径写错了：控制器的 `@Controller('biz/customers')` 前面会自动加上 `/api`；
 - 固定路径写在了 `:id` 路由的后面，被 `:id` 抢先匹配了；
 - 这条记录不在你的数据范围内。这是项目的设计：超出范围一律返回 404。

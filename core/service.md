@@ -106,7 +106,7 @@ upgrade(id: number): Promise<void> {
   return this.txHost.withTransaction(async () => {
     await this.lockScopedIds([id])                                   // ① 锁定，并检查数据范围
     const row = await this.repo.findOneByOrFail({ id })              // ② 读出最新的数据
-    if (!row.enabled) throw new BizError(Err.BIZ_CUSTOMER_DISABLED)  // ③ 检查业务规则
+    if (!row.enabled) throw new BizError(Err.CRM_CUSTOMER_DISABLED)  // ③ 检查业务规则
     await this.repo.update(id, { level: 'vip' })                     // ④ 修改
   })
 }
@@ -319,7 +319,7 @@ return rows.map((r) => ({ id: Number(r.id), name: r.name }))
 ```ts
 throw new NotFoundException()                          // 404
 throw new BizError(Err.DUPLICATE, { code })            // 409，带翻译好的信息
-throw new BizError(Err.BIZ_CUSTOMER_DISABLED)           // 自定义错误码
+throw new BizError(Err.CRM_CUSTOMER_DISABLED)           // 自定义错误码
 ```
 
 详见[异常处理](/core/errors)。

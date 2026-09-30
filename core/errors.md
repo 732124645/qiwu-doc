@@ -12,7 +12,7 @@ import { BizError } from '../../../../core/http/biz-error.js'
 
 throw new BizError(Err.DUPLICATE, { code: 'CS101' })     // 409
 throw new BizError(Err.IAM_USER_SELF)                    // 不能操作自己
-throw new BizError(Err.BIZ_CUSTOMER_DISABLED)            // 自定义的错误码
+throw new BizError(Err.CRM_CUSTOMER_DISABLED)            // 自定义的错误码
 ```
 
 `new BizError(错误定义, 参数?)`：
@@ -164,7 +164,7 @@ import { ApiError } from '@/core/request/http'
 try {
   await customerApi.upgrade(id)
 } catch (e) {
-  if (e instanceof ApiError && e.code === Err.BIZ_CUSTOMER_DISABLED.code) {
+  if (e instanceof ApiError && e.code === Err.CRM_CUSTOMER_DISABLED.code) {
     // 特殊处理，比如提示用户先启用客户
   }
 }

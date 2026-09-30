@@ -82,22 +82,27 @@ const ACTIONS: [perms: string, name: string][] = [
 ]
 
 export async function seedBook(q: EntityManager): Promise<string[]> {
-  // 找到父菜单分组
-  const parentId = await findId(q, 'iam_menu', { route_name: 'demo' })
-  if (parentId === undefined) throw new Error('seedBook: the demo menu group is missing')
+  // 找到父菜单分组：被删除时跳过，不存在时报错
+  const parent = await findRow(q, 'iam_menu', { route_name: 'demo', kind: 'group' })
+  if (!parent) throw new Error('seedBook: the demo menu group is missing')
+  if (parent.deleted) return ['seed: the demo menu group was deleted: the book menus are skipped']
 
   // 页面
-  const pageId = await upsert(q, 'iam_menu', { route_name: 'demo-book' }, {
-    parent_id: parentId,
-    kind: 'page',
-    name: 'menu.demo.book',                 // 菜单名称（翻译键）
-    route_path: '/demo/books',              // 浏览器地址
-    component: 'biz/demo/book/index',       // 对应 src/views/biz/demo/book/index.vue
-    component_name: 'DemoBook',             // 页面组件的名字，用于页面缓存
-    keep_alive: 1,                          // 切换标签页时保留页面状态
-    icon: 'lucide:library',
-    sort_no: 10,
-  })
+  const pageId = await upsert(
+    q,
+    'iam_menu',
+    { route_name: 'demo-book' },
+    {
+      kind: 'page',
+      name: 'menu.demo.book',                 // 菜单名称（翻译键）
+      route_path: '/demo/books',              // 浏览器地址
+      component: 'demo/book/index',           // 对应 src/views/demo/book/index.vue
+      component_name: 'DemoBook',             // 页面组件的名字，用于页面缓存
+      keep_alive: 1,                          // 切换标签页时保留页面状态
+    },
+    // 只在第一次插入时写入：管理员可以在菜单管理中移动页面、修改图标和排序
+    { parent_id: parent.id, icon: 'lucide:library', sort_no: 10 },
+  )
 
   // 按钮权限，挂在页面下面
   for (const [i, [perms, name]] of ACTIONS.entries())
@@ -130,21 +135,54 @@ export async function seedBook(q: EntityManager): Promise<string[]> {
 | `visible` | 0 表示不在侧边栏中显示（隐藏页面） |
 | `keep_alive` | 1 表示切换标签页时保留页面状态 |
 
-### 新建一个菜单分组
+### 项目的菜单分组
 
-做 CRM 这样的新领域时，通常需要一个自己的菜单分组：
+项目自己的菜单分组（比如 CRM 的"客户关系"），分两步建立：
+
+**1. 在菜单管理中手动建**：**系统管理 → 菜单管理** → 新增，类型选"分组"。
+
+- 分组可以有任意层级；
+- **路由名必填**，只能用小写字母、数字和短横线，**保存后不能修改**（种子和生成的页面都靠它找到分组）；
+- 表单会按上级的完整路径预填路由名：在 `/erp` 下建 `/erp/sale`，路由名预填为 `erp-sale`。
+
+**2. 写进种子文件**：`apps/server/src/db/seeds/project/menu-groups.seed.ts`。第 1 步只改了你自己的数据库，写进这个文件，其他环境执行种子时才会有同样的分组：
 
 ```ts
-await upsert(q, 'iam_menu', { route_name: 'crm' }, {
-  kind: 'group',
-  name: 'menu.crm.title',
-  route_path: '/crm',
-  icon: 'lucide:handshake',
-  sort_no: 20,
-})
+export const PROJECT_MENU_GROUPS: ProjectMenuGroup[] = [
+  // 上级写在前面
+  { routeName: 'erp', parent: null, name: '企业资源', nameI18n: { 'zh-CN': '企业资源', 'en-US': 'ERP' }, routePath: '/erp', icon: 'lucide:factory', sortNo: 60 },
+  { routeName: 'erp-sale', parent: 'erp', name: '销售管理', nameI18n: { 'zh-CN': '销售管理', 'en-US': 'Sales' }, routePath: '/erp/sale', icon: null, sortNo: 10 },
+]
 ```
 
-这个分组要在 CRM 各模块的种子**之前**执行。
+不用自己手写：代码生成器生成模块时，会**打印这个模块的父分组链上的所有分组**（从当前数据库中读取），复制还没有的那几行即可。
+
+| 字段 | 说明 |
+| --- | --- |
+| `routeName` | 路由名，和菜单管理中的一致 |
+| `parent` | 上级分组的路由名：内置分组（比如 `biz`）、这个文件中写在前面的分组，或者 `null`（顶级） |
+| `name`、`nameI18n` | 名称。这里可以直接写中文 |
+| `routePath`、`icon`、`sortNo` | 路径、图标、排序 |
+
+这个文件的规则：
+
+- **只插入不存在的分组**。分组已经存在，或者已经被管理员删除，都不会改动它（分组归管理员管理）；
+- 上级分组已被删除时，这个分组也以"已删除"的状态插入，并打印提示；它下面的分组和模块都会被跳过；
+- `parent` 指向的分组既不是内置的，也没有写在前面时，报错。
+
+### 模块的页面挂在分组下
+
+生成的模块种子按路由名找父分组：
+
+| 父分组的状态 | 结果 |
+| --- | --- |
+| 存在 | 正常建立页面和按钮 |
+| 已被管理员删除 | 跳过这个模块的菜单，打印提示，其他种子照常执行 |
+| 不存在 | 报错，提示把分组加到 `menu-groups.seed.ts` 中 |
+
+生成的页面，**父菜单、图标、排序只在第一次插入时写入**。管理员在菜单管理中把页面挪到别的分组、换了图标或排序，重新执行种子不会改回去（名称、路径、页面文件和按钮权限仍然每次更新）。
+
+内置的分组有：首页 `home`、流程审批 `workflow`、**业务管理 `biz`**、系统管理 `system`、系统监控 `monitor`、消息中心 `messaging`、文件管理 `storage`、日志管理 `audit`、系统工具 `devtools`、生成示例 `demo`、流程管理 `wf-admin`。
 
 ### 隐藏页面
 
@@ -170,19 +208,21 @@ await upsert(q, 'iam_menu', { kind: 'action', perms: userPerms['assign-roles'] }
 
 ## 注册种子
 
-新模块的种子函数，要加到 `apps/server/src/db/seeds/index.ts` 的 `SEEDS` 中：
+模块的种子函数，要加到 `apps/server/src/db/seeds/index.ts` 的 `SEEDS` 中。项目模块统一放在 `SEEDS.project`：
 
 ```ts
 const SEEDS: Record<string, Seed[]> = {
   iam: [seedIam, seedUser, seedRole, seedMenu, seedDept, seedPosition],
   settings: [seedSettings, seedDict, seedDictEntry, seedParameter],
   // …
-  crm: [seedCrmMenu, seedCustomer, seedContact],        // 你的领域：先分组，再各模块
+  demo: [seedDemo, seedBook, seedTopic, seedInvoice, seedDemoRealtime],
+  // 最后执行：项目的菜单分组，然后是各模块
+  project: [seedProjectMenuGroups, seedCustomer, seedSaleOrder],
 }
 ```
 
-- 键是领域名，`--only crm` 就只执行这一组；
-- **按顺序执行**：分组要在页面之前，被依赖的数据要在前面。
+- 按顺序执行：`seedProjectMenuGroups` 必须是第一个，模块的种子放在它后面；
+- `pnpm db:seed -- --only project` 只执行项目的种子。
 
 ## 其他常见的种子
 

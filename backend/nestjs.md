@@ -145,13 +145,13 @@ export class PositionModule {}
 
 模块再一层层注册到上级模块：`PositionModule` → `IamModule` → `PlatformModule` → `AppModule`。
 
-业务模块统一注册在 `apps/server/src/modules/biz/biz.module.ts`：
+项目的业务模块统一注册在 `apps/server/src/modules/project.module.ts`：
 
 ```ts
 @Module({
   imports: [BookModule, TopicModule, InvoiceModule, DemoRealtimeModule, LeaveModule],
 })
-export class BizModule {}
+export class ProjectModule {}
 ```
 
 **新模块忘记注册，接口就会返回 404。** 这是新手最常遇到的问题之一。

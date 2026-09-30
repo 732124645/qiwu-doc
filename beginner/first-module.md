@@ -35,7 +35,9 @@
 | `deleted_at` | 删除时间。删除时并不会真正删掉数据，而是在这里写上删除时间（叫做"**逻辑删除**"） |
 | `alive` | 配合唯一索引使用：课程删除后，它的编码可以被新课程再次使用 |
 
-表名是 `biz_course`。`biz_` 前缀表示这是项目自己的业务表，代码生成器能自动识别它。以后做真正的项目时，也可以用自己的前缀，比如 `crm_`、`erp_`，参见[分组和领域](/core/module#分组和领域-做-crm-还要叫-biz-吗)。
+表名是 `biz_course`。`biz_` 前缀表示这张表属于内置的"**业务管理**"领域，生成的页面会出现在侧边栏的"业务管理"分组下，不需要自己建分组。
+
+以后做真正的项目时，可以用自己的领域作为前缀，比如 `crm_customer`、`erp_sale_order`，代码生成器会把第一段当作领域，参见[新增业务模块](/guide/new-module#表名决定了什么)。
 
 ## ② 写迁移，建表
 
@@ -158,11 +160,7 @@ CODEGEN_WRITE=true
 
 ### 生成信息
 
-找到 **父菜单**，这决定了新页面出现在侧边栏的哪个分组下面。**请选择"生成示例"**。
-
-::: warning 为什么要手动选择父菜单
-`biz_` 开头的表默认挂在一个叫 `biz` 的菜单分组下，但当前版本还没有创建这个分组。如果不修改，后面第 ⑥ 步会报错 `the biz menu group is missing`。
-:::
+**父菜单**决定了新页面出现在侧边栏的哪个分组下面。`biz_course` 默认是"**业务管理**"，保持不变即可。
 
 勾选需要的功能：**导出**、**导入**、**详情抽屉**，都可以勾上试试。
 
@@ -194,7 +192,7 @@ CODEGEN_WRITE=true
 
 关闭预览，点这一行的 **更多 → 写入工作区**，确认。
 
-你应该看到"**已写入 N 个文件**"。回到 VS Code，在左侧的文件列表里，能看到这些新文件，比如 `apps/server/src/modules/biz/biz/course/`。
+你应该看到"**已写入 N 个文件**"。回到 VS Code，在左侧的文件列表里，能看到这些新文件，比如 `apps/server/src/modules/biz/course/`。
 
 ::: info 生成器很安全
 写入工作区**从不覆盖已经存在的文件**。如果某个文件已经存在并且内容不同，它会列出差异，并且一个文件都不写。所以不用担心把项目弄坏。
@@ -204,7 +202,7 @@ CODEGEN_WRITE=true
 
 生成器只新建文件，不会修改已有的文件。所以还要手动在 3 个地方加几行代码，告诉项目"有一个新模块"。你刚才复制的注册代码大致是这样的：
 
-**第 1 处：** `apps/server/src/modules/biz/biz.module.ts`
+**第 1 处：** `apps/server/src/modules/project.module.ts`
 
 ```ts
 import { CourseModule } from './biz/course/course.module.js'    // ← 在文件顶部加上这一行
@@ -213,29 +211,30 @@ import { CourseModule } from './biz/course/course.module.js'    // ← 在文件
   imports: [BookModule, TopicModule, InvoiceModule, DemoRealtimeModule, LeaveModule, CourseModule],
   //                                                                                 ↑ 在最后加上
 })
-export class BizModule {}
+export class ProjectModule {}
 ```
 
 **第 2 处：** `apps/server/src/db/seeds/index.ts`
 
 ```ts
-import { seedCourse } from '../../modules/biz/biz/course/course.seed.js'   // ← 顶部加上
+import { seedCourse } from '../../modules/biz/course/course.seed.js'   // ← 顶部加上
 
 const SEEDS: Record<string, Seed[]> = {
   // …原来的内容不动…
-  workflow: [seedWorkflow, seedWorkflowMenus, seedWorkflowTemplates],
-  biz: [seedCourse],                                                        // ← 在最后加上这一行
+  project: [seedProjectMenuGroups, seedCourse],                       // ← 在 project 这一行的最后加上
 }
 ```
 
 **第 3 处：** `packages/shared/src/index.ts`
 
 ```ts
-export * from './biz/biz/course.schema.js'     // ← 在文件末尾加上
+export * from './biz/course.schema.js'     // ← 在文件末尾加上
 ```
 
 ::: tip 以预览里显示的为准
 上面的写法是示意。路径、名称请以你在预览页面复制的注册代码为准。
+
+如果你用的是自己的领域（比如 `edu_course`），注册代码里还会多一段 `menu-groups.seed.ts` 的内容，那是菜单分组，也要照着加上。参见[新增业务模块](/guide/new-module#⑤-粘贴注册代码)。
 :::
 
 保存这三个文件。`pnpm dev` 会自动重新编译。然后执行种子，把新菜单和权限写进数据库：
@@ -248,7 +247,11 @@ pnpm db:seed
 
 ## ⑦ 打开页面试用
 
-回到浏览器，**刷新页面**。在侧边栏的 **系统工具 → 生成示例** 下面，出现了"**课程**"菜单。🎉
+回到浏览器，**刷新页面**。在侧边栏的 **业务管理** 下面，出现了"**课程**"菜单。🎉
+
+::: info 为什么只有 admin 能看到
+生成的页面**不会自动授权**给任何角色，只有超级管理员（admin）能马上看到。其他用户要看到它，需要在 **系统管理 → 角色管理** 里给他们的角色授权（下面的练习里会做）。
+:::
 
 试试这些功能：
 

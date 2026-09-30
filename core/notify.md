@@ -44,7 +44,7 @@ interface NotifySend {
 | --- | --- |
 | `'张三'`、`42`、`true` | 原样 |
 | `{ i18n: 'seed.wf.leave' }` | 按收件人的语言翻译。找不到这个键时原样输出，所以管理员自己填写的名称也能用 |
-| `{ dict: 'biz.customer_level', value: 'vip' }` | 字典标签，按收件人的语言显示 |
+| `{ dict: 'crm.customer_level', value: 'vip' }` | 字典标签，按收件人的语言显示 |
 | `{ datetime: iso字符串 }` | 按收件人的时区显示为 `YYYY-MM-DD HH:mm` |
 
 只发站内信的写法：
