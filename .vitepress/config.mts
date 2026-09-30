@@ -11,7 +11,14 @@ export default defineConfig({
     logo: '/logo.svg',
     nav: [
       { text: '指南', link: '/guide/introduction', activeMatch: '/guide/' },
-      { text: '后端入门', link: '/backend/', activeMatch: '/backend/' },
+      {
+        text: '入门',
+        activeMatch: '/(backend|java)/',
+        items: [
+          { text: '前端开发者：后端入门', link: '/backend/' },
+          { text: 'Java 开发者：转到 Node', link: '/java/' },
+        ],
+      },
       { text: '核心模块', link: '/core/', activeMatch: '/core/' },
       { text: '功能', link: '/features/permission', activeMatch: '/features/' },
       { text: '参考', link: '/reference/api', activeMatch: '/reference/' },
@@ -58,6 +65,19 @@ export default defineConfig({
             { text: '手把手：加一个自定义操作', link: '/backend/tutorial' },
             { text: '写测试', link: '/backend/testing' },
             { text: '排查问题', link: '/backend/debugging' },
+          ],
+        },
+      ],
+      '/java/': [
+        {
+          text: '写给 Java 开发者',
+          items: [
+            { text: '先看这里', link: '/java/' },
+            { text: 'Node.js 和 JVM 的差异', link: '/java/node-runtime' },
+            { text: 'TypeScript 速成', link: '/java/typescript' },
+            { text: 'Spring Boot 对照 NestJS', link: '/java/spring-to-nest' },
+            { text: '从 RuoYi 过来', link: '/java/from-ruoyi' },
+            { text: '前端速成：Vue 3', link: '/java/vue-primer' },
           ],
         },
       ],
