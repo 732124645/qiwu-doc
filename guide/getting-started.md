@@ -8,7 +8,7 @@
 | --- | --- | --- |
 | Node.js | ≥ 22.22.1 | 推荐 22 LTS |
 | pnpm | 11 | 仓库 `packageManager` 已固定版本，用 `corepack enable` 即可自动切换 |
-| MySQL | 8.x | 单数据源 |
+| MySQL | 8.0 及以上 | 单数据源 |
 | Redis | 6 及以上 | 需要支持 ACL（用户名 + 密码） |
 
 ::: tip macOS
@@ -30,7 +30,9 @@ pnpm i
 ```sql
 CREATE DATABASE qiwu_dev CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci;
 CREATE USER 'qiwu'@'localhost' IDENTIFIED BY '换成你的密码';
+CREATE USER 'qiwu'@'127.0.0.1' IDENTIFIED BY '换成你的密码';
 GRANT ALL ON qiwu_dev.* TO 'qiwu'@'localhost';
+GRANT ALL ON qiwu_dev.* TO 'qiwu'@'127.0.0.1';
 ```
 
 Redis 的所有键都带 `qw:` 前缀，可以和其他项目共用一个 Redis。如果要限制权限，可以建一个只能访问 `qw:*` 的 ACL 用户。

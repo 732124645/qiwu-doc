@@ -13,8 +13,9 @@ export default defineConfig({
       { text: '指南', link: '/guide/introduction', activeMatch: '/guide/' },
       {
         text: '入门',
-        activeMatch: '/(backend|java)/',
+        activeMatch: '/(beginner|backend|java)/',
         items: [
+          { text: '学生和新手：从零开始', link: '/beginner/' },
           { text: '前端开发者：后端入门', link: '/backend/' },
           { text: 'Java 开发者：转到 Node', link: '/java/' },
         ],
@@ -65,6 +66,36 @@ export default defineConfig({
             { text: '手把手：加一个自定义操作', link: '/backend/tutorial' },
             { text: '写测试', link: '/backend/testing' },
             { text: '排查问题', link: '/backend/debugging' },
+          ],
+        },
+      ],
+      '/beginner/': [
+        {
+          text: '准备',
+          items: [
+            { text: '先看这里', link: '/beginner/' },
+            { text: '网站是怎么工作的', link: '/beginner/how-web-works' },
+            { text: '终端入门', link: '/beginner/terminal' },
+            { text: '安装环境（Mac）', link: '/beginner/install-mac' },
+            { text: '安装环境（Windows）', link: '/beginner/install-windows' },
+          ],
+        },
+        {
+          text: '上手',
+          items: [
+            { text: '第一次把项目跑起来', link: '/beginner/first-run' },
+            { text: '逛一逛后台', link: '/beginner/admin-tour' },
+            { text: '第一次改代码', link: '/beginner/first-change' },
+            { text: '做第一个模块：课程管理', link: '/beginner/first-module' },
+            { text: '用 Git 保存进度', link: '/beginner/git' },
+          ],
+        },
+        {
+          text: '遇到问题',
+          items: [
+            { text: '看不懂报错怎么办', link: '/beginner/errors' },
+            { text: '术语表', link: '/beginner/glossary' },
+            { text: '接下来学什么', link: '/beginner/next' },
           ],
         },
       ],
