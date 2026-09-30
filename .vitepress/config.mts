@@ -12,6 +12,7 @@ export default defineConfig({
     nav: [
       { text: '指南', link: '/guide/introduction', activeMatch: '/guide/' },
       { text: '后端入门', link: '/backend/', activeMatch: '/backend/' },
+      { text: '核心模块', link: '/core/', activeMatch: '/core/' },
       { text: '功能', link: '/features/permission', activeMatch: '/features/' },
       { text: '参考', link: '/reference/api', activeMatch: '/reference/' },
       { text: '更新日志', link: '/changelog' },
@@ -57,6 +58,32 @@ export default defineConfig({
             { text: '手把手：加一个自定义操作', link: '/backend/tutorial' },
             { text: '写测试', link: '/backend/testing' },
             { text: '排查问题', link: '/backend/debugging' },
+          ],
+        },
+      ],
+      '/core/': [
+        { text: '总览', items: [{ text: '核心模块一览', link: '/core/' }] },
+        {
+          text: '后端',
+          items: [
+            { text: '字典', link: '/core/dict' },
+            { text: '参数设置', link: '/core/param' },
+            { text: '操作日志', link: '/core/action-log' },
+            { text: '缓存', link: '/core/cache' },
+            { text: '防重复提交、限流与锁', link: '/core/guards' },
+            { text: '定时任务', link: '/core/job' },
+            { text: '消息通知', link: '/core/notify' },
+            { text: '文件上传', link: '/core/upload' },
+            { text: 'Excel 导入导出', link: '/core/excel' },
+            { text: '富文本', link: '/core/richtext' },
+          ],
+        },
+        {
+          text: '前端',
+          items: [
+            { text: '列表页', link: '/core/crud-list' },
+            { text: '表单弹框', link: '/core/crud-form' },
+            { text: '权限与翻译', link: '/core/web-perm-i18n' },
           ],
         },
       ],
