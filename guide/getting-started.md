@@ -25,7 +25,12 @@ pnpm i
 
 ## 2. 准备数据库和 Redis
 
-建一个开发库和一个专用账号（库名必须以 `_dev`、`_test` 或 `_e2e` 结尾，`db:reset` 会检查这一点，防止误删生产库）：
+建一个开发库和一个专用账号：
+
+::: tip 为什么开发库叫 qiwu_dev
+`db:reset` 会删掉库里所有的表再重建。为了防止误删正式数据，**只有库名以 `_dev`、`_test` 或 `_e2e` 结尾时**，它才会执行。这只是 `db:reset` 这一条命令的限制，服务本身、`db:migrate`、`db:seed` 都不检查库名，生产库可以随意命名。
+:::
+
 
 ```sql
 CREATE DATABASE qiwu_dev CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci;
