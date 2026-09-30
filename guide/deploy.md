@@ -100,7 +100,7 @@ server {
 
 ## 使用 S3 存储时
 
-如果在 **系统工具 → 文件配置** 里启用了 S3（阿里云 OSS、腾讯云 COS、Cloudflare R2、MinIO 等兼容服务）并开启了浏览器直传：
+如果在 **文件管理 → 存储配置** 里启用了 S3（阿里云 OSS、腾讯云 COS、Cloudflare R2、MinIO 等兼容服务）并开启了浏览器直传：
 
 1. 构建前端时，用 `CSP_CONNECT_SRC` 声明 S3 的地址：
 

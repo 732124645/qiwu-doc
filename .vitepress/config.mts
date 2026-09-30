@@ -11,6 +11,7 @@ export default defineConfig({
     logo: '/logo.svg',
     nav: [
       { text: '指南', link: '/guide/introduction', activeMatch: '/guide/' },
+      { text: '后端入门', link: '/backend/', activeMatch: '/backend/' },
       { text: '功能', link: '/features/permission', activeMatch: '/features/' },
       { text: '参考', link: '/reference/api', activeMatch: '/reference/' },
       { text: '更新日志', link: '/changelog' },
@@ -30,6 +31,32 @@ export default defineConfig({
           items: [
             { text: '新增业务模块', link: '/guide/new-module' },
             { text: '部署', link: '/guide/deploy' },
+          ],
+        },
+      ],
+      '/backend/': [
+        {
+          text: '写给前端开发者',
+          items: [
+            { text: '先看这里', link: '/backend/' },
+            { text: '一个请求的一生', link: '/backend/request-lifecycle' },
+          ],
+        },
+        {
+          text: '基础概念',
+          items: [
+            { text: 'NestJS 基础', link: '/backend/nestjs' },
+            { text: '数据库基础', link: '/backend/database' },
+            { text: 'Redis 是做什么的', link: '/backend/redis' },
+            { text: '登录是怎么回事', link: '/backend/auth' },
+          ],
+        },
+        {
+          text: '动手',
+          items: [
+            { text: '手把手：加一个自定义操作', link: '/backend/tutorial' },
+            { text: '写测试', link: '/backend/testing' },
+            { text: '排查问题', link: '/backend/debugging' },
           ],
         },
       ],
