@@ -1,3 +1,4 @@
+import { PageProperties, PagePropertiesMarkdownSection } from '@nolebase/vitepress-plugin-page-properties/vite'
 import { defineConfig } from 'vitepress'
 
 export default defineConfig({
@@ -6,6 +7,12 @@ export default defineConfig({
   description: 'Node 全栈管理后台模板：NestJS + Vue 3 + Element Plus，MIT 开源',
   cleanUrls: true,
   lastUpdated: true,
+  vite: {
+    // 字数和预计阅读时间（首页 index.md 默认不显示）
+    plugins: [PageProperties(), PagePropertiesMarkdownSection()],
+    optimizeDeps: { exclude: ['@nolebase/vitepress-plugin-page-properties/client'] },
+    ssr: { noExternal: ['@nolebase/vitepress-plugin-page-properties', '@nolebase/ui'] },
+  },
   head: [['link', { rel: 'icon', type: 'image/svg+xml', href: '/logo.svg' }]],
   themeConfig: {
     logo: '/logo.svg',
