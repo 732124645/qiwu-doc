@@ -13,7 +13,18 @@ export default defineConfig({
     optimizeDeps: { exclude: ['@nolebase/vitepress-plugin-page-properties/client'] },
     ssr: { noExternal: ['@nolebase/vitepress-plugin-page-properties', '@nolebase/ui'] },
   },
-  head: [['link', { rel: 'icon', type: 'image/svg+xml', href: '/logo.svg' }]],
+  head: [
+    ['link', { rel: 'icon', type: 'image/svg+xml', href: '/logo.svg' }],
+    // 禁用脚本时首页不做滚动叙事，章节按顺序排开（同组件里的 .is-fallback）
+    [
+      'noscript',
+      {},
+      '<style>.qws{height:auto!important}.qws-stage{position:relative!important;height:auto!important}' +
+        '.qws-canvas,.qws-hud,.qws-rail,.qws-cue,.qws-skip,.qws-progress{display:none!important}' +
+        '.qws-chapters{position:relative!important;padding:96px 5vw 64px;pointer-events:auto!important}' +
+        '.qws-chapter{position:static!important;max-width:820px!important;margin:0 auto 72px!important;opacity:1!important;translate:none!important;text-align:left!important}</style>',
+    ],
+  ],
   themeConfig: {
     logo: '/logo.svg',
     nav: [

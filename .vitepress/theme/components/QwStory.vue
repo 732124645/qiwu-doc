@@ -4,7 +4,7 @@
  * 滚动位置 → 时间线 tau → 场景和场景内进度。文字、HUD 是真实的 DOM（可读、可选中），画布只是装饰。
  * 滚动停在两个场景之间时，顺着滚动方向走完这段过渡（吸附到下一个场景）。
  */
-import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
+import { computed, nextTick, onBeforeUnmount, onMounted, ref } from 'vue'
 import { withBase } from 'vitepress'
 import type { Frame, Stage } from './story/engine'
 import { FILES, FLOW, INPUT, PANELS, RINGS, TREE, TUNNEL } from './story/shapes'
@@ -134,6 +134,7 @@ const helloEl = ref<HTMLElement>()
 const bar = ref<HTMLElement>()
 const cue = ref<HTMLElement>()
 const skip = ref<HTMLElement>()
+const chaptersEl = ref<HTMLElement>()
 
 const typed = ref('')
 const panelDone = ref([false, false])
@@ -149,6 +150,7 @@ const helloText = computed(() => langs[lang.value])
 
 let engine: Stage | null = null
 let stopAll = () => {}
+let disposed = false
 
 /** 滚动换算用的视口高度：挂载时取一次，之后只在宽度变化时更新（见 onResize） */
 let baseH = 0
@@ -164,9 +166,15 @@ function goTau(tau: number, smoothScroll = true) {
   window.scrollTo({ top: rootTop() + toPx(tau), behavior: smoothScroll && !reducedMotion() ? 'smooth' : 'auto' })
 }
 function goChapter(i: number) {
-  goTau(timeline.anchor(chapters[i]!.first))
+  const el = chapterEls.value[i]
+  if (fallback.value) el?.scrollIntoView({ behavior: reducedMotion() ? 'auto' : 'smooth' })
+  else goTau(timeline.anchor(chapters[i]!.first))
   // 焦点和读屏光标跟着移到这一章的标题
-  chapterEls.value[i]?.querySelector<HTMLElement>('.qws-title')?.focus({ preventScroll: true })
+  el?.querySelector<HTMLElement>('.qws-title')?.focus({ preventScroll: true })
+}
+function skipToEnd() {
+  goTau(timeline.total, false)
+  chapterEls.value[chapters.length - 1]?.querySelector<HTMLElement>('.qws-title')?.focus({ preventScroll: true })
 }
 
 const opacity = (el: HTMLElement | undefined, o: number) => {
@@ -204,10 +212,12 @@ function onFrame(f: Frame) {
       best = i
     }
   })
-  if (railOn.value !== best) railOn.value = best
+  if (bestO > 0.02 && railOn.value !== best) railOn.value = best
   if (bar.value) bar.value.style.transform = `scaleX(${(tau / timeline.total).toFixed(4)})`
   opacity(cue.value, tau < 12 ? 1 : 0)
-  opacity(skip.value, tau > timeline.total - 60 ? 0 : 1)
+  const atEnd = tau > timeline.total - 60
+  opacity(skip.value, atEnd ? 0 : 1)
+  if (skip.value && skip.value.inert !== atEnd) skip.value.inert = atEnd
 
   // 第 0 场景：技术栈标签绕着星球转
   const p0 = presence(0)
@@ -240,7 +250,9 @@ function onFrame(f: Frame) {
     const b = project.toScreen([INPUT.w / 2 - 1.3, INPUT.y - INPUT.h / 2, 0])
     const el = inputEl.value
     opacity(el, p2)
-    el.style.width = `${Math.max(0, b.x - a.x)}px`
+    const w = Math.max(0, b.x - a.x)
+    el.style.width = `${w}px`
+    el.style.fontSize = `${Math.min(20, Math.max(9, (w - 32) / (RULE.length * 0.62))).toFixed(1)}px`
     el.style.height = `${Math.max(0, b.y - a.y)}px`
     place(el, a.x, a.y)
     const t1 = timeline.travelOf(1)!
@@ -310,7 +322,7 @@ function onFrame(f: Frame) {
   if (lang.value !== l) lang.value = l
 
   // 第 8 场景：隧道壁上掠过的模块名
-  const p8 = Math.max(presence(8), S.travelK === 7 ? S.u : 0)
+  const p8 = Math.max(presence(8), S.travelK === 7 ? (reduced ? Math.round(S.u) : S.u) : 0)
   moduleEls.value.forEach((el, j) => {
     if (p8 < 0.01) return opacity(el, 0)
     const pt = TUNNEL.anchors[j]!
@@ -322,11 +334,15 @@ function onFrame(f: Frame) {
   })
 }
 
+// 滚动长度 + 一屏：用 100vh（手机上是工具栏收起后的大视口），视口变高时结尾也到得了
+const heightOf = () => `calc(${toPx(timeline.total)}px + 100vh)`
+
 onMounted(async () => {
   baseH = innerHeight
-  height.value = `${toPx(timeline.total) + baseH}px`
+  height.value = heightOf()
   try {
     const { createStage } = await import('./story/engine')
+    if (disposed) return
     engine = createStage({ stage: stage.value!, canvas: canvas.value!, readTau, reduced: reducedMotion, onFrame })
   } catch (e) {
     console.error('[story] particle stage unavailable', e)
@@ -341,8 +357,11 @@ onMounted(async () => {
   const onResize = () => {
     if (innerWidth === lastW) return
     lastW = innerWidth
+    // 换算比例变了：保持当前场景不变
+    const tau = readTau()
     baseH = innerHeight
-    height.value = `${toPx(timeline.total) + baseH}px`
+    height.value = heightOf()
+    nextTick(() => goTau(tau, false))
   }
   addEventListener('resize', onResize)
 
@@ -353,14 +372,12 @@ onMounted(async () => {
   let snapping = false
   const onScroll = () => {
     const y = scrollY
-    if (y !== lastY) dir = y > lastY ? 1 : -1
+    // 吸附自己的平滑滚动不改方向
+    if (!snapping && y !== lastY) dir = y > lastY ? 1 : -1
     lastY = y
     clearTimeout(idle)
     idle = window.setTimeout(() => {
-      if (snapping) {
-        snapping = false
-        return
-      }
+      snapping = false
       const tau = readTau()
       if (tau <= 0 || tau >= timeline.total || location.search.includes('nosnap')) return
       const S = timeline.at(tau)
@@ -370,7 +387,19 @@ onMounted(async () => {
       goTau(dir > 0 ? d.start + 1 : d.end - 1)
     }, 140)
   }
+  // 用户再动滚轮、手指、键盘：吸附让位给用户
+  const onInput = () => (snapping = false)
   addEventListener('scroll', onScroll, { passive: true })
+  for (const t of ['wheel', 'touchstart', 'keydown'] as const) addEventListener(t, onInput, { passive: true })
+
+  // Tab 到别的章节里的链接或按钮时，滚到那一章的场景
+  const onFocusIn = (e: FocusEvent) => {
+    // 标题只会被 goChapter / skipToEnd 聚焦，它们自己负责滚动
+    if ((e.target as HTMLElement).classList.contains('qws-title')) return
+    const i = chapterEls.value.findIndex((el) => el.contains(e.target as Node))
+    if (i >= 0 && i !== railOn.value) goTau(timeline.anchor(chapters[i]!.first))
+  }
+  chaptersEl.value?.addEventListener('focusin', onFocusIn)
 
   const io = new IntersectionObserver(([entry]) => (entry!.isIntersecting ? engine?.start() : engine?.pause()))
   io.observe(root.value!)
@@ -381,6 +410,8 @@ onMounted(async () => {
     clearTimeout(idle)
     removeEventListener('resize', onResize)
     removeEventListener('scroll', onScroll)
+    for (const t of ['wheel', 'touchstart', 'keydown'] as const) removeEventListener(t, onInput)
+    chaptersEl.value?.removeEventListener('focusin', onFocusIn)
     document.removeEventListener('visibilitychange', onVisibility)
     io.disconnect()
     engine?.destroy()
@@ -388,11 +419,14 @@ onMounted(async () => {
   }
 })
 
-onBeforeUnmount(() => stopAll())
+onBeforeUnmount(() => {
+  disposed = true
+  stopAll()
+})
 </script>
 
 <template>
-  <main ref="root" class="qws" :class="{ 'is-fallback': fallback, 'is-ready': ready }" :style="{ height }">
+  <div ref="root" class="qws" :class="{ 'is-fallback': fallback, 'is-ready': ready }" :style="{ height }">
     <div ref="stage" class="qws-stage">
       <header class="qws-nav">
         <a class="qws-brand" :href="withBase('/')"><img :src="withBase('/logo.svg')" alt="" />栖梧 Qiwu</a>
@@ -419,7 +453,7 @@ onBeforeUnmount(() => stopAll())
         </button>
       </nav>
       <div ref="cue" class="qws-cue" aria-hidden="true"><i />向下滚动</div>
-      <button ref="skip" type="button" class="qws-skip" @click="goTau(timeline.total, false)">跳到结尾 ↓</button>
+      <button ref="skip" type="button" class="qws-skip" @click="skipToEnd">跳到结尾 ↓</button>
       <canvas ref="canvas" class="qws-canvas" aria-hidden="true" />
 
       <div class="qws-hud" aria-hidden="true">
@@ -463,7 +497,7 @@ onBeforeUnmount(() => stopAll())
         <span v-for="m in TUNNEL.modules" :key="m" ref="moduleEls" class="qws-module">{{ m }}</span>
       </div>
 
-      <div class="qws-chapters">
+      <main ref="chaptersEl" class="qws-chapters">
         <section
           v-for="(c, i) in chapters"
           :key="i"
@@ -472,12 +506,12 @@ onBeforeUnmount(() => stopAll())
           :class="[`is-${c.pos}`, { 'is-last': i === chapters.length - 1 }]"
         >
           <p class="qws-kicker">{{ c.kicker }}</p>
-          <component :is="i === 0 ? 'h1' : 'h2'" class="qws-title" tabindex="-1">
+          <component :is="i === 0 ? 'h1' : 'h2'" class="qws-title" tabindex="-1" :lang="i === 6 && lang === 'en' ? 'en' : undefined">
             <template v-for="(line, n) in (i === 6 ? helloText.title : c.title).split('\n')" :key="n">
               <br v-if="n" />{{ line }}
             </template>
           </component>
-          <p class="qws-body">{{ i === 6 ? helloText.body : c.body }}</p>
+          <p class="qws-body" :lang="i === 6 && lang === 'en' ? 'en' : undefined">{{ i === 6 ? helloText.body : c.body }}</p>
           <p v-if="i === 0" class="visually-hidden">技术栈：{{ techs.join('、') }}</p>
 
           <div v-if="i === 0" class="qws-actions">
@@ -496,10 +530,9 @@ onBeforeUnmount(() => stopAll())
             </div>
           </template>
         </section>
-      </div>
-
+      </main>
     </div>
-  </main>
+  </div>
 </template>
 
 <style scoped>
@@ -542,6 +575,10 @@ onBeforeUnmount(() => stopAll())
   position: absolute;
   inset: 0;
   pointer-events: none;
+}
+/* 标签的内联 z-index 只在 HUD 内部比较，不盖住导航和文字 */
+.qws-hud {
+  isolation: isolate;
 }
 .qws-hud > * {
   position: absolute;
@@ -586,7 +623,6 @@ onBeforeUnmount(() => stopAll())
   overflow: hidden;
   color: var(--ink);
   font-family: var(--mono);
-  font-size: clamp(13px, 1.4vw, 20px);
   white-space: nowrap;
 }
 .qws-caret {
@@ -697,8 +733,15 @@ onBeforeUnmount(() => stopAll())
 .qws-chapter.is-live {
   pointer-events: auto;
 }
-/* 键盘聚焦到看不见的章节时，让它显示出来 */
-.qws-chapter:has(:focus-visible) {
+/* 粒子还没加载好（或脚本没跑）时，首屏文字先显示；之后由内联 opacity 接管 */
+.qws-chapter:first-child {
+  opacity: 1;
+}
+.qws:not(.is-ready) .qws-chapter:first-child {
+  pointer-events: auto;
+}
+/* 键盘聚焦到看不见的章节里的链接或按钮时，让它显示出来 */
+.qws-chapter:has(a:focus-visible, button:focus-visible) {
   opacity: 1 !important;
 }
 .qws-title:focus {
@@ -994,8 +1037,10 @@ onBeforeUnmount(() => stopAll())
 .is-fallback .qws-chapters {
   position: relative;
   padding: 96px var(--gutter) 64px;
+  pointer-events: auto;
 }
-.is-fallback .qws-chapter {
+/* 写成 .qws.is-fallback 提高特异性，压过后面手机媒体查询里的 margin: 0 */
+.qws.is-fallback .qws-chapter {
   position: static;
   max-width: 820px;
   margin: 0 auto 72px;
@@ -1018,7 +1063,7 @@ onBeforeUnmount(() => stopAll())
     top: auto;
     bottom: 7vh;
     left: 16px;
-    right: 16px;
+    right: 40px;
     width: auto;
     max-width: none;
     margin: 0;

@@ -125,7 +125,7 @@ vec3 animate(vec3 p, vec4 fx, vec4 gx, float par, inout vec3 col) {
 void main() {
   vec3 cA = aColA;
   vec3 cB = aColB;
-  if (uRevealOn > 0.5) cB *= mix(0.22, 1.25, step(aDelayB, uReveal));
+  if (uRevealOn > 0.5) cB *= mix(0.22, 1.0, step(aDelayB, uReveal));
   vec3 pA = animate(aPosA, uFxA, uGxA, aParA, cA);
   vec3 pB = animate(aPosB, uFxB, uGxB, aParB, cB);
 
@@ -350,6 +350,9 @@ export function createStage(opts: StageOptions) {
 
   const narrow = () => stage.clientWidth / Math.max(1, stage.clientHeight) < 0.9
 
+  // 减少动态效果模式下，画面不变就不重画；记下上次画的是什么
+  let drawnTau = Number.NaN
+  let drawnW = 0
   function resize() {
     const w = Math.max(1, stage.clientWidth)
     const h = Math.max(1, stage.clientHeight)
@@ -361,6 +364,7 @@ export function createStage(opts: StageOptions) {
     bloom?.setSize(w, h)
     final.uniforms.uRes!.value.set(w * pr, h * pr)
     camera.aspect = w / h
+    drawnTau = Number.NaN
   }
   resize()
   let resizeTimer = 0
@@ -389,6 +393,8 @@ export function createStage(opts: StageOptions) {
   function camOf(k: number, p: number, time: number, reduced: boolean) {
     const c = CAMS[k]!
     if (c.flight) {
+      // 减少动态效果：镜头停在隧道里一个固定位置，不随滚动纵深穿越
+      if (reduced) p = 0.1
       const z = 17 - ease(p) * 61
       const x = reduced ? 0 : Math.sin(p * 5.5) * 0.9
       return {
@@ -400,8 +406,14 @@ export function createStage(opts: StageOptions) {
       }
     }
     const sway = reduced ? 0 : Math.sin(time * 0.15) * 0.25
+    // 竖屏：镜头沿视线往后拉，画面装得下
+    const pull = camera.aspect < 1.2 ? Math.max(1, 1.12 / camera.aspect) : 1
     return {
-      pos: [c.target[0] + c.offset[0] + sway, c.target[1] + c.offset[1], c.target[2] + c.offset[2] - p * 0.6],
+      pos: [
+        c.target[0] + c.offset[0] * pull + sway,
+        c.target[1] + c.offset[1] * pull,
+        c.target[2] + (c.offset[2] - p * 0.6) * pull,
+      ],
       target: c.target,
       layout: c.layout,
       fov: c.fov,
@@ -422,12 +434,10 @@ export function createStage(opts: StageOptions) {
     let fov: number
     let roll: number
     let shift: number[]
-    let flight: boolean
     if (S.travelK < 0) {
       const c = camOf(S.dwellK, S.dwellP, time, reduced)
       ;({ pos, target, fov, roll } = c)
       shift = shiftOf(c.layout)
-      flight = fov > 45
     } else {
       const a = camOf(S.a, 1, time, reduced)
       const b = camOf(S.b, 0, time, reduced)
@@ -437,12 +447,11 @@ export function createStage(opts: StageOptions) {
       fov = a.fov + (b.fov - a.fov) * t
       roll = a.roll + (b.roll - a.roll) * t
       shift = lerp(shiftOf(a.layout), shiftOf(b.layout), t)
-      flight = fov > 45
     }
+    const flight = fov > 45
     vPos.set(pos[0]!, pos[1]!, pos[2]!)
     vTgt.set(target[0]!, target[1]!, target[2]!)
     const aspect = camera.aspect
-    if (!flight && aspect < 1.2) vPos.sub(vTgt).multiplyScalar(Math.max(1, 1.12 / aspect)).add(vTgt)
     camera.fov = fov
     camera.position.copy(vPos)
     camera.up.set(0, 1, 0)
@@ -485,12 +494,11 @@ export function createStage(opts: StageOptions) {
   let time = 0
   // 第一帧再读滚动位置：站内路由切换时，VitePress 会在挂载之后才把页面滚回顶部
   let tau = Number.NaN
-  let drawnTau = Number.NaN
-  let drawnW = 0
   let raf = 0
   let running = false
   let frames = 0
   let slow = 0
+  let base = 1
   let degraded = false
   const drawSize = new Vector2()
 
@@ -502,7 +510,7 @@ export function createStage(opts: StageOptions) {
     const reduced = opts.reduced()
     if (!reduced) time += dt
     U.uTime.value = time
-    U.uFade.value = Math.min(1, (now - t0) / 1600)
+    U.uFade.value = reduced ? 1 : Math.min(1, (now - t0) / 1600)
 
     const target = opts.readTau()
     tau = reduced || !Number.isFinite(tau) ? target : tau + (target - tau) * (1 - Math.exp(-dt * 9))
@@ -538,8 +546,10 @@ export function createStage(opts: StageOptions) {
 
     // 太慢就降级：先关泛光，再少画 20% 的粒子
     frames++
-    if (frames > 90 && !degraded) {
-      slow = slow * 0.97 + (dt > 0.026 ? 0.03 : 0)
+    // 前 90 帧里最短的帧间隔 ≈ 显示器刷新间隔（30Hz 限帧时约 33ms，不算慢）
+    if (frames <= 90) base = Math.min(base, Math.max(dt, 1 / 144))
+    else if (!degraded) {
+      slow = slow * 0.97 + (dt > Math.max(0.026, base * 1.5) ? 0.03 : 0)
       if (slow > 0.6) {
         if (bloom?.enabled) {
           bloom.enabled = false
