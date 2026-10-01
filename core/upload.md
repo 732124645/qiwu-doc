@@ -75,12 +75,45 @@ const attachmentFiles = uploadField(model, 'attachment', 'file')
 | --- | --- | --- | --- |
 | `biz-tag` | `attachment` | `attachment` | 业务标签 |
 | `limit` | 1 | 10 | 最多几个文件 |
-| `max-size` | 20 MB | 20 MB | 单个文件的大小上限（字节） |
+| `max-size` | 跟随参数 | 跟随参数 | 单个文件的大小上限（字节），见下文 |
 | `direct` | `false` | `false` | 浏览器直传到 S3（需要先配置 S3 存储） |
 | `disabled` | `false` | `false` | |
-| `accept` | 只能是图片 | 不限 | 只影响文件选择框，服务端还会再检查一次 |
+| `accept` | 没有这个属性（固定只能选 PNG、JPEG、GIF、WebP 图片，传了也不起作用） | 不限 | 只影响文件选择框，服务端还会再检查一次 |
 
 在组件里点"删除"，只是把文件从列表中移除，**已经上传的文件本身不会被删除**。
+
+### 大小上限
+
+组件在发送前检查大小，只是为了尽快提示，服务端还会再查一次（超过返回 413）。上限按这个顺序决定：
+
+1. 传了 `max-size`，就用它；
+2. 没传，就用参数 `storage.max_size_mb`。这是一个"登录前可读"的参数，组件通过 `GET /api/settings/params/public/storage.max_size_mb` 读取，**浏览器加载一次只读一次**（切换路由不会重读），所有上传组件共用结果；
+3. 读不到参数（网络出错、参数没有设为登录前可读）时，按 `STORAGE_MAX_SIZE_DEFAULT`（20 MB）。
+
+组件下方的提示文字（"单个不超过 …"）显示的就是最终的上限。参数值的解析规则和服务端一样：1–2048 之间的整数，否则按 20 MB，都在共享包的 `storageMaxBytes()` 里。
+
+一般**不要传 `max-size`**，让它跟随参数，管理员调大参数后，页面刷新就跟着变。只有某个字段需要比全局更小的上限时才传，比如：
+
+```vue
+<!-- 这个字段最多 5 MB，不受参数影响 -->
+<FileUpload v-model="attachmentFiles" :max-size="5 * 1024 * 1024" />
+```
+
+传的值大于服务端上限也没用，超出的部分照样被服务端拒绝。
+
+自己用 `el-upload` 或别的方式上传、又想提前检查时，可以直接拿到同一个上限（字节）：
+
+```ts
+import { uploadMaxSize } from '@/core/composables/use-upload'
+
+const max = await uploadMaxSize() // 读不到参数时是 20 MB
+```
+
+表单设计器的"附件"组件有"单个文件上限（MB）"设置，填了就作为 `max-size` 传给 `FileUpload`，不填就跟随参数。移动端的 `QwUpload`（`mobile/src/core/components/QwUpload.vue`）规则相同，只是每次启动应用读一次参数。
+
+::: info 0.13.0 版本
+0.13.0 的两个组件不读参数，`max-size` 默认固定是 20 MB；参数 `storage.max_size_mb` 也不是登录前可读的。从 0.13.0 升级的库要重新执行 `pnpm db:seed` 给它打上标记，再到 **系统管理 → 参数设置** 点"刷新缓存"，见[文件管理 · 两个参数](/features/storage#两个参数)。
+:::
 
 ## 服务端做了哪些检查
 

@@ -29,7 +29,7 @@
 | 谁 | 在哪里 | 做什么 |
 | --- | --- | --- |
 | 开发者 | 种子代码（下面的 `upsertDicts`） | 写新功能时**预先把字典建好**。项目初始化时，这些字典就会自动出现在字典管理页面里，管理员不用手动去建 |
-| 管理员 | 系统管理 → 字典管理 | 修改显示文字、调整顺序、停用或新增选项。重新执行种子时，内置字典的名称，以及内置字典项的文字、顺序、标签样式和默认值，会**恢复成种子里的值**；启用状态和管理员新增的项不受影响 |
+| 管理员 | 系统管理 → 字典管理 | 修改显示文字、调整顺序、停用或新增选项。重新执行种子**不会覆盖**这些修改，见下面的[重新执行种子](#重新执行种子) |
 | 页面 | `DictSelect`、`DictTag` 组件 | 给它一个字典编码，它就显示成下拉框或彩色标签。管理员改了文字，这里跟着变 |
 
 ::: tip 不写代码也能建字典
@@ -77,9 +77,52 @@ export async function seedDemo(q: EntityManager): Promise<string[]> {
 
 执行 `pnpm db:seed` 之后，这个字典就会出现在 **系统管理 → 字典管理** 中，管理员可以修改文字、调整顺序、停用某一项。
 
-::: tip 种子不会覆盖已删除的数据
-管理员删除了某个字典项之后，重新执行种子也不会把它恢复回来。
-:::
+### 重新执行种子
+
+字典种子**只插入、不覆盖**：字典交给管理员之后，以数据库里的为准。
+
+| 情况 | 重新执行种子的结果 |
+| --- | --- |
+| 种子里有、数据库里没有的字典或字典项 | 插入 |
+| 已有的字典和字典项 | 名称、文字、顺序、标签样式、默认值、启用状态都**不变**；只补上缺少的语言，已有的语言以数据库为准 |
+| 管理员删除的字典或字典项 | 不恢复，也不重新插入 |
+
+"只补缺少的语言"是为了加语言：给已经部署的系统加一种新语言，重新执行种子就会给内置字典补上这种语言的文字（见[增加一种语言](/core/i18n#增加一种语言)）。
+
+所以，**改种子里已有项的文字、顺序、标签样式或默认值，重新执行种子不会生效**：
+
+- **开发时**：改了自己项目的字典种子，执行 `pnpm db:reset`（清空开发数据库，再执行迁移和种子），或者直接在字典管理页面里改；
+- **已经部署的环境**：除了改种子（新环境按新值插入），还要写一个数据迁移，修改已有的行。
+
+比如把 `demo.genre` 里 `science` 的英文从 "Popular science" 改成 "Science"：
+
+```ts
+// apps/server/src/db/migrations/20261010100000-demo-genre-label.ts
+import type { MigrationInterface, QueryRunner } from 'typeorm'
+
+export class DemoGenreLabel20261010100000 implements MigrationInterface {
+  name = 'DemoGenreLabel20261010100000'
+
+  async up(q: QueryRunner): Promise<void> {
+    // 只改还是旧文字的行，管理员改过的不动
+    await q.query(
+      `UPDATE cfg_dict_entry SET label_i18n = JSON_SET(label_i18n, '$."en-US"', ?)
+        WHERE dict_code = ? AND value = ? AND label_i18n->>'$."en-US"' = ?`,
+      ['Science', 'demo.genre', 'science', 'Popular science'],
+    )
+  }
+
+  async down(q: QueryRunner): Promise<void> {
+    await q.query(
+      `UPDATE cfg_dict_entry SET label_i18n = JSON_SET(label_i18n, '$."en-US"', ?)
+        WHERE dict_code = ? AND value = ? AND label_i18n->>'$."en-US"' = ?`,
+      ['Popular science', 'demo.genre', 'science', 'Science'],
+    )
+  }
+}
+```
+
+迁移的写法和执行见[实体与数据库 · 迁移](/core/entity#迁移)。种子、`db:reset` 和迁移都不经过字典管理页面，服务端的字典缓存不会自动失效，执行完要在字典管理里点"刷新缓存"。
 
 ## 前端使用
 
@@ -124,7 +167,7 @@ const { options, label } = useDict('iam.gender')
 `DictSelect` 和 `DictTag` 没有全局注册，每个页面都要自己 `import`。
 :::
 
-字典在第一次使用时加载，之后缓存在浏览器里，直到刷新页面。管理员在 **系统管理 → 字典管理** 中修改后，自己的浏览器马上用新数据；其他已经打开后台的人，刷新页面后才看到。重新执行种子后，要点"刷新缓存"（否则服务端缓存最多 1 小时后才失效）。
+字典在第一次使用时加载，之后缓存在浏览器里，直到刷新页面。管理员在 **系统管理 → 字典管理** 中修改后，自己的浏览器马上用新数据；其他已经打开后台的人，刷新页面后才看到。重新执行种子、`pnpm db:reset`，或者执行了修改字典的数据迁移之后，要点"刷新缓存"（否则服务端缓存最多 1 小时后才失效）。
 
 ## 后端使用
 
