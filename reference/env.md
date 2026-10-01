@@ -5,11 +5,16 @@
 | 文件 | 是否提交 | 内容 |
 | --- | --- | --- |
 | `.env.example` | 提交 | 模板，复制为 `.env` 使用 |
-| `.env` | 不提交 | 开发配置 |
-| `.env.local` | 不提交 | **账号密码**：数据库和 Redis 账号、微信小程序的 AppSecret |
-| `.env.test` / `.env.e2e` | 提交 | 测试配置（不含密钥） |
+| `.env` | 不提交 | 开发配置（端口、库名……），**不能写账号和密钥** |
+| `.env.local` | 不提交 | **账号和密钥**：`DB_USER` `DB_PASSWORD` `REDIS_USERNAME` `REDIS_PASSWORD` `APP_SECRET` `SEED_ADMIN_PASSWORD` `WX_MP_APPID` `WX_MP_SECRET` |
+| `.env.test` / `.env.e2e` | 提交 | 测试配置（只有测试专用的假密钥，不写数据库和 Redis 账号） |
 
-加载顺序：先加载当前模式的文件（默认 `.env`），再加载 `.env.local`；**同一个变量以先加载的文件为准**，空值也算，所以 `.env` 里已经写了（哪怕是 `KEY=`）的变量，放进 `.env.local` 不会生效。`APP_SECRET` 在模板里就有一行，要填在 `.env` 里。进程中已经存在的环境变量优先于这两个文件。启动时所有配置都会经过校验，不合法就拒绝启动。
+加载顺序：先加载当前模式的文件（默认 `.env`），再加载 `.env.local`；**同一个变量以先加载的文件为准**，空值也算，所以 `.env` 里已经写了（哪怕是 `KEY=`）的变量，放进 `.env.local` 不会生效。这就是账号和密钥只能写在 `.env.local` 的原因。进程中已经存在的环境变量优先于这两个文件。
+
+::: tip 0.12 及更早的版本
+那时的 `.env.example` 里有空的 `APP_SECRET=` 和 `SEED_ADMIN_PASSWORD=` 两行，复制成 `.env` 以后要把它们删掉。
+:::
+启动时所有配置都会经过校验，不合法就拒绝启动。
 
 ## 服务
 
@@ -37,20 +42,16 @@
 
 | 变量 | 默认值 | 说明 |
 | --- | --- | --- |
-| `APP_SECRET` | **必填** | 至少 32 个字符；用来派生第三方密钥的加密密钥 |
+| `APP_SECRET` | **必填** | 写在 `.env.local`；至少 32 个字符；用来派生第三方密钥的加密密钥 |
 | `ACCESS_TTL_SEC` | `1800` | 访问令牌有效期（秒） |
 | `REFRESH_TTL_SEC` | `604800` | 刷新令牌有效期（秒） |
 | `ALLOW_PRIVATE_ENDPOINTS` | `false` | 是否允许连接内网的 S3/SMTP，只在测试时打开 |
 | `OUTBOUND_S3_PORTS` | | S3 额外允许的端口，比如 `9000` |
 | `OUTBOUND_SMTP_PORTS` | | SMTP 额外允许的端口 |
-| `WX_MP_APPID` | | 微信小程序的 AppID |
-| `WX_MP_SECRET` | | 微信小程序的 AppSecret |
+| `WX_MP_APPID` | | 写在 `.env.local`；微信小程序的 AppID |
+| `WX_MP_SECRET` | | 写在 `.env.local`；微信小程序的 AppSecret |
 
 `WX_MP_APPID`、`WX_MP_SECRET` 和参数 `auth.wx_mp.enabled` 都配置好之后，才能用微信小程序登录，见[微信小程序登录](/features/security#微信小程序登录)。
-
-::: warning 这两个变量只写在 `.env.local`
-服务端先读 `apps/server/.env`，再读 `apps/server/.env.local`，**同一个变量以 `.env` 为准**。所以不要在 `.env` 里写这两个变量，写成空值也不行，否则会盖住 `.env.local` 里的值。两个文件都已经被 git 忽略，不会提交。
-:::
 
 ## 功能
 
@@ -59,7 +60,7 @@
 | `STORAGE_LOCAL_ROOT` | `./data/upload` | 本地文件存储的根目录 |
 | `CODEGEN_WRITE` | `false` | 是否允许代码生成器写入仓库（只在开发环境生效） |
 | `APP_DEMO_MODE` | `false` | 演示模式：拒绝所有写操作 |
-| `SEED_ADMIN_PASSWORD` | | 设置后 `admin` 使用这个密码；不设置时随机生成，并只打印一次 |
+| `SEED_ADMIN_PASSWORD` | | 写在 `.env.local`；设置后 `admin` 使用这个密码。不设置时 `db:seed` 随机生成一个，只打印一次，首次登录必须修改 |
 
 ## 前端
 

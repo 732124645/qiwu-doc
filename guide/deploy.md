@@ -18,15 +18,22 @@ pnpm -r build
 
 ## 生产环境变量
 
-在服务器上的 `apps/server/.env`（或者进程环境变量）中至少设置这些项：
+在服务器上至少设置这些项。普通配置写在 `apps/server/.env`，账号和密钥写在 `apps/server/.env.local`（不要两边都写，同一个变量以 `.env` 为准，见[环境变量](/reference/env)）。也可以全部用进程环境变量，它的优先级最高：
 
 ```ini
+# apps/server/.env
 NODE_ENV=production
-APP_SECRET=至少32位随机字符串（泄露后要更换，会导致已加密的第三方密钥无法解密）
-DB_HOST=… DB_NAME=… DB_USER=… DB_PASSWORD=…
-REDIS_HOST=… REDIS_PASSWORD=…
+DB_HOST=…
+DB_NAME=…
+REDIS_HOST=…
 TRUST_PROXY=反向代理的地址      # 不要填整个内网网段
 SWAGGER_ENABLED=false           # 生产环境建议关闭接口文档
+
+# apps/server/.env.local
+APP_SECRET=至少32位随机字符串    # 泄露后要更换，更换后已加密的第三方密钥无法解密
+DB_USER=…
+DB_PASSWORD=…
+REDIS_PASSWORD=…
 ```
 
 首次部署的数据初始化：

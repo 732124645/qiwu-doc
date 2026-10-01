@@ -48,14 +48,8 @@ Redis 的所有键都带 `qw:` 前缀，可以和其他项目共用一个 Redis�
 
 ```bash
 cd apps/server
-cp .env.example .env      # 普通配置：端口、库名、Redis 库号、APP_SECRET……
-touch .env.local          # 账号密码：数据库和 Redis
-```
-
-在 `.env` 里找到 `APP_SECRET=` 这一行，填上至少 32 位的随机字符串。可以用这条命令生成：
-
-```bash
-node -e "console.log(require('crypto').randomBytes(32).toString('base64url'))"
+cp .env.example .env      # 开发配置：端口、库名、Redis 库号……
+touch .env.local          # 账号和密钥：数据库和 Redis 账号、APP_SECRET
 ```
 
 在 `.env.local` 里填写：
@@ -65,10 +59,21 @@ DB_USER=qiwu
 DB_PASSWORD=换成你的密码
 REDIS_USERNAME=           # Redis 没有 ACL 用户时留空
 REDIS_PASSWORD=
+APP_SECRET=至少32位的随机字符串
 ```
 
-::: warning 同一个变量以 `.env` 为准
-服务端先读 `.env`，再读 `.env.local`，两个文件里都有的变量**以 `.env` 为准**，空值也算。模板里已经有 `APP_SECRET=` 这一行，所以 `APP_SECRET` 要填在 `.env` 里，写在 `.env.local` 里不会生效。
+`APP_SECRET` 可以用这条命令生成：
+
+```bash
+node -e "console.log(require('crypto').randomBytes(32).toString('base64url'))"
+```
+
+::: warning 账号和密钥不要写进 `.env`
+服务端先读 `.env`，再读 `.env.local`，两个文件里都有的变量**以 `.env` 为准**，空值（`KEY=`）也算。所以这些变量只写在 `.env.local`，在 `.env` 里写了，哪怕是空值，`.env.local` 里的值也不会生效。
+:::
+
+::: tip 用的是 0.12 或更早的版本？
+那时的 `.env.example` 里还有一行空的 `APP_SECRET=`，复制成 `.env` 以后要**先把这一行删掉**，否则 `.env.local` 里的 `APP_SECRET` 不会生效。
 :::
 
 配置在启动时会校验，缺少或者格式不对的话，服务会直接拒绝启动，并提示是哪一项有问题。所有配置项的含义见[环境变量](/reference/env)。
@@ -87,7 +92,7 @@ pnpm db:reset                          # 清空开发库 → 执行迁移 → �
 seed: admin password (shown once, must be changed at first sign-in): xxxxxxxx
 ```
 
-**这个密码只显示一次**，请记下来。账号是 `admin`，首次登录时必须修改密码。如果想固定密码，可以在 `.env` 里设置 `SEED_ADMIN_PASSWORD`。
+**这个密码只显示一次**，请记下来。账号是 `admin`，首次登录时必须修改密码。如果想固定密码，可以在 `.env.local` 里设置 `SEED_ADMIN_PASSWORD`。
 
 ::: warning
 `db:reset` 会删除库里所有的表，只能用在开发和测试库上。已有数据的库请用 `pnpm db:migrate`（只执行新的迁移）和 `pnpm db:seed`（补种子数据）。
@@ -114,7 +119,7 @@ node scripts/fetch-ip2region.mjs
 ## 常见问题
 
 **启动时报 `APP_SECRET` 相关错误**
-`.env` 里的 `APP_SECRET=` 没有填，或者长度不够 32 位。只填在 `.env.local` 里是不生效的，见上面第 3 步。
+`.env.local` 里没有填，或者长度不够 32 位。也检查一下 `.env` 里有没有一行 `APP_SECRET=`，有的话删掉（见上面第 3 步）。
 
 **`db:reset refused`**
 库名不是以 `_dev`、`_test` 或 `_e2e` 结尾，或者设置了 `NODE_ENV=production`。
