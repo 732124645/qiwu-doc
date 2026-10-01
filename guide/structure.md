@@ -21,7 +21,7 @@ src/
 ├─ modules/
 │  ├─ platform/        # 平台模块：iam（用户/角色/菜单/部门/岗位）、settings、messaging、
 │  │                   #           audit、storage、scheduler、codegen、monitor、geo
-│  ├─ workflow/        # 工作流：引擎、模型、运行时、审批中心、管理
+│  ├─ workflow/        # 工作流：引擎、模型、表单、运行时、审批中心、管理（含审批数据）
 │  ├─ biz/             # 项目业务：内置的"业务管理"领域（请假示例）
 │  ├─ demo/            # 示例：图书、知识主题、发票、实时推送
 │  ├─ <你的领域>/       # 比如 crm/、erp/：每个领域一个目录

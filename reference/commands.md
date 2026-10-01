@@ -32,11 +32,11 @@
 
 | 命令 | 作用 |
 | --- | --- |
-| `pnpm verify` | lint + 分层检查 + 类型检查 + 翻译完整性 + 原创性检查 + 许可证检查 |
+| `pnpm verify` | lint + 架构检查（分层、SQL 拼接、操作日志、Redis 键、`eval` 等，构建过前端时还会扫描构建产物）+ 类型检查 + 翻译完整性 + 原创性检查 + 许可证检查 |
 | `pnpm --filter @qiwu/server test <文件名>` | 运行服务端的单个测试文件（不要加 `--`） |
 | `pnpm --filter @qiwu/web test <文件名>` | 运行前端单元测试 |
 | `pnpm --filter @qiwu/web e2e <文件>` | 运行 Playwright 端到端测试 |
-| `pnpm ci:local` | 完整检查：锁定依赖安装、verify、构建、全部测试和覆盖率、代码生成一致性、Playwright、移动端端到端测试、启动冒烟测试 |
+| `pnpm ci:local` | 完整检查：锁定依赖安装、verify、构建、前端构建产物扫描、全部测试和覆盖率、移动端检查和构建、代码生成一致性、Playwright、移动端端到端测试、启动冒烟测试 |
 | `pnpm mobile:<命令>` | 在 `mobile/` 目录运行移动端命令：`verify`、`test`、`e2e`、`build:h5`、`build:mp-weixin`、`build:app` |
 | `pnpm smoke:boot` | 启动构建产物，确认 `/api/health` 正常后退出 |
 

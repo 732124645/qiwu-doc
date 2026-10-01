@@ -42,6 +42,7 @@ const coverUrlFiles = uploadField(model, 'coverUrl', 'image')
 | `richtext` | 公开 | 富文本里插入的图片 |
 | `attachment` | 私有 | 附件（**组件的默认值**） |
 | `import` | 私有 | 导入的文件 |
+| `wf.attachment` | 私有 | 流程表单的附件（表单设计器里的"附件"组件） |
 
 - **公开文件**：只允许图片（png、jpeg、gif、webp）。有一个固定的地址 `/files/…`，不需要登录就能访问，可以直接放进 `<img src>`；
 - **私有文件**：没有公开地址，必须带着登录令牌通过 `GET /api/storage/objects/:id/download` 下载。
@@ -114,6 +115,6 @@ this.storageAccess.register('my-tag', async (obj, principal) => {
 })
 ```
 
-::: info
-这个扩展点已经预留好，但目前项目里还没有模块使用它。工作流的附件权限会在动态表单功能中接入。
-:::
+工作流模块就是这样控制流程附件（`wf.attachment`）的：能查看这个流程实例、并且能看到引用这个文件的表单字段的人，才能下载（见 `modules/workflow/workflow.module.ts`）。
+
+上传后，业务模块还可以在**同一个事务**里用 `StorageService.bindRefs(文件id列表, 标签, 业务引用, 上传人id, 事务)` 把文件绑定到业务记录（工作流用的引用是 `wf:<实例id>`）。它只绑定本人上传、标签一致、还没被绑定过的文件；有一个不符合就抛出 `C1009`，整个事务回滚。这样别人就不能拿你上传的文件 id 冒用。

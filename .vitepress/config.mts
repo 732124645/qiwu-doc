@@ -181,6 +181,7 @@ export default defineConfig({
           items: [
             { text: '权限与数据范围', link: '/features/permission' },
             { text: '代码生成器', link: '/features/codegen' },
+            { text: '表单设计器', link: '/features/formkit' },
             { text: '国际化', link: '/features/i18n' },
             { text: '实时推送', link: '/features/realtime' },
             { text: '工作流', link: '/features/workflow' },

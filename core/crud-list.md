@@ -66,7 +66,7 @@ const columns: QwColumn[] = [
 | 字段 | 说明 |
 | --- | --- |
 | `prop` | 数据字段 |
-| `label` | 表头，**必须是翻译键** |
+| `label` | 表头，**是翻译键**。设置 `literal: true` 时原样显示，用于用户自己填写的标题（比如审批数据页里表单字段的标题） |
 | `sortable` | 是否可以排序（由后端排序，字段必须在 schema 的排序白名单里） |
 | `width` / `minWidth` | 宽度。短的列给固定宽度，文字最长的列用 `minWidth` 占满剩余空间 |
 | `align` | `left` / `center` / `right`，数字通常右对齐 |

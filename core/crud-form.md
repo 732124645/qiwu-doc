@@ -90,7 +90,7 @@ async function openForm(id?: number) {
 `openDialog(组件, props, 选项)` 返回一个 Promise：
 
 - 表单触发 `done(结果)` → Promise 返回这个结果；
-- 用户点取消、关闭按钮、按 ESC 或者切换了路由 → 返回 `undefined`。
+- 用户点取消、关闭按钮、按 ESC（`closeOnPressEscape` 为 `false` 时除外）或者切换了路由 → 返回 `undefined`。
 
 所以打开弹框、等待结果，就像调用一个普通的异步函数一样。
 
@@ -99,6 +99,8 @@ async function openForm(id?: number) {
 | `title` | | 标题。传入一个函数时，切换语言后标题也会更新 |
 | `width` | `520px` | 宽度 |
 | `closeOnRouteChange` | `true` | 切换路由时是否自动关闭 |
+| `closeOnPressEscape` | `true` | 按 ESC 是否关闭。弹框里的工作会丢失时（比如嵌入了表单设计器）设为 `false` |
+| `top` | `15vh` | 弹框离页面顶部的距离。很高的弹框可以设小一些，免得在小屏幕上放不下 |
 
 ## 只在新增时显示的字段
 

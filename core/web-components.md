@@ -76,9 +76,9 @@ import DictSelect from '@/core/components/DictSelect.vue'
 | 组件 | `v-model` 的值 | 说明 |
 | --- | --- | --- |
 | `DictSelect` | 字符串（多选时是数组） | 字典下拉框，`code` 指定字典。详见[字典](/core/dict) |
-| `DeptTreeSelect` | 部门 id（多选时是数组） | 部门树选择。`exclude` 排除某个部门及其下级（比如选择上级部门时排除自己） |
+| `DeptTreeSelect` | 部门 id（多选时是数组） | 部门树选择。`exclude` 排除某个部门及其下级（比如选择上级部门时排除自己）。默认按当前用户的数据范围列出部门；`source="wf"` 时列出全部启用的部门（流程表单用，只需要登录） |
 | `TreeParentSelect` | 上级节点 id（0 表示顶级） | 树表的"上级"选择，`load` 提供数据 |
-| `UserSelect` | 用户 id | 选择用户（输入框 + 选择弹框） |
+| `UserSelect` | 用户 id | 选择用户（输入框 + 选择弹框）。`source="wf"` 时用流程的选人接口，普通员工也能选到全部启用的用户 |
 | `AreaCascader` | 地区编码数组 | 省市区选择 |
 | `IconPicker` | 图标名，比如 `lucide:user` | 图标选择 |
 | `I18nInput` | `{ 'zh-CN': '…', 'en-US': '…' }` | 同时输入中英文，比如字典标签 |

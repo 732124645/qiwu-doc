@@ -29,6 +29,7 @@ export const bookColumns: ExcelColumn[] = [
 | `pick` | 选择型的列（比如部门 id）：模板里的下拉项是 `<值> - <名称>`，导入时取 ` - ` 前面的值 |
 | `only` | `'export'` 只导出；`'import'` 只用于模板和导入 |
 | `width` | 列宽（字符数），默认 18 |
+| `literal` | 只用于导出：`label` 就是表头文字本身，不当作翻译键（比如表单字段的标题）。和单元格一样会做公式转义 |
 
 ## 导出
 
