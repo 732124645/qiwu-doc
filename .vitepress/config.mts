@@ -39,7 +39,7 @@ export default defineConfig({
         ],
       },
       { text: '开发指南', link: '/core/', activeMatch: '/core/' },
-      { text: '功能', link: '/features/permission', activeMatch: '/features/' },
+      { text: '功能', link: '/features/', activeMatch: '/features/' },
       { text: '参考', link: '/reference/api', activeMatch: '/reference/' },
       { text: '更新日志', link: '/changelog' },
     ],
@@ -148,19 +148,19 @@ export default defineConfig({
         {
           text: '后端功能',
           items: [
-            { text: '权限与数据范围', link: '/features/permission' },
+            { text: '权限与数据范围', link: '/core/permission' },
             { text: '缓存', link: '/core/cache' },
             { text: '防重复提交、限流与锁', link: '/core/guards' },
             { text: '定时任务', link: '/core/job' },
             { text: '消息通知', link: '/core/notify' },
-            { text: '实时推送', link: '/features/realtime' },
+            { text: '实时推送', link: '/core/realtime' },
             { text: '文件上传', link: '/core/upload' },
             { text: 'Excel 导入导出', link: '/core/excel' },
             { text: '富文本', link: '/core/richtext' },
             { text: '字典', link: '/core/dict' },
             { text: '参数设置', link: '/core/param' },
             { text: '操作日志', link: '/core/action-log' },
-            { text: '国际化', link: '/features/i18n' },
+            { text: '国际化', link: '/core/i18n' },
           ],
         },
         {
@@ -176,15 +176,35 @@ export default defineConfig({
         },
       ],
       '/features/': [
+        { text: '总览', items: [{ text: '功能总览', link: '/features/' }] },
         {
-          text: '功能',
+          text: '系统',
           items: [
+            { text: '系统管理', link: '/features/system' },
+            { text: '登录与账号', link: '/features/login' },
             { text: '权限与数据范围', link: '/features/permission' },
+            { text: '监控与日志', link: '/features/monitor' },
+            { text: '定时任务', link: '/features/job' },
+            { text: '消息中心', link: '/features/messaging' },
+            { text: '文件管理', link: '/features/storage' },
+          ],
+        },
+        {
+          text: '开发工具',
+          items: [
             { text: '代码生成器', link: '/features/codegen' },
             { text: '表单设计器', link: '/features/formkit' },
+          ],
+        },
+        {
+          text: '审批',
+          items: [{ text: '工作流', link: '/features/workflow' }],
+        },
+        {
+          text: '全局能力',
+          items: [
             { text: '国际化', link: '/features/i18n' },
             { text: '实时推送', link: '/features/realtime' },
-            { text: '工作流', link: '/features/workflow' },
             { text: '安全基线', link: '/features/security' },
           ],
         },

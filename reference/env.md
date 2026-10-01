@@ -51,7 +51,7 @@
 | `WX_MP_APPID` | | 写在 `.env.local`；微信小程序的 AppID |
 | `WX_MP_SECRET` | | 写在 `.env.local`；微信小程序的 AppSecret |
 
-`WX_MP_APPID`、`WX_MP_SECRET` 和参数 `auth.wx_mp.enabled` 都配置好之后，才能用微信小程序登录，见[微信小程序登录](/features/security#微信小程序登录)。
+`WX_MP_APPID`、`WX_MP_SECRET` 和参数 `auth.wx_mp.enabled` 都配置好之后，才能用微信小程序登录，见[登录与账号 · 微信小程序登录](/features/login#微信小程序登录)。
 
 ## 功能
 

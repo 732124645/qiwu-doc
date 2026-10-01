@@ -36,7 +36,7 @@ const canEdit = computed(() => perm.all([positionPerms.modify, positionPerms.vie
 | `all(perms)` | 必须全部拥有 |
 
 ::: warning 前端权限只是界面上的
-`v-perm` 和 `usePerm` 只是让用户看不到没有权限的按钮。**真正的检查在后端**，参见[权限与数据范围](/features/permission)。
+`v-perm` 和 `usePerm` 只是让用户看不到没有权限的按钮。**真正的检查在后端**，参见[在代码中使用权限与数据范围](/core/permission#保护接口)。
 :::
 
 项目里没有 `v-role` 这样按角色判断的指令。请按权限点判断，不要按角色判断：角色是管理员随时可以调整的，权限点才是代码里固定的。

@@ -79,12 +79,14 @@ server {
     proxy_set_header X-Forwarded-Proto $scheme;
   }
 
+  在 guide/deploy.md 的 location /socket.io/ 块里加一行，和 core/realtime.md 保持一致：
   location /socket.io/ {
     proxy_pass http://127.0.0.1:3000;
     proxy_http_version 1.1;
     proxy_set_header Upgrade $http_upgrade;
     proxy_set_header Connection "upgrade";
     proxy_set_header Host $host;
+    proxy_set_header X-Forwarded-Proto $scheme;
   }
 
   location /files/ {

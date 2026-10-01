@@ -26,7 +26,7 @@
 | `pnpm gen import <表...>` | 导入表，保存默认配置 |
 | `pnpm gen render <表...> [--out <目录>]` | 打印生成结果，或者输出到仓库外的目录 |
 | `pnpm gen write <表...>` | 写入仓库（需要 `CODEGEN_WRITE=true`） |
-| `pnpm gen:check-golden` | 重新生成零手改模块，并和仓库代码比较 |
+| `pnpm gen:check-golden` | 重新生成零手改模块，并和仓库代码比较。模板升级后用 `pnpm gen:check-golden 2>/dev/null \| git apply` 把差异应用到仓库 |
 
 ## 检查与测试
 

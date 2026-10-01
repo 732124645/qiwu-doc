@@ -135,7 +135,7 @@ referencedBy('iam_dept', { table: 'demo_book', column: 'dept_id' })
 - `owner`：按哪一列判断"本人"，没有时写 `null`；
 - 两个值都是**数据库列名**，不是属性名。
 
-详见[权限与数据范围](/features/permission#数据范围)。
+详见[在代码中使用权限与数据范围](/core/permission#在实体上声明)。
 
 ## 迁移
 
@@ -194,7 +194,7 @@ CREATE TABLE crm_customer (
 | 每一列都写 `COMMENT` | 代码生成器用它作为字段名称 |
 | `utf8mb4` | 支持中文和表情符号 |
 
-各条约定的强制程度，见[新增业务模块](/guide/new-module#_1-用迁移建表)。
+各条约定的强制程度，见[新增业务模块](/guide/new-module#_2-用迁移建表)。
 
 ### 执行和回退
 
