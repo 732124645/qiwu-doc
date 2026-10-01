@@ -77,7 +77,7 @@
 注册**默认关闭**。把参数 `auth.signup.enabled` 改为 `true` 后，登录页下方出现"创建账号"链接。
 
 - 注册时填写用户名、密码和显示名称（选填，不填时等于用户名）。用户名只能使用字母、数字和 `_` `.` `@` `-`，最多 64 个字符，已被占用时会提示；
-- 新用户自动获得参数 `auth.signup.default_role_id` 指定的角色。- 新用户自动获得参数 `auth.signup.default_role_id` 指定的角色。初始化数据时，它被设为预置的"注册成员"角色（普通角色，不是内置角色）：数据范围是"仅本人"，只能看到首页；
+- 新用户自动获得参数 `auth.signup.default_role_id` 指定的角色。初始化数据时，它被设为预置的"注册成员"角色（普通角色，不是内置角色）：数据范围是"仅本人"，只能看到首页；
 - 参数 `auth.signup.default_dept_id` 可以指定新用户的部门，留空表示不分配部门；
 - 注册成功后回到登录页，用新账号登录。注册时设置的密码不需要再改。
 
@@ -159,7 +159,7 @@
 
 在 **系统监控 → 在线用户** 中可以看到当前所有有效的会话：
 
-- - 默认列出用户名、部门、IP 地址、登录地点、客户端（电脑或手机）、登录时间、最近访问；浏览器、操作系统、过期时间、是否保持登录和 User-Agent 默认隐藏，可以在列设置里打开。可以按用户名、IP 地址和客户端筛选；可以按用户名、IP 地址和客户端筛选；
+- 默认列出用户名、部门、IP 地址、登录地点、客户端（电脑或手机）、登录时间、最近访问；浏览器、操作系统、过期时间、是否保持登录和 User-Agent 默认隐藏，可以在列设置里打开。可以按用户名、IP 地址和客户端筛选；
 - **强退**：结束一个会话；**强退该用户**：结束这个用户在所有设备上的会话；勾选多行后可以**批量强退**；
 - 被强退的一方会**立即掉线**（通过[实时推送](/features/realtime)），看到"你已被管理员强制下线，请重新登录"并回到登录页。登录日志记一条"被强制退出"，写明是哪位管理员操作的；
 - 自己当前的会话标着"当前会话"，不能勾选也不能强退（要退出请用"退出登录"）；自己的其他会话可以单独强退，但不能用"强退该用户"；
@@ -171,7 +171,7 @@
 
 ## 个人中心
 
-点右上角的用户菜单，可以进入**个人中心**，也可以锁定屏幕、修改密码和退出登录。点右上角的用户菜单，可以进入**个人中心**，也可以锁定屏幕、修改密码和退出登录。个人中心左侧显示头像（可以更换）、显示名和用户名，还有只读的部门、角色和岗位；右侧有几个标签页。
+点右上角的用户菜单，可以进入**个人中心**，也可以锁定屏幕、修改密码和退出登录。个人中心左侧显示头像（可以更换）、显示名和用户名，还有只读的部门、角色和岗位；右侧有几个标签页。
 
 ### 基本资料与头像
 
@@ -266,29 +266,29 @@
 
 ## 相关参数
 
-都在 **系统管理 → 参数设置** 中修改，改完立即生效。值不合法或者超出范围时按默认值处理。"公开"的参数在登录前也能读取，因为登录页和注册页要用到。
+都在 **系统管理 → 参数设置** 中修改，改完立即生效。值不合法或者超出范围时按默认值处理。勾选了"登录前可读"的参数，不登录也能读取，因为登录页和注册页要用到。
 
-| 参数键 | 参数名称 | 默认值 |
-| --- | --- | --- |
-表头改为"| 参数键 | 参数名称 | 默认值 | 登录前可读 |"，参数名称照抄参数设置页，可读的项在最后一列写"是"。例如："| `captcha.mode` | 验证码模式（off 关闭 / image 图形 / slider 滑块） | `slider` | 是 |"、"| `captcha.image_type` | 图形验证码题型（math 算术 / chars 字符） | `math` | |"、"| `audit.retention_days` | 日志与记录保留天数（操作/登录/API/任务日志、消息记录、短信验证码、已删除文件） | `180` | |"。`auth.signup.enabled`（开放注册）、`auth.wx_mp.enabled`（微信小程序登录）、`iam.password_min_length`（密码最小长度）、`iam.password_char_classes`（密码最少字符类别数）四项去掉名称里的"（公开）"，在"登录前可读"一列写"是"。表格上方那句改成："勾选了"登录前可读"的参数，不登录也能读取，因为登录页和注册页要用到。"
-| `captcha.image_type` | 图形验证码题型 | `math` |
-| `auth.lock_threshold` | 登录失败锁定次数 | `5` |
-| `auth.lock_minutes` | 登录锁定时长（分钟） | `10` |
-| `auth.cross_ip_threshold` | 跨 IP 登录失败阈值（每小时） | `10` |
-| `auth.ip_blacklist` | 登录 IP 黑名单 | 空 |
-| `auth.signup.enabled` | 开放注册（公开） | `false` |
-| `auth.signup.default_role_id` | 注册默认角色 ID | "注册成员"角色的 ID |
-| `auth.signup.default_dept_id` | 注册默认部门 ID | 空 |
-| `auth.wx_mp.enabled` | 微信小程序登录（公开） | `false` |
-| `iam.password_min_length` | 密码最小长度（公开） | `8` |
-| `iam.password_char_classes` | 密码最少字符类别数（公开） | `2` |
-| `iam.password_expire_days` | 密码有效天数（0 为不过期） | `0` |
-| `sms.otp.cooldown_sec` | 发送冷却时间（秒） | `60` |
-| `sms.otp.mobile_daily_max` | 单手机号每日发送上限 | `10` |
-| `sms.otp.ip_daily_max` | 单 IP 每日发送上限 | `20` |
-| `sms.otp.user_daily_max` | 单用户每日绑定验证码上限 | `5` |
-| `sms.otp.global_daily_max` | 全站每日发送上限 | `1000` |
-| `audit.retention_days` | 日志与记录保留天数 | `180` |
+| 参数键 | 参数名称 | 默认值 | 登录前可读 |
+| --- | --- | --- | --- |
+| `captcha.mode` | 验证码模式（off 关闭 / image 图形 / slider 滑块） | `slider` | 是 |
+| `captcha.image_type` | 图形验证码题型（math 算术 / chars 字符） | `math` | |
+| `auth.lock_threshold` | 登录失败锁定次数 | `5` | |
+| `auth.lock_minutes` | 登录锁定时长（分钟） | `10` | |
+| `auth.cross_ip_threshold` | 跨 IP 登录失败阈值（每小时） | `10` | |
+| `auth.ip_blacklist` | 登录 IP 黑名单 | 空 | |
+| `auth.signup.enabled` | 开放注册 | `false` | 是 |
+| `auth.signup.default_role_id` | 注册默认角色 ID | "注册成员"角色的 ID | |
+| `auth.signup.default_dept_id` | 注册默认部门 ID | 空 | |
+| `auth.wx_mp.enabled` | 微信小程序登录 | `false` | 是 |
+| `iam.password_min_length` | 密码最小长度 | `8` | 是 |
+| `iam.password_char_classes` | 密码最少字符类别数 | `2` | 是 |
+| `iam.password_expire_days` | 密码有效天数（0 为不过期） | `0` | |
+| `sms.otp.cooldown_sec` | 发送冷却时间（秒） | `60` | |
+| `sms.otp.mobile_daily_max` | 单手机号每日发送上限 | `10` | |
+| `sms.otp.ip_daily_max` | 单 IP 每日发送上限 | `20` | |
+| `sms.otp.user_daily_max` | 单用户每日绑定验证码上限 | `5` | |
+| `sms.otp.global_daily_max` | 全站每日发送上限 | `1000` | |
+| `audit.retention_days` | 日志与记录保留天数（操作/登录/API/任务日志、消息记录、短信验证码、已删除文件） | `180` | |
 
 和登录有关的环境变量（改了要重启）：`ACCESS_TTL_SEC`、`REFRESH_TTL_SEC`、`WX_MP_APPID`、`WX_MP_SECRET`，以及初始化数据时 `admin` 使用的 `SEED_ADMIN_PASSWORD`，见[环境变量](/reference/env)。
 

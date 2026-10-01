@@ -189,7 +189,7 @@ private async recipients({ target, userIds, roleIds }: DemoRealtimeSendBody): Pr
 
 不在线的用户收不到，之后也不会补发；断线期间的推送也会丢失。所以：
 
-- 必须送达的内容先存进数据库，推送只负责提醒"有新内容"。- 必须送达的内容先存进数据库，推送只负责提醒"有新内容"。最常见的做法是直接发[站内信](/core/notify)：`notifier.send()` 在当前事务里写入站内信，等最外层事务提交后再投递，并自动推送 `notify:new`；事务回滚时什么都不会发；
+- 必须送达的内容先存进数据库，推送只负责提醒"有新内容"。最常见的做法是直接发[站内信](/core/notify)：`notifier.send()` 在当前事务里写入站内信，等最外层事务提交后再投递，并自动推送 `notify:new`；事务回滚时什么都不会发；
 - 前端每个依赖推送的界面，都要有"重新读取"的途径（见下文"[断线后的兜底](#断线后的兜底)"）。
 
 ### 载荷的格式和大小
@@ -204,12 +204,18 @@ private async recipients({ target, userIds, roleIds }: DemoRealtimeSendBody): Pr
 网关 `apps/server/src/core/realtime/realtime.gateway.ts` 没有 `@SubscribeMessage` 处理函数。浏览器要提交数据，一律走普通的 HTTP 接口，这样权限（`@RequirePerm`）、参数校验、操作日志（`@ActionLog`）和限流都照常生效。示例页的"发送"就是一个普通接口：
 
 ```ts
-两种改法任选其一。（1）只改注释，照本页统一的写法改成 `// apps/server/src/modules/demo/realtime/realtime.controller.ts（节选）`。（2）按源码原样，在 `@ActionLog({ domain: 'demo.realtime', verb: 'send' })` 和 `@ApiEnvelope(demoRealtimeSendVo)` 之间补回多行写法的装饰器：
+// apps/server/src/modules/demo/realtime/realtime.controller.ts
+@Post('send')
+@HttpCode(200)
+@RequirePerm(demoRealtimePerms.send)
+@RateLimit(30, 60_000)
+@Idempotent()
+@ActionLog({ domain: 'demo.realtime', verb: 'send' })
 @ApiOperation({
   summary:
     'Push plain text as `demo:message` to users, roles (enabled users in scope) or everyone (`demo.realtime.broadcast`)',
 })
-这样整段方法就和 v0.13.0 第 21-34 行一模一样了。
+@ApiEnvelope(demoRealtimeSendVo)
 send(@Body({ schema: demoRealtimeSendBody }) body: DemoRealtimeSendBody) {
   return this.demo.send(body)
 }

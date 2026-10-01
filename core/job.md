@@ -69,7 +69,7 @@ async closeExpired(_params: unknown, { signal, log }: JobContext) {
 ```
 
 ::: warning 任务里没有"当前用户"
-定时任务不是由某个用户发起的，所以 `clsGet('principal')` 是 `undefined`，数据范围也不会生效。任务里要写的数据，其 `created_by` 为空。
+定时任务不是由某个用户发起的，所以 `clsGet('principal')` 是 `undefined`。这时 `scopedQb()` 会加上 `1=0`，带数据范围的实体**什么都查不到**；要读全部数据，在方法上加 `@SkipDataScope()`（见[数据范围怎么算](/core/permission#数据范围怎么算)）。任务里要写的数据，其 `created_by` 为空。
 :::
 
 ## 用种子创建任务

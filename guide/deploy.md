@@ -79,7 +79,6 @@ server {
     proxy_set_header X-Forwarded-Proto $scheme;
   }
 
-  在 guide/deploy.md 的 location /socket.io/ 块里加一行，和 core/realtime.md 保持一致：
   location /socket.io/ {
     proxy_pass http://127.0.0.1:3000;
     proxy_http_version 1.1;
@@ -109,7 +108,7 @@ server {
 
 ## 使用 S3 存储时
 
-如果在 **文件管理 → 存储配置** 里启用了 S3（阿里云 OSS、腾讯云 COS、Cloudflare R2、MinIO 等兼容服务）并开启了浏览器直传：
+如果在 **系统管理 → 文件管理 → 存储配置** 里启用了 S3（阿里云 OSS、腾讯云 COS、Cloudflare R2、MinIO 等兼容服务），不管有没有开启浏览器直传，都要做下面的设置。存在 S3 上的私有文件，下载和预览都由浏览器跟随跳转，直接从 S3 读取（60 秒有效的临时链接）：
 
 1. 构建前端时，用 `CSP_CONNECT_SRC` 声明 S3 的地址：
 
