@@ -49,6 +49,7 @@ export default defineConfig({
           text: '开始',
           items: [
             { text: '介绍', link: '/guide/introduction' },
+            { text: '项目由来', link: '/guide/story' },
             { text: '快速开始', link: '/guide/getting-started' },
             { text: '目录结构', link: '/guide/structure' },
           ],
