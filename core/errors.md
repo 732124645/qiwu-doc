@@ -75,11 +75,25 @@ export const Err = {
 | `B1xxx` | 用户、角色、菜单、部门 |
 | `B2xxx` | 字典、参数 |
 | `B3xxx` | 消息 |
+| `B4xxx` | 单点登录（OAuth2） |
 | `C1xxx` | 文件 |
 | `C2xxx` | 定时任务 |
 | `C3xxx` | 代码生成 |
 | `D1xxx` | 工作流 |
 | `E1xxx` 起 | **你的业务** |
+
+### OAuth2 的错误码
+
+0.14 起新增 `B4xxx` 号段，用在授权同意页、userinfo 和客户端管理：
+
+| 错误码 | 状态码 | 中文信息 | 什么时候出现 |
+| --- | --- | --- | --- |
+| `B4001` | 400 | 客户端无效：客户端不存在、已停用或不支持授权码方式，或回调地址未登记 | 授权请求里的客户端不能用，或 `redirect_uri` 不是登记的回调地址之一 |
+| `B4002` | 400 | 授权请求无效：response_type 必须是 code，申请的权限范围必须在客户端已登记的范围内 | `response_type` 不是 `code`，或申请的 scope 超出登记范围 |
+| `B4003` | 403 | 该令牌不代表任何用户，不能读取用户信息 | 用 `client_credentials` 得到的令牌调用 userinfo |
+| `B4010` | 422 | 内置客户端受保护，不能执行此操作 | 修改、启停、重置密钥或删除内置客户端 `console` |
+
+`/api/oauth2/token`、`/introspect`、`/revoke` 这三个给第三方后端调用的接口不用这些错误码，按 OAuth2 标准返回 `{ "error": "invalid_grant", … }` 这样的 JSON。第三方怎么处理这些错误，见 [OAuth2 接入指南](/reference/oauth2)。
 
 ### 新增一个错误码
 
@@ -140,6 +154,10 @@ X-Request-Id: 6f1c2a…
 | `msg` | 按请求语言翻译好的信息，可以直接显示给用户 |
 | `errors` | 只有参数校验失败时才有：`[{ path, msg }]`，每个字段的错误 |
 | `traceId` | 请求编号，和响应头 `X-Request-Id`、服务端日志中的 `reqId` 相同 |
+
+::: info 例外：OAuth2 的三个标准接口
+`/api/oauth2/token`、`/introspect`、`/revoke` 出错时返回 OAuth2 标准的 `{ error, error_description }`（`error_description` 可能没有），不是上面的格式；只有限流（429）和服务器内部错误（500）仍然是上面的格式。见 [OAuth2 接入指南](/reference/oauth2)。
+:::
 
 ## 过滤器如何转换各种异常
 

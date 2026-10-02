@@ -36,9 +36,14 @@
 | `pnpm --filter @qiwu/server test <文件名>` | 运行服务端的单个测试文件（不要加 `--`） |
 | `pnpm --filter @qiwu/web test <文件名>` | 运行前端单元测试 |
 | `pnpm --filter @qiwu/web e2e <文件>` | 运行 Playwright 端到端测试 |
-| `pnpm ci:local` | 完整检查：锁定依赖安装、verify、构建、前端构建产物扫描、全部测试和覆盖率、移动端检查和构建、代码生成一致性、Playwright、移动端端到端测试、启动冒烟测试 |
+| `pnpm ci:local` | 完整检查：锁定依赖安装、verify、构建、前端构建产物扫描、前端开发模式冒烟测试、全部测试和覆盖率、移动端检查和构建、代码生成一致性、Playwright、移动端端到端测试、启动冒烟测试 |
 | `pnpm mobile:<命令>` | 在 `mobile/` 目录运行移动端命令：`verify`、`test`、`e2e`、`build:h5`、`build:mp-weixin`、`build:app` |
 | `pnpm smoke:boot` | 启动构建产物，确认 `/api/health` 正常后退出 |
+| `pnpm smoke:web-dev` | 前端开发模式冒烟测试：用全新的临时依赖缓存启动 Vite 开发服务器（不需要后端），在本机 Edge 中加载 `apps/web/src` 下的全部 `.vue` 模块和源码中按需导入的包，再打开表单设计器，确认它能正常显示；最多 240 秒 |
+
+::: tip 为什么要有开发模式冒烟测试
+Playwright 测的是构建产物，有些问题只在 `pnpm dev` 下出现，比如某个依赖在开发模式下加载失败、表单设计器的组件没有注册。`pnpm smoke:web-dev` 专门检查这些，`pnpm ci:local` 在构建之后运行它。用别的浏览器时，设置环境变量 `PW_CHANNEL`。0.13 及更早的版本没有这个命令。
+:::
 
 ## 其他
 

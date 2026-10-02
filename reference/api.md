@@ -2,8 +2,8 @@
 
 ## 路径
 
-- 前缀：`/api`，按域划分：`/api/iam/*`、`/api/settings/*`、`/api/messaging/*`、`/api/audit/*`、`/api/storage/*`、`/api/scheduler/*`、`/api/codegen/*`、`/api/monitor/*`、`/api/geo/*`、`/api/wf/*`；项目领域是 `/api/<领域>/*`，比如 `/api/biz/*`、`/api/demo/*`、`/api/crm/*`
-- 认证：`/api/auth/*`
+- 前缀：`/api`，按域划分：`/api/iam/*`、`/api/settings/*`、`/api/messaging/*`、`/api/audit/*`、`/api/storage/*`、`/api/scheduler/*`、`/api/codegen/*`、`/api/monitor/*`、`/api/geo/*`、`/api/oauth/*`（客户端管理）、`/api/wf/*`；项目领域是 `/api/<领域>/*`，比如 `/api/biz/*`、`/api/demo/*`、`/api/crm/*`
+- 认证：`/api/auth/*`；OAuth2 提供方：`/api/oauth2/*`（见下面的[例外：OAuth2 接口](#例外-oauth2-接口)）
 - 资源名用复数、短横线连接：`/api/iam/users`、`/api/settings/dict-entries`
 
 ## 标准增删改查
@@ -60,6 +60,21 @@
 
 `msg` 已按请求语言翻译好，前端直接显示即可。`traceId` 与服务端日志对应，方便排查问题。
 
+### 例外：OAuth2 接口
+
+给第三方后端调用的三个 OAuth2 接口遵守 OAuth2 的标准（RFC 6749、7662、7009），不用上面的约定：
+
+| 接口 | 请求体 | 成功 | 失败 |
+| --- | --- | --- | --- |
+| `POST /api/oauth2/token` | `application/x-www-form-urlencoded` | 标准 JSON：`{ access_token, token_type, expires_in, … }` | `{ "error": "invalid_grant", "error_description": "…" }`（`error_description` 可能没有） |
+| `POST /api/oauth2/introspect` | 同上 | `{ "active": true, … }` 或 `{ "active": false }` | 400 `{ "error": "invalid_request" }` 或 401 `{ "error": "invalid_client" }` |
+| `POST /api/oauth2/revoke` | 同上 | 200，响应体为空 | 同上一行 |
+
+- 这三个接口超出限流（429）或服务器内部错误（500）时，返回的不是 RFC 格式，而是前面[响应格式](#响应格式)里的统一错误信封 `{ code, msg, data: null, traceId }`，`code` 分别是 `A0429` 和 `A0500`；
+- `GET /api/oauth2/userinfo` 和同意页内部调用的 `GET`、`POST /api/oauth2/authorize` 用的是普通的 `{ code, msg, data }` 格式。
+
+字段、错误和限流的完整说明见 [OAuth2 接入指南](/reference/oauth2)。
+
 ## HTTP 状态码
 
 使用真实的状态码，不是所有请求都返回 200：
@@ -78,7 +93,7 @@
 
 ## 业务错误码
 
-`A0xxx` 通用 · `A1xxx` 认证 · `B1xxx` 用户权限 · `B2xxx` 设置 · `B3xxx` 消息 · `C1xxx` 存储 · `C2xxx` 定时任务 · `C3xxx` 代码生成 · `D1xxx` 工作流 · `E1xxx` 以后为业务。
+`A0xxx` 通用 · `A1xxx` 认证 · `B1xxx` 用户权限 · `B2xxx` 设置 · `B3xxx` 消息 · `B4xxx` OAuth2 · `C1xxx` 存储 · `C2xxx` 定时任务 · `C3xxx` 代码生成 · `D1xxx` 工作流 · `E1xxx` 以后为业务。
 
 ## 时间与 ID
 

@@ -120,6 +120,30 @@ server {
 3. 给 `staging/` 目录设置一条生命周期规则（比如 1 天后过期），用来清理上传了但没有确认的文件。
 4. 自建服务如果用了非标准端口（比如 MinIO 的 9000），要在服务端环境变量中登记：`OUTBOUND_S3_PORTS=9000`。
 
+## OAuth2 与单点登录
+
+要让第三方系统通过[单点登录（OAuth2）](/features/oauth)接入时，部署上要注意两点：
+
+1. **`/sso` 要回退到 `index.html`**。授权同意页 `/sso` 是前端页面，第三方会把用户的浏览器直接带到 `https://<后台域名>/sso?…`。上面 nginx 示例里 `location /` 的这一行已经包含它，不用另外配置：
+
+   ```nginx
+   try_files $uri /index.html;
+   ```
+
+   如果你的配置只对部分路径做回退，要把 `/sso` 加上，否则用户打开授权链接会看到 404。
+
+2. **`TRUST_PROXY` 要设对**。这几个接口按来源 IP 限流，IP 取自 `TRUST_PROXY` 信任的代理传来的 `X-Forwarded-For`：
+
+   | 接口 | 每个 IP 每分钟 |
+   | --- | --- |
+   | `GET` / `POST /api/oauth2/authorize`（同意页调用） | 各 120 次 |
+   | `POST /api/oauth2/token` | 600 次 |
+   | `POST /api/oauth2/introspect`、`/api/oauth2/revoke` | 各 1200 次 |
+
+   默认值 `loopback` 只信任本机。nginx 和服务端在同一台机器上时不用改；反向代理或负载均衡在别的机器上时，要把 `TRUST_PROXY` 设成它的地址。设错了，所有用户和第三方都会算在代理这一个 IP 上，很快就会收到 429。
+
+`/api/oauth2/token`、`/introspect`、`/revoke`、`/userinfo` 由第三方的后端直接调用，不需要配置跨域（CORS）。第三方登记的回调地址在生产环境必须是 `https://`。接入步骤见 [OAuth2 接入指南](/reference/oauth2)。
+
 ## 单实例说明
 
 v1 按**单实例**设计：限流计数存在进程内存中，实时推送也没有跨实例广播。需要多实例部署时，要加上 Socket.IO 的 Redis 适配器，并把限流改为 Redis 存储。

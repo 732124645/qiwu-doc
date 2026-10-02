@@ -182,6 +182,7 @@ export default defineConfig({
           items: [
             { text: '系统管理', link: '/features/system' },
             { text: '登录与账号', link: '/features/login' },
+            { text: '单点登录（OAuth2）', link: '/features/oauth' },
             { text: '权限与数据范围', link: '/features/permission' },
             { text: '监控与日志', link: '/features/monitor' },
             { text: '定时任务', link: '/features/job' },
@@ -216,6 +217,7 @@ export default defineConfig({
             { text: 'API 约定', link: '/reference/api' },
             { text: '命令', link: '/reference/commands' },
             { text: '环境变量', link: '/reference/env' },
+            { text: 'OAuth2 接入指南', link: '/reference/oauth2' },
           ],
         },
       ],

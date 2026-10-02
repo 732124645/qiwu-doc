@@ -4,7 +4,7 @@
 
 ## 先了解几个概念
 
-- **连接**：登录后，每个打开的浏览器标签页和服务端之间有一条 Socket.IO 连接（Socket.IO 是一个基于 WebSocket 的库，WebSocket 是一种服务端可以主动给浏览器发消息的连接）。路径是 `/socket.io`，只用 WebSocket 方式传输；
+- **连接**：登录后，每个打开的浏览器标签页和服务端之间有一条 Socket.IO 连接（Socket.IO 是一个基于 WebSocket 的库，WebSocket 是一种服务端可以主动给浏览器发消息的连接）。路径是 `/socket.io`，只用 WebSocket 方式传输。移动端在前台时也有一条，见"[移动端（uni-app）](#移动端-uni-app)"；
 - **方向**：只有**服务端 → 浏览器**。浏览器只接收，不能通过这条连接向服务端发送任何东西；
 - **消息**：所有推送都走同一个 Socket.IO 事件 `message`（常量 `REALTIME_EVENT`），内容是一个"信封" `{ type, payload }`。前端按 `type` 把它交给对应的处理函数；
 - **房间**（room）：Socket.IO 里的一组连接，发给一个房间，房间里的每条连接都会收到。连接通过验证后，服务端把它加入三个房间，浏览器不能自己选择或加入其他房间：
@@ -294,12 +294,104 @@ useIntervalFn(() => {
 | 访问令牌更换（包括在另一个标签页登录了别的会话） | 关闭旧连接，用新令牌连接 | `reconnecting` → `up` |
 | 退出登录 | 关闭连接 | `down` |
 
+## 移动端（uni-app）
+
+0.14.0 起，移动端（`mobile/`）也连同一个网关、用同一份推送类型（`@qiwu/shared` 的 `RT`、`REALTIME_EVENT`），规则和上面一样，只是写法不同。代码都在 `mobile/src/core/realtime.ts`。
+
+### 一套代码跑三个平台
+
+用的是官方的 `socket.io-client`（4.8.4），加一个自己写的传输类：继承 socket.io-client 导出的 `WebSocket` 传输，只重写 `createSocket`，改用 `uni.connectSocket`。这样 H5、微信小程序、App 走同一套代码：
+
+```ts
+// mobile/src/core/realtime.ts（节选）
+export class UniSocketTransport extends WsTransport {
+  override createSocket(url: string) {
+    const ws: Record<string, ((e?: unknown) => void) | undefined> = {}
+    // 带了回调，uni 才返回 SocketTask（而不是 Promise）；小程序"域名不在合法列表"这类早期失败
+    // 也会变成 socket 错误，交给 Socket.IO 退避重连
+    const task = uni.connectSocket({ url, fail: (e) => ws.onerror?.(e) })
+    task.onOpen(() => ws.onopen?.())
+    task.onMessage(({ data }) => ws.onmessage?.({ data }))
+    task.onClose((e) => ws.onclose?.(e))
+    task.onError((e) => ws.onerror?.(e))
+    ws.send = (data) => task.send({ data: data as string | ArrayBuffer })
+    ws.close = () => task.close({})
+    return ws
+  }
+}
+```
+
+调用 `uni.connectSocket` 时一定要带 `fail` 回调，原因见注释。
+
+连接地址：H5 连页面自己的地址，经开发服务器和 `vite preview` 的 `/socket.io` 代理转发（`mobile/vite.config.ts`，代理要写成对象形式 `{ target, ws: true }`，否则 `Host` 被改写，Origin 检查会判为外站）；小程序和 App 连 `VITE_API_BASE` 的地址（`https://…` 对应 `wss://…/socket.io/`）。
+
+### 处理哪些推送
+
+移动端只处理三种，其余的忽略：
+
+```ts
+// mobile/src/core/realtime.ts（节选）
+function onMessage(msg: RealtimeMessage) {
+  if (msg.type === RT.wfTask || msg.type === RT.notifyNew) useCountsStore().load()
+  else if (msg.type === RT.sessionKicked) kicked()
+}
+```
+
+- `wf:task`、`notify:new`：通过普通接口重新读取待办数、审批中数量和未读数（`mobile/src/core/stores/counts.ts`），页签角标和工作台跟着更新；
+- `session:kicked`：断开连接、清除登录状态、回到登录页，提示"你已被管理员强制下线，请重新登录"；
+- `notify:bulletin` 不处理："消息"页每次显示都会重新加载。
+
+每次连上（包括重连）也会读一次计数，补上断线期间的变化。
+
+### 什么时候连、什么时候断
+
+| 时机 | 代码 | 动作 |
+| --- | --- | --- |
+| 应用回到前台（冷启动也算） | `mobile/src/App.vue` 的 `onShow(startRealtime)` | 连接 |
+| 底部任一页签显示 | `mobile/src/core/components/QwTabBar.vue` 的 `onShow` | 连接，并读一次计数 |
+| 应用进入后台 | `mobile/src/App.vue` 的 `onHide(stopRealtime)` | 断开 |
+| 登录、退出登录 | `mobile/src/core/stores/auth.ts` | 断开，新用户不会沿用上一位的连接 |
+
+`startRealtime()` 没有登录会话或者已经有连接时什么也不做，可以放心重复调用。每次握手都读取当前的访问令牌和语言。移动端的访问令牌只放在内存里，所以启动后第一次握手会被拒（`unauthorized`），这时刷新一次令牌再连；刷新后仍被拒，或者被拒为 `forbidden_origin`，就不再连，交给轮询。
+
+### 轮询兜底
+
+连不上时（小程序没配 socket 合法域名、网络受限、Origin 被拒等），页签显示期间每 60 秒调一次 `pollCounts()`。它只在没有连接时才真的发请求：
+
+```ts
+// mobile/src/core/realtime.ts（节选）
+export function pollCounts() {
+  if (!realtimeUp.value) useCountsStore().load()
+}
+
+// mobile/src/core/components/QwTabBar.vue（节选）
+onShow(() => {
+  // …
+  counts.load()
+  startRealtime()
+  stop()
+  timer = setInterval(pollCounts, POLL_MS)   // POLL_MS = 60_000
+})
+```
+
+所以 socket 连不上时，角标最迟 60 秒内更新。H5 上的自动测试断言推送后 2 秒内更新；真机上不保证这个速度。
+
+### 小程序不能用 `Function`
+
+engine.io-client 在加载时会求值 `Function("return this")()`，而微信小程序禁止 `Function` 和 `eval`。`mobile/vite.config.ts` 里的预处理插件把它的 `globals` 模块换成 `mobile/src/core/eio-globals.ts`；`mobile/scripts/mp-size.mjs` 在 `build:mp-weixin` 之后检查产物，出现 `Function("return this")`、`require("ws")` 或 `xmlhttprequest-ssl` 就失败。同一个配置里，`socket.io-client` 被别名到它的真实目录，因为 uni 强制 `preserveSymlinks`，从 pnpm 的符号链接位置找不到它自己的依赖。
+
+### 测试
+
+- 单元测试 `mobile/src/__tests__/mobile-realtime.spec.ts`：真实的 socket.io-client 跑在伪造的 SocketTask 上，用例一帧一帧扮演服务端；
+- Playwright `mobile/e2e/mobile-push.spec.ts`：H5 经预览代理连真实服务端，断言新待办和站内信 2 秒内刷新角标、强退 2 秒内回到登录页、切到后台断开、回到前台 2 秒内重连；
+- `mobile/e2e/mobile-home.spec.ts` 的轮询用例先用 `page.routeWebSocket` 挡掉 socket，专门测兜底。
+
 ## 连接时的验证
 
 每次连接（包括每次重连），网关都会检查：
 
 1. **来源网站**：浏览器发起的连接，`Origin` 头必须是本站自己（`协议://Host`），或者是环境变量 `CORS_ORIGIN` 里列出的地址，否则拒绝，错误是 `forbidden_origin`。这是为了防止别的网站借用户的登录状态偷偷建立连接（跨站 WebSocket 劫持）。没有 `Origin` 头的非浏览器客户端不检查这一项，但同样要有有效的令牌；
-2. **访问令牌**：握手参数 `auth.token` 必须属于一个有效的、本系统自己的登录会话（和接口鉴权用的是同一套令牌服务），否则拒绝，错误是 `unauthorized`。OAuth2 客户端的令牌连不上。
+2. **访问令牌**：握手参数 `auth.token` 必须属于一个有效的第一方登录会话，也就是电脑端（`console`）或移动端（`mobile`）的登录（和接口鉴权用的是同一套令牌服务），否则拒绝，错误是 `unauthorized`。[OAuth2 客户端](/features/oauth)的令牌连不上。判断用的是 `apps/server/src/core/auth/token.service.ts` 里的 `isFirstParty()`，名单是共享包的 `FIRST_PARTY_CLIENTS`。
 
 通过之后：
 
