@@ -36,11 +36,23 @@ LOG_LEVEL=debug
 
 ## 查看数据库
 
-推荐用图形化的数据库客户端（比如 DBeaver、TablePlus、DataGrip），连接到 `qiwu_dev` 库直接查看表里的数据。也可以用命令行：
+推荐用图形化的数据库客户端（比如 DBeaver、TablePlus、DataGrip），连接到 `qiwu_dev` 库直接查看表里的数据。Windows 用 **MySQL Workbench**，连接时填 `127.0.0.1`、端口 `3306`、用户名 `qiwu` 和 `.env.local` 里的数据库密码，选中 `qiwu_dev`，在查询窗口执行下面的 SQL。Windows 默认没有把 `mysql` 加入 PATH，不需要在 PowerShell 中运行它。
 
-```bash
+macOS 也可以用命令行登录（提示输入密码后，应看到 `mysql>`）；Windows 在 Workbench 的查询窗口选中数据库：
+
+::: code-group
+
+```bash [macOS]
 mysql -u qiwu -p qiwu_dev
 ```
+
+```sql [Windows（MySQL Workbench）]
+USE qiwu_dev;
+```
+
+:::
+
+下面的 SQL 在 macOS 的 `mysql>` 提示符后输入，或在 Windows 的 Workbench 查询窗口里执行。你应该看到表名、表结构和查询结果。
 
 ```sql
 SHOW TABLES;

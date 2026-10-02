@@ -7,12 +7,16 @@
 | 软件 | 版本 | 说明 |
 | --- | --- | --- |
 | Node.js | ≥ 22.22.1 | 推荐 22 LTS |
-| pnpm | 11 | 仓库 `packageManager` 已固定版本，用 `corepack enable` 即可自动切换 |
-| MySQL | 8.0 及以上 | 单数据源 |
-| Redis | 6 及以上 | 需要支持 ACL（用户名 + 密码） |
+| pnpm | 11 | 用 `npm install -g pnpm@11` 安装，仓库 `packageManager` 已固定版本 |
+| MySQL | 8.4 及以上 | 单数据源 |
+| Redis | 7.0 及以上 | 需要支持 ACL、`GETDEL` 和 `PEXPIRE` 的 `NX`/`XX`/`GT` 选项；Windows 推荐 Memurai 4.x 或以上 |
 
 ::: tip macOS
-用 Homebrew 安装最简单：`brew install mysql redis`，再用 `brew services start mysql redis` 启动服务。
+用 Homebrew 安装最简单：`brew install mysql redis`，再分别用 `brew services start mysql`、`brew services start redis` 启动服务。
+:::
+
+::: tip Windows
+推荐在 Windows 终端或 VS Code 的终端里使用自带的 Windows PowerShell 5.1。先按[安装环境（Windows）](/beginner/install-windows)安装 Git、Node.js、MySQL、Memurai，并完成“允许运行脚本”后安装 pnpm。MySQL 和 Memurai 的启动、停止在“服务”（`services.msc`）里操作，服务名以安装时的实际名称为准。
 :::
 
 ## 1. 获取代码
@@ -25,7 +29,7 @@ pnpm i
 
 ## 2. 准备数据库和 Redis
 
-建一个开发库和一个专用账号：
+建一个开发库和一个专用账号：Windows 在 **MySQL Workbench** 中用 root 连接本地数据库，把下面的 SQL 粘贴到查询窗口执行；macOS 可以在 `mysql -u root -p` 登录后执行。成功后，Windows 在 Workbench 左侧 SCHEMAS 面板点刷新按钮，应该能看到 `qiwu_dev`；macOS 执行 `SHOW DATABASES;`，结果里应该有 `qiwu_dev`。
 
 ::: tip 为什么开发库叫 qiwu_dev
 `db:reset` 会删掉库里所有的表再重建。为了防止误删正式数据，**只有库名以 `_dev`、`_test` 或 `_e2e` 结尾时**，它才会执行。这只是 `db:reset` 这一条命令的限制，服务本身、`db:migrate`、`db:seed` 都不检查库名，生产库可以随意命名。
@@ -48,9 +52,23 @@ Redis 的所有键都带 `qw:` 前缀，可以和其他项目共用一个 Redis�
 
 ```bash
 cd apps/server
+```
+
+::: code-group
+
+```bash [macOS]
 cp .env.example .env      # 开发配置：端口、库名、Redis 库号……
 touch .env.local          # 账号和密钥：数据库和 Redis 账号、APP_SECRET
 ```
+
+```powershell [Windows（PowerShell）]
+Copy-Item .env.example .env
+notepad .env.local
+```
+
+:::
+
+用编辑器打开 `.env.local`（Windows 上 `notepad .env.local` 会询问是否新建，选“是”），保存为 **UTF-8（不带 BOM）**；Windows 也可以用 VS Code。记事本另存为时选择“所有文件”，确认文件名是 `.env.local`，不是 `.env.local.txt`。不要用 Windows PowerShell 5.1 的 `>`、`Out-File` 或 `Set-Content` 写这类文件：`>` 和 `Out-File` 默认写成 UTF-16，整个文件都读不出来；`Set-Content` 默认用系统本地编码（中文 Windows 是 GBK），值里有中文等非 ASCII 字符就会乱码；加 `-Encoding UTF8` 又会带 BOM，第一行的变量可能读不出来。
 
 在 `.env.local` 里填写：
 
@@ -62,7 +80,7 @@ REDIS_PASSWORD=
 APP_SECRET=至少32位的随机字符串
 ```
 
-`APP_SECRET` 可以用这条命令生成：
+`APP_SECRET` 可以用这条命令生成（macOS 和 PowerShell 相同），把输出的 43 个字符复制到 `.env.local` 的 `APP_SECRET=` 后面并保存：
 
 ```bash
 node -e "console.log(require('crypto').randomBytes(32).toString('base64url'))"

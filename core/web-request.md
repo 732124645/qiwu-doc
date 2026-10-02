@@ -218,8 +218,19 @@ await api.post('/crm/customers/import', form)
 
 后端不在本机时，用环境变量 `API_PROXY_TARGET` 指定地址：
 
-```bash
+::: code-group
+
+```bash [macOS]
 API_PROXY_TARGET=http://192.168.1.10:3000 pnpm --filter @qiwu/web dev
 ```
+
+```powershell [Windows（PowerShell）]
+$env:API_PROXY_TARGET = "http://192.168.1.10:3000"
+pnpm --filter @qiwu/web dev
+```
+
+:::
+
+PowerShell 的设置会保留在当前终端里；停止开发服务器后，用 `Remove-Item Env:API_PROXY_TARGET` 清除，或关闭这个终端。启动后，前端的 `/api` 请求应该转发到这个地址。
 
 生产环境由 nginx 做同样的转发，见[部署](/guide/deploy)。

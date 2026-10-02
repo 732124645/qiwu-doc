@@ -35,6 +35,8 @@
 - `/token`、`/introspect`、`/revoke` 的请求体是表单编码（`application/x-www-form-urlencoded`），客户端认证用 HTTP Basic，或者表单字段 `client_id` + `client_secret`，二选一；
 - 统一信封就是[API 约定](/reference/api#响应格式)里的 `{ code, msg, data }`。
 
+命令示例按 macOS 和 Windows PowerShell 分栏；共用项目命令（如 `pnpm dev`）不分栏。Windows 示例使用 PowerShell 自带的 HTTP 命令，避免 `curl` 别名和外部程序引号传参的差异；正常响应会显示 JSON。HTTP 出错时 PowerShell 会显示红色错误，第一行就是服务端返回的 JSON，比如 `Invoke-RestMethod : {"error":"invalid_grant","error_description":"Invalid grant: authorization code is invalid"}`，不显示状态码；需要状态码时，紧接着执行 `$Error[0].Exception.Response.StatusCode.value__`。下面的变量要在**同一个终端**里依次设置和使用，关闭终端后需要重新设置。
+
 ## 1. 登记客户端
 
 请管理员在 **系统管理 → 客户端管理** 中新增一个客户端（字段说明见[单点登录 · 客户端管理](/features/oauth#客户端管理)），然后把这些信息交给你：
@@ -51,43 +53,94 @@
 
 也可以用接口登记。`BASE` 是后台地址（见下一节的变量），`ADMIN_TOKEN` 是有 `oauth.client.create` 权限的管理员调用 `POST /api/auth/login` 后返回的 `accessToken`（见[认证](/backend/auth)）。响应 201，`data.secret` 就是唯一一次显示的明文密钥：
 
-```bash
+::: code-group
+
+```bash [macOS]
 curl -sS -H "Authorization: Bearer $ADMIN_TOKEN" -H 'Content-Type: application/json' \
   -d '{"clientId":"crm","name":"CRM","grantTypes":["authorization_code","refresh_token","client_credentials"],
        "redirectUris":["http://localhost:8080/cb"],"scopes":["user.read"],"autoApproveScopes":[]}' \
   "$BASE/api/oauth/clients"
 ```
 
+```powershell [Windows（PowerShell）]
+$BASE = 'http://localhost:5173'
+$ADMIN_TOKEN = '粘贴管理员的 accessToken'
+$CLIENT = @{
+  clientId = 'crm'
+  name = 'CRM'
+  grantTypes = @('authorization_code', 'refresh_token', 'client_credentials')
+  redirectUris = @('http://localhost:8080/cb')
+  scopes = @('user.read')
+  autoApproveScopes = @()
+}
+Invoke-RestMethod -Method Post -Uri "$BASE/api/oauth/clients" -Headers @{ Authorization = "Bearer $ADMIN_TOKEN" } -ContentType 'application/json; charset=utf-8' -Body ($CLIENT | ConvertTo-Json -Depth 3) | ConvertTo-Json -Depth 5
+```
+
+:::
+
 ## 2. 授权码 + PKCE
 
 下面用本机开发环境演示（`pnpm dev`，后台在 `http://localhost:5173`，`/api` 由 Vite 转发到服务端）。先登记一个客户端：标识 `crm`，三种授权方式都选，回调地址 `http://localhost:8080/cb`，授权范围 `user.read`，记下密钥。8080 端口上不需要真的有服务，浏览器回跳时显示"无法连接"，从地址栏复制 `code` 就行。
 
-```bash
+::: code-group
+
+```bash [macOS]
 BASE=http://localhost:5173                  # 生产环境换成 https://<后台域名>
 CLIENT_ID=crm
 CLIENT_SECRET='<创建或重置时显示的密钥>'
 REDIRECT_URI=http://localhost:8080/cb        # 和登记的值一字不差
 ```
 
+```powershell [Windows（PowerShell）]
+$BASE = 'http://localhost:5173'              # 生产环境换成 https://<后台域名>
+$CLIENT_ID = 'crm'
+$CLIENT_SECRET = '粘贴创建或重置时显示的密钥'
+$REDIRECT_URI = 'http://localhost:8080/cb'    # 和登记的值一字不差
+$BASIC = [Convert]::ToBase64String([Text.Encoding]::UTF8.GetBytes("${CLIENT_ID}:${CLIENT_SECRET}"))
+```
+
+:::
+
+PowerShell 的 `$BASIC` 是客户端标识和密钥的 HTTP Basic 编码，后面的令牌请求会用到；更换客户端密钥后要重新生成。
+
 ### 2.1 生成 code_verifier、code_challenge 和 state
 
 每次授权都生成一组新的。`VERIFIER` 留在你的后端（比如放进用户的会话），不要交给浏览器：
 
-```bash
+::: code-group
+
+```bash [macOS]
 VERIFIER=$(openssl rand -base64 48 | tr '+/' '-_' | tr -d '=\n')
 CHALLENGE=$(printf %s "$VERIFIER" | openssl dgst -binary -sha256 | openssl base64 | tr '+/' '-_' | tr -d '=\n')
 STATE=$(openssl rand -hex 16)
 ```
 
-`CHALLENGE` 是 `VERIFIER` 的 SHA-256 再做 base64url 编码、去掉 `=`，正好 43 个字符。
+```powershell [Windows（PowerShell）]
+$VERIFIER = node -e "console.log(require('crypto').randomBytes(48).toString('base64url'))"
+$CHALLENGE = node -e "console.log(require('crypto').createHash('sha256').update(process.argv[1]).digest('base64url'))" -- $VERIFIER
+$STATE = node -e "console.log(require('crypto').randomBytes(16).toString('hex'))"
+```
+
+:::
+
+`CHALLENGE` 是 `VERIFIER` 的 SHA-256 再做 base64url 编码、去掉 `=`，正好 43 个字符。生成命令成功时没有输出；macOS 用 `printf '%s\n' "$CHALLENGE"`、PowerShell 输入 `$CHALLENGE`，应该能看到这串值。Windows 使用已安装的 Node.js，不需要额外安装 OpenSSL。
 
 ### 2.2 把用户带到同意页
 
-```bash
+::: code-group
+
+```bash [macOS]
 ENC_REDIRECT=$(node -p 'encodeURIComponent(process.argv[1])' "$REDIRECT_URI")
 # macOS 用 open，Linux 用 xdg-open，也可以把链接复制到浏览器
 open "$BASE/sso?response_type=code&client_id=$CLIENT_ID&redirect_uri=$ENC_REDIRECT&scope=user.read&state=$STATE&code_challenge=$CHALLENGE&code_challenge_method=S256"
 ```
+
+```powershell [Windows（PowerShell）]
+$ENC_REDIRECT = [Uri]::EscapeDataString($REDIRECT_URI)
+Start-Process "$BASE/sso?response_type=code&client_id=$CLIENT_ID&redirect_uri=$ENC_REDIRECT&scope=user.read&state=$STATE&code_challenge=$CHALLENGE&code_challenge_method=S256"
+```
+
+:::
 
 | 参数 | 必填 | 说明 |
 | --- | --- | --- |
@@ -99,6 +152,8 @@ open "$BASE/sso?response_type=code&client_id=$CLIENT_ID&redirect_uri=$ENC_REDIRE
 | `scope` | 否 | 空格分隔；不写时取客户端登记的全部范围；超出登记范围时请求无效 |
 | `state` | 否 | 原样带回。用来防 CSRF，回调时**一定要核对** |
 
+运行打开链接的命令后，你应该看到浏览器中的登录页或同意页。
+
 浏览器里接下来会发生：
 
 1. 用户没登录时先到登录页，登录后回到同一个同意页；
@@ -109,13 +164,23 @@ open "$BASE/sso?response_type=code&client_id=$CLIENT_ID&redirect_uri=$ENC_REDIRE
 
 登记的回调地址本身带查询参数时，参数会保留在前面。比如登记的是 `https://q.example/cb?tenant=7`，回跳地址是 `https://q.example/cb?tenant=7&code=…&state=…`。
 
-```bash
+::: code-group
+
+```bash [macOS]
 CODE='<地址栏里的 code>'      # 300 秒内有效，只能兑换一次
 ```
 
+```powershell [Windows（PowerShell）]
+$CODE = '粘贴地址栏里的 code'      # 300 秒内有效，只能兑换一次
+```
+
+:::
+
 ### 2.3 用授权码换令牌
 
-```bash
+::: code-group
+
+```bash [macOS]
 curl -sS -u "$CLIENT_ID:$CLIENT_SECRET" \
   --data-urlencode grant_type=authorization_code \
   --data-urlencode "code=$CODE" \
@@ -123,6 +188,18 @@ curl -sS -u "$CLIENT_ID:$CLIENT_SECRET" \
   --data-urlencode "code_verifier=$VERIFIER" \
   "$BASE/api/oauth2/token"
 ```
+
+```powershell [Windows（PowerShell）]
+$FORM = @{
+  grant_type = 'authorization_code'
+  code = $CODE
+  redirect_uri = $REDIRECT_URI
+  code_verifier = $VERIFIER
+}
+Invoke-RestMethod -Method Post -Uri "$BASE/api/oauth2/token" -Headers @{ Authorization = "Basic $BASIC" } -ContentType 'application/x-www-form-urlencoded' -Body $FORM | ConvertTo-Json
+```
+
+:::
 
 - 请求体只能是表单编码（`curl --data-urlencode` 默认就是）。发 JSON，或者把字段写成数组（`code[]=…`），都返回 400 `invalid_request`；
 - HTTP Basic 里的标识和密钥不做表单解码。服务端生成的密钥只含 URL 安全的字符，不受影响。
@@ -143,16 +220,33 @@ curl -sS -u "$CLIENT_ID:$CLIENT_SECRET" \
 - 客户端没有 `refresh_token` 授权方式时，响应里没有 `refresh_token`，访问令牌过期后这次授权就结束了；
 - `scope` 用空格分隔。
 
-```bash
+::: code-group
+
+```bash [macOS]
 AT='<access_token>'
 RT='<refresh_token>'
 ```
 
+```powershell [Windows（PowerShell）]
+$AT = '粘贴 access_token'
+$RT = '粘贴 refresh_token'
+```
+
+:::
+
 ### 2.4 读取用户信息（userinfo）
 
-```bash
+::: code-group
+
+```bash [macOS]
 curl -sS -H "Authorization: Bearer $AT" "$BASE/api/oauth2/userinfo"
 ```
+
+```powershell [Windows（PowerShell）]
+Invoke-RestMethod -Uri "$BASE/api/oauth2/userinfo" -Headers @{ Authorization = "Bearer $AT" } | ConvertTo-Json
+```
+
+:::
 
 返回本系统的统一信封（不是 OIDC 的 userinfo 格式）：
 
@@ -190,12 +284,21 @@ curl -sS -H "Authorization: Bearer $AT" "$BASE/api/oauth2/userinfo"
 
 ### 2.5 刷新令牌
 
-```bash
+::: code-group
+
+```bash [macOS]
 curl -sS -u "$CLIENT_ID:$CLIENT_SECRET" \
   --data-urlencode grant_type=refresh_token \
   --data-urlencode "refresh_token=$RT" \
   "$BASE/api/oauth2/token"
 ```
+
+```powershell [Windows（PowerShell）]
+$FORM = @{ grant_type = 'refresh_token'; refresh_token = $RT }
+Invoke-RestMethod -Method Post -Uri "$BASE/api/oauth2/token" -Headers @{ Authorization = "Basic $BASIC" } -ContentType 'application/x-www-form-urlencoded' -Body $FORM | ConvertTo-Json
+```
+
+:::
 
 响应和[换令牌](#_2-3-用授权码换令牌)一样，`refresh_token` 是新的。要注意：
 
@@ -207,9 +310,17 @@ curl -sS -u "$CLIENT_ID:$CLIENT_SECRET" \
 
 ### 2.6 校验令牌（introspect）
 
-```bash
+::: code-group
+
+```bash [macOS]
 curl -sS -u "$CLIENT_ID:$CLIENT_SECRET" --data-urlencode "token=$AT" "$BASE/api/oauth2/introspect"
 ```
+
+```powershell [Windows（PowerShell）]
+Invoke-RestMethod -Method Post -Uri "$BASE/api/oauth2/introspect" -Headers @{ Authorization = "Basic $BASIC" } -ContentType 'application/x-www-form-urlencoded' -Body @{ token = $AT } | ConvertTo-Json
+```
+
+:::
 
 ```json
 {
@@ -229,19 +340,35 @@ curl -sS -u "$CLIENT_ID:$CLIENT_SECRET" --data-urlencode "token=$AT" "$BASE/api/
 
 ### 2.7 撤销令牌（revoke）
 
-```bash
+::: code-group
+
+```bash [macOS]
 curl -sS -i -u "$CLIENT_ID:$CLIENT_SECRET" --data-urlencode "token=$RT" "$BASE/api/oauth2/revoke"
 ```
 
-- 成功返回 200，响应体为空。传访问令牌或刷新令牌都可以，都会结束**整个会话**，两个令牌一起失效；
+```powershell [Windows（PowerShell）]
+Invoke-WebRequest -UseBasicParsing -Method Post -Uri "$BASE/api/oauth2/revoke" -Headers @{ Authorization = "Basic $BASIC" } -ContentType 'application/x-www-form-urlencoded' -Body @{ token = $RT }
+```
+
+:::
+
+- 成功返回 200，响应体为空；PowerShell 示例的输出中应看到 `StatusCode : 200`。传访问令牌或刷新令牌都可以，都会结束**整个会话**，两个令牌一起失效；
 - 不存在的令牌、别的客户端的令牌也返回 200，但什么都不会改变。客户端认证失败返回 401 `invalid_client`；
 - 用户在你的系统里退出登录或解除绑定时，调用它。
 
 ## 3. 客户端凭证（client_credentials）
 
-```bash
+::: code-group
+
+```bash [macOS]
 curl -sS -u "$CLIENT_ID:$CLIENT_SECRET" --data-urlencode grant_type=client_credentials "$BASE/api/oauth2/token"
 ```
+
+```powershell [Windows（PowerShell）]
+Invoke-RestMethod -Method Post -Uri "$BASE/api/oauth2/token" -Headers @{ Authorization = "Basic $BASIC" } -ContentType 'application/x-www-form-urlencoded' -Body @{ grant_type = 'client_credentials' } | ConvertTo-Json
+```
+
+:::
 
 ```json
 {

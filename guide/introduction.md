@@ -20,7 +20,7 @@
 
 | 部分 | 选型 |
 | --- | --- |
-| 后端 | NestJS 12（ESM）、TypeORM、MySQL 8、Redis、Socket.IO |
+| 后端 | NestJS 12（ESM）、TypeORM、MySQL 8.4+、Redis 7+、Socket.IO |
 | 前端 | Vue 3.5、Vite 8、Element Plus、Pinia、vue-i18n |
 | 共享 | `@qiwu/shared`：zod 校验规则、类型、错误码、权限常量 |
 | 工程 | pnpm workspace、TypeScript 6、Vitest、Playwright、oxlint + ESLint |

@@ -107,6 +107,8 @@ pnpm --version
 
 ## 5. MySQL
 
+需要 **MySQL 8.4 及以上**。用 Homebrew 安装：
+
 ```bash
 brew install mysql
 brew services start mysql
@@ -120,13 +122,15 @@ brew services start mysql
 mysql -u root -e "SELECT VERSION();"
 ```
 
-你应该看到一个表格，里面是 MySQL 的版本号。
+你应该看到一个表格，里面是 MySQL 的版本号，确认是 **8.4 或以上**。
 
 ::: warning 报错 `Can't connect to local MySQL server`
 MySQL 还没有启动完成。等 10 秒再试一次；还不行的话，执行 `brew services list`，看看 mysql 的状态是不是 `started`。
 :::
 
 ## 6. Redis
+
+需要 **Redis 7.0 及以上**，支持 `GETDEL` 和 `PEXPIRE` 的 `NX`/`XX`/`GT` 选项。用 Homebrew 安装：
 
 ```bash
 brew install redis

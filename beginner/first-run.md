@@ -3,14 +3,26 @@
 这一页一共 7 步。每一步都写了"你应该看到"的内容，**对上了再做下一步**。
 
 ::: tip Windows 用户
-- 直接在 Windows 上开发：所有命令都在 **Git Bash** 里执行；第 3 步的 SQL 在 **MySQL Workbench** 里执行；
-- 使用 WSL2：所有命令都在 **Ubuntu 窗口**里执行；凡是写 `mysql -u root` 的地方，换成 `sudo mysql`。
+命令在 **Windows 终端或 VS Code 终端里的 Windows PowerShell 5.1** 中执行，有代码组时选 Windows 一栏；第 3 步的 SQL 在 **MySQL Workbench** 里执行。先按[安装环境（Windows）](/beginner/install-windows)完成“允许运行脚本”，再使用 pnpm。
 :::
 
 ## 第 1 步：下载代码
 
-```bash
+::: code-group
+
+```bash [macOS]
 mkdir -p ~/work
+```
+
+```powershell [Windows（PowerShell）]
+New-Item -ItemType Directory -Force ~/work
+```
+
+:::
+
+然后执行（两种系统相同）：
+
+```bash
 cd ~/work
 git clone <项目地址> qiwu-vue-admin
 cd qiwu-vue-admin
@@ -59,21 +71,11 @@ pnpm i
 
 ::: code-group
 
-```bash [Mac]
+```bash [macOS]
 mysql -u root <<'SQL'
-CREATE DATABASE qiwu_dev CHARACTER SET utf8mb4;
-CREATE USER 'qiwu'@'localhost' IDENTIFIED BY 'qiwu123456';
-CREATE USER 'qiwu'@'127.0.0.1' IDENTIFIED BY 'qiwu123456';
-GRANT ALL ON qiwu_dev.* TO 'qiwu'@'localhost';
-GRANT ALL ON qiwu_dev.* TO 'qiwu'@'127.0.0.1';
-SQL
-```
-
-```bash [WSL2]
-sudo mysql <<'SQL'
-CREATE DATABASE qiwu_dev CHARACTER SET utf8mb4;
-CREATE USER 'qiwu'@'localhost' IDENTIFIED BY 'qiwu123456';
-CREATE USER 'qiwu'@'127.0.0.1' IDENTIFIED BY 'qiwu123456';
+CREATE DATABASE IF NOT EXISTS qiwu_dev CHARACTER SET utf8mb4;
+CREATE USER IF NOT EXISTS 'qiwu'@'localhost' IDENTIFIED BY 'qiwu123456';
+CREATE USER IF NOT EXISTS 'qiwu'@'127.0.0.1' IDENTIFIED BY 'qiwu123456';
 GRANT ALL ON qiwu_dev.* TO 'qiwu'@'localhost';
 GRANT ALL ON qiwu_dev.* TO 'qiwu'@'127.0.0.1';
 SQL
@@ -81,9 +83,9 @@ SQL
 
 ```sql [Windows（MySQL Workbench）]
 -- 用 root 连接本地数据库，把下面的 SQL 粘贴到查询窗口，点闪电图标执行
-CREATE DATABASE qiwu_dev CHARACTER SET utf8mb4;
-CREATE USER 'qiwu'@'localhost' IDENTIFIED BY 'qiwu123456';
-CREATE USER 'qiwu'@'127.0.0.1' IDENTIFIED BY 'qiwu123456';
+CREATE DATABASE IF NOT EXISTS qiwu_dev CHARACTER SET utf8mb4;
+CREATE USER IF NOT EXISTS 'qiwu'@'localhost' IDENTIFIED BY 'qiwu123456';
+CREATE USER IF NOT EXISTS 'qiwu'@'127.0.0.1' IDENTIFIED BY 'qiwu123456';
 GRANT ALL ON qiwu_dev.* TO 'qiwu'@'localhost';
 GRANT ALL ON qiwu_dev.* TO 'qiwu'@'127.0.0.1';
 ```
@@ -98,16 +100,30 @@ GRANT ALL ON qiwu_dev.* TO 'qiwu'@'127.0.0.1';
 2. 创建用户 `qiwu`，密码是 `qiwu123456`（写两遍，是因为连接数据库时，地址可能是 `localhost`，也可能是 `127.0.0.1`）；
 3. 允许 `qiwu` 用户操作 `qiwu_dev` 数据库里的所有内容。
 
-成功的话，**不会有任何输出**。检查一下（Mac、WSL2）：
+Mac 命令成功时不会有输出；MySQL Workbench 会在执行结果里显示成功。再检查一下：
 
-```bash
-mysql -u qiwu -pqiwu123456 -h 127.0.0.1 -e "SHOW DATABASES;"
+::: code-group
+
+```bash [macOS]
+mysql -u qiwu -p -h 127.0.0.1 -e "SHOW DATABASES;"
 ```
 
-你应该看到列表里有 `qiwu_dev`。使用 MySQL Workbench 的话，在左侧的 Schemas 面板点刷新，应该能看到 `qiwu_dev`。
+```sql [Windows（MySQL Workbench）]
+-- 回到 Workbench 首页，点 MySQL Connections 旁边的 ⊕ 新建连接：
+-- Connection Name 填 qiwu，Hostname 127.0.0.1，Port 3306，Username qiwu；
+-- 点 Test Connection，输入 qiwu123456，看到连接成功后点 OK 保存；
+-- 再点首页上新出现的 qiwu 连接，在它的查询窗口执行：
+SHOW DATABASES;
+```
 
-::: warning 报错 `database exists` 或者 `Operation CREATE USER failed`
-说明之前已经创建过了，可以忽略，直接做下一步。
+:::
+
+Mac 提示输入密码时，填刚才的 `qiwu123456`（输入时不显示字符）。Windows 一定要在新建的 `qiwu` 连接里执行，不要用第 3 步 root 的查询窗口：root 能看到所有数据库，在那里查不出 `qiwu` 的密码和权限有没有问题。你应该看到列表里有 `qiwu_dev`。如果 Test Connection 提示 `Access denied`，说明 `qiwu` 用户没建好，或者密码和第 3 步不一致，需要先解决再做第 4 步。
+
+::: tip 可以重复执行
+这几行 SQL 可以重复执行：已经存在的数据库和用户会被跳过（Workbench 会显示黄色警告，可以忽略），授权也会重新执行一遍。
+
+注意：已经存在的用户不会改密码。如果 `qiwu` 用户以前用别的密码建过，第 4 步要填旧密码；或者用 root 执行 `ALTER USER 'qiwu'@'localhost' IDENTIFIED BY 'qiwu123456';` 和 `ALTER USER 'qiwu'@'127.0.0.1' IDENTIFIED BY 'qiwu123456';` 把密码改成新的。
 :::
 
 ## 第 4 步：配置环境变量
@@ -116,34 +132,63 @@ mysql -u qiwu -pqiwu123456 -h 127.0.0.1 -e "SHOW DATABASES;"
 
 ```bash
 cd apps/server
+```
+
+::: code-group
+
+```bash [macOS]
 cp .env.example .env
 ```
 
-`cp` 是复制文件：把模板 `.env.example` 复制一份，命名为 `.env`。
+```powershell [Windows（PowerShell）]
+Copy-Item .env.example .env
+```
 
-然后创建存放密码的文件 `.env.local`。复制下面整段执行（第一行会自动生成一个随机密钥 `APP_SECRET`，服务端用它加密保存的第三方密码）：
+:::
+
+`cp`（Mac）和 `Copy-Item`（PowerShell）都是复制文件：把模板 `.env.example` 复制一份，命名为 `.env`。执行 `ls` 查看目录；PowerShell 会列出 `.env`，Mac 要用 `ls -a` 才会显示这种以点开头的文件。
+
+然后创建存放密码的文件 `.env.local`。先生成随机密钥 `APP_SECRET`，服务端用它加密保存的第三方密码（两种系统相同）：
 
 ```bash
-SECRET=$(node -e "console.log(require('crypto').randomBytes(32).toString('base64url'))")
-cat > .env.local <<EOF
+node -e "console.log(require('crypto').randomBytes(32).toString('base64url'))"
+```
+
+你应该看到一串 43 个字符的随机字母、数字、`-` 或 `_`。复制这串密钥，接下来要填进文件。
+
+用编辑器新建文件：
+
+::: code-group
+
+```bash [macOS]
+code .env.local
+```
+
+```powershell [Windows（PowerShell）]
+notepad .env.local
+```
+
+:::
+
+Mac 在 VS Code 中新建这个文件；Windows 如果提示文件不存在，选择新建。粘贴下面的内容，把最后一行的占位文字换成刚才生成的密钥，再保存：
+
+```ini
 DB_USER=qiwu
 DB_PASSWORD=qiwu123456
 REDIS_USERNAME=
 REDIS_PASSWORD=
-APP_SECRET=$SECRET
-EOF
+APP_SECRET=粘贴刚才生成的密钥
+```
+
+保存为 **UTF-8（不带 BOM）**，文件名必须是 `.env.local`，不能多出 `.txt`；记事本另存为时可把文件类型选为“所有文件”。也可以直接用 VS Code 新建并保存。**不要用 Windows PowerShell 5.1 的 `>`、`Out-File` 或 `Set-Content` 写配置文件**：`>` 和 `Out-File` 默认写成 UTF-16，整个文件都读不出来；`Set-Content` 默认用系统本地编码（中文 Windows 是 GBK），值里有中文等非 ASCII 字符就会乱码；加 `-Encoding UTF8` 又会带 BOM，第一行的变量可能读不出来。
+
+检查（两种系统相同）：
+
+```bash
 cat .env.local
 ```
 
-你应该看到：
-
-```text
-DB_USER=qiwu
-DB_PASSWORD=qiwu123456
-REDIS_USERNAME=
-REDIS_PASSWORD=
-APP_SECRET=（一串 43 个字符的随机字母和数字）
-```
+你应该看到上面的五行，`APP_SECRET` 已经换成随机密钥。
 
 ::: tip 为什么分成两个文件
 `.env` 放普通配置（端口、数据库名……），`.env.local` 放密码。**密码只能写在 `.env.local` 里**：服务端先读 `.env`，两个文件里都有的变量以 `.env` 为准，所以 `.env` 里哪怕有一行空的 `DB_PASSWORD=`，`.env.local` 里的密码也不会生效。
@@ -160,7 +205,7 @@ cd ../..
 pwd
 ```
 
-`pwd` 的输出应该以 `/qiwu-vue-admin` 结尾。
+`pwd` 显示的路径应该以 `/qiwu-vue-admin`（Mac）或 `\qiwu-vue-admin`（Windows）结尾；PowerShell 看 `Path` 一栏。
 
 ## 第 5 步：初始化数据库
 
@@ -175,11 +220,13 @@ pnpm db:reset
 
 ```text
 seed: admin password (shown once, must be changed at first sign-in): Xy3kP9…
+seed: initial password of new users (iam.user.initial_password): …
+seed: password of OA demo users oa.employee, oa.supervisor, oa.deputy, oa.director, oa.hr (shown once, must be changed at first sign-in): …
 db:reset: qiwu_dev dropped, migrated and seeded
 ```
 
 ::: danger 把密码记下来！
-`seed: admin password …` 冒号后面的那一串，就是管理员 `admin` 的初始密码，**只显示这一次**。把它复制到记事本里。
+`seed: admin password …` 这一行冒号后面的那一串，就是管理员 `admin` 的初始密码，**只显示这一次**。把它复制到记事本里。下面两行是新用户的初始密码和 OA 示例用户的密码，不要和管理员密码弄混。
 
 忘了也没关系：重新执行一次 `pnpm db:reset`，会生成一个新密码。不过这样会清空数据库里的所有数据。
 :::
@@ -221,7 +268,7 @@ cd ~/work/qiwu-vue-admin
 pnpm dev
 ```
 
-然后打开 `http://localhost:5173`。（使用 WSL2 的话，记得先启动 MySQL 和 Redis，见[安装环境（Windows）](/beginner/install-windows#方式二-使用-wsl2)。）
+然后打开 `http://localhost:5173`。Windows 上如果数据库或缓存没有运行，按[安装环境（Windows）](/beginner/install-windows#_7-redis-安装-memurai)里的说明，在“服务”（`services.msc`）里启动它们。
 
 ## 出问题了？
 
@@ -229,8 +276,8 @@ pnpm dev
 | --- | --- |
 | 启动时报错，提到 `APP_SECRET` | 第 4 步的 `.env.local` 没有创建成功，执行 `cat apps/server/.env.local` 看看内容对不对。再检查 `apps/server/.env` 里有没有 `APP_SECRET` 这一行（哪怕是空的 `APP_SECRET=`），有就删掉，原因见第 4 步的说明 |
 | 报错 `Access denied for user 'qiwu'` | 数据库的用户名或密码不对。检查第 3 步和第 4 步的密码是否一致 |
-| 报错 `ECONNREFUSED 127.0.0.1:3306` | MySQL 没有启动。Mac：`brew services start mysql`；Windows：在"服务"里启动 MySQL 服务；WSL2：`sudo service mysql start` |
-| 报错 `ECONNREFUSED 127.0.0.1:6379` | Redis 没有启动。Mac：`brew services start redis`；Windows：在"服务"里启动 Memurai；WSL2：`sudo service redis-server start` |
+| 报错 `ECONNREFUSED 127.0.0.1:3306` | MySQL 没有启动。Mac：`brew services start mysql`；Windows：在"服务"里启动 MySQL 服务 |
+| 报错 `ECONNREFUSED 127.0.0.1:6379` | Redis 没有启动。Mac：`brew services start redis`；Windows：在"服务"里启动 Memurai |
 | 报错 `EADDRINUSE` 并且提到 `3000` | 3000 端口被占用了，通常是之前启动的项目没有关掉。找到那个终端按 `Ctrl + C`，或者重启电脑 |
 | 浏览器打开是空白页，或者显示"无法访问" | `pnpm dev` 没有在运行，或者还没启动完成。看看终端里有没有报错 |
 | 登录时提示"用户名或密码错误" | 复制密码时多了或者少了字符。重新执行 `pnpm db:reset` 生成新密码 |

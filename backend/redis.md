@@ -48,12 +48,29 @@ MySQL 查询一张有索引的表，通常只需要几毫秒。先不要加缓�
 
 ## 查看 Redis 里的数据
 
-```bash
-redis-cli -n 13 --user qiwu --pass 你的密码
-> SCAN 0 MATCH qw:dict:* COUNT 100     # 按前缀查找键
-> GET qw:param:xxx                     # 查看一个键的值
-> TTL qw:captcha:xxx                   # 还剩几秒过期
+::: code-group
+
+```bash [macOS]
+redis-cli -n 13 --user qiwu --askpass
 ```
+
+```powershell [Windows（PowerShell）]
+memurai-cli -n 13 --user qiwu --askpass
+```
+
+:::
+
+按提示输入 Redis 密码后，你应该看到 `127.0.0.1:6379[13]>` 的提示符。如果 Redis 没有设置密码，去掉 `--user qiwu --askpass`，只保留 `-n 13`；只设置了密码（`.env.local` 的 `REDIS_USERNAME` 为空）时，去掉 `--user qiwu`，保留 `--askpass`；配置了 ACL 用户时，`--user` 后面的用户名要和 `REDIS_USERNAME` 一致。Windows 找不到 `memurai-cli` 时，按[安装页](/beginner/install-windows#_7-redis-安装-memurai)的说明，在实际安装目录中用 `.\memurai-cli.exe` 替代它。
+
+然后在 Redis 客户端中逐行输入（两种系统相同，不要复制提示符）：
+
+```text
+SCAN 0 MATCH qw:dict:* COUNT 100
+GET qw:param:xxx
+TTL qw:captcha:xxx
+```
+
+`SCAN` 按前缀查找键，返回游标和键列表；`GET` 查看值，`TTL` 查看还剩几秒过期。后两行的键名要替换成实际查到的键。
 
 `-n 13` 是开发环境使用的库号（`REDIS_DB`）。
 

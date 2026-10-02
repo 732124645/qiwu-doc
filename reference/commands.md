@@ -1,6 +1,8 @@
 # 命令
 
-在仓库根目录执行。
+在仓库根目录执行。Windows 上，安装依赖、启动开发和初始化数据库可以在自带的 PowerShell 5.1 中执行同样的 `pnpm` 命令，环境安装和脚本执行策略见[安装环境（Windows）](/beginner/install-windows)。
+
+目前 `pnpm verify`、`pnpm gen:check-golden`、服务端测试、`pnpm ci:local` 在 Windows 自带环境里还不能完整运行；`pnpm license:check` 也会失败。`verify` 中的 `arch:check` 和 `license:check` 的脚本不经过命令行解释器，直接启动 `pnpm` 子进程，而 npm 全局安装的 pnpm 是 `pnpm.cmd`，启动时报 `ENOENT`；`ci:local` 会调用这些检查和 `gen:check-golden`，所以同样失败。代码生成器重新生成已有模块时，也会把文件当成冲突，写不进去；第一次生成新模块不受影响。这些问题已经在修复中，说明见[Windows 已知问题](/beginner/install-windows#windows-known-issues)。
 
 ## 日常开发
 
@@ -26,7 +28,30 @@
 | `pnpm gen import <表...>` | 导入表，保存默认配置 |
 | `pnpm gen render <表...> [--out <目录>]` | 打印生成结果，或者输出到仓库外的目录 |
 | `pnpm gen write <表...>` | 写入仓库（需要 `CODEGEN_WRITE=true`） |
-| `pnpm gen:check-golden` | 重新生成零手改模块，并和仓库代码比较。模板升级后用 `pnpm gen:check-golden 2>/dev/null \| git apply` 把差异应用到仓库 |
+| `pnpm gen:check-golden` | 重新生成零手改模块，并和仓库代码比较；当前脚本依赖外部 `diff` 程序，Windows 原生环境请看下面的说明 |
+
+### 模板升级后比较生成结果
+
+macOS 上，准备好 `.env.test` 对应的测试数据库和 Redis 后，可以把差异应用到仓库。按[安装环境（Windows）](/beginner/install-windows#windows-known-issues)装好的环境里，目前 `gen:check-golden` 运行不了：脚本不经过命令行解释器，直接启动 `pnpm` 子进程，而 npm 全局安装的 pnpm 是 `pnpm.cmd`，启动时报 `ENOENT`；脚本还要调用外部 `diff` 程序，Git for Windows 默认不把 `diff` 加进 PATH。不要只把 `/dev/null` 换成 `$null` 就照搬。可以改用 `gen render` 把结果输出到仓库外，再用 VS Code 比较：
+
+::: code-group
+
+```bash [macOS]
+pnpm gen:check-golden 2>/dev/null | git apply
+```
+
+```powershell [Windows（PowerShell）]
+pnpm gen render demo_book --out ../qiwu-generated
+code --diff apps/server/src/modules/demo/book/book.entity.ts ../qiwu-generated/apps/server/src/modules/demo/book/book.entity.ts
+```
+
+:::
+
+Windows 这一栏以 `demo_book` 为例，你应该看到 VS Code 打开两个文件的差异。其他表换成实际表名，按生成结果逐个比较文件；确认后再手动修改仓库里的文件。
+
+::: warning 先确认数据和改动
+`gen:check-golden` 会重置配置的测试数据库，发现差异时以非零状态退出；上面的 macOS 管道会把输出的补丁直接应用到工作区。执行前保存当前改动，并检查测试配置。Windows 的 `gen render` 使用服务端开发配置，读取已有的表和生成器配置，输出到仓库外；它不替代整个仓库的生成一致性检查。
+:::
 
 ## 检查与测试
 

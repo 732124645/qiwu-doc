@@ -110,11 +110,23 @@ server {
 
 如果在 **系统管理 → 文件管理 → 存储配置** 里启用了 S3（阿里云 OSS、腾讯云 COS、Cloudflare R2、MinIO 等兼容服务），不管有没有开启浏览器直传，都要做下面的设置。存在 S3 上的私有文件，下载和预览都由浏览器跟随跳转，直接从 S3 读取（60 秒有效的临时链接）：
 
-1. 构建前端时，用 `CSP_CONNECT_SRC` 声明 S3 的地址：
+1. 构建前端和打印 CSP 时，都用 `CSP_CONNECT_SRC` 声明 S3 的地址，再把打印出的值填进 nginx 的 `Content-Security-Policy`（构建产物里不含 CSP，浏览器只认 nginx 下发的这一份）：
 
-   ```bash
+   ::: code-group
+
+   ```bash [macOS]
    CSP_CONNECT_SRC=https://bucket.s3.example.com pnpm --filter @qiwu/web build
+   CSP_CONNECT_SRC=https://bucket.s3.example.com node -e "import('./apps/web/csp.ts').then((m) => console.log(m.SPA_CSP))"
    ```
+
+   ```powershell [Windows（PowerShell）]
+   $env:CSP_CONNECT_SRC = "https://bucket.s3.example.com"
+   pnpm --filter @qiwu/web build
+   node -e "import('./apps/web/csp.ts').then((m) => console.log(m.SPA_CSP))"
+   Remove-Item Env:CSP_CONNECT_SRC
+   ```
+
+   :::
 
 2. 存储桶的 CORS 规则要允许本站源的 `PUT` 和 `GET` 请求。
 3. 给 `staging/` 目录设置一条生命周期规则（比如 1 天后过期），用来清理上传了但没有确认的文件。

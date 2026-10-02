@@ -46,7 +46,7 @@
 ## 需要什么样的电脑
 
 - **Mac**：可以；
-- **Windows 10 / 11**：可以直接在 Windows 上开发，也可以选择使用 WSL2（在 Windows 里运行一个 Linux），两种方式教程里都有；
+- **Windows 10 / 11**：推荐直接在 Windows 上开发，在 Windows 终端或 VS Code 的终端里使用自带的 Windows PowerShell；
 - 内存至少 8 GB，硬盘剩余空间至少 10 GB。
 
 准备好了吗？从[网站是怎么工作的](/beginner/how-web-works)开始。
