@@ -296,7 +296,7 @@ useIntervalFn(() => {
 
 ## 移动端（uni-app）
 
-0.14.0 起，移动端（`mobile/`）也连同一个网关、用同一份推送类型（`@qiwu/shared` 的 `RT`、`REALTIME_EVENT`），规则和上面一样，只是写法不同。代码都在 `mobile/src/core/realtime.ts`。
+移动端（`mobile/`）也连同一个网关、用同一份推送类型（`@qiwu/shared` 的 `RT`、`REALTIME_EVENT`），规则和上面一样，只是写法不同。代码都在 `mobile/src/core/realtime.ts`。
 
 ### 一套代码跑三个平台
 

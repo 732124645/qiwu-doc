@@ -133,7 +133,7 @@ await router.push('/iam/users')
 
 菜单的"路由名"不能和固定路由的 `name` 相同（比如 `profile`、`sso`、`my-inbox`），否则保存菜单时返回 400，这个字段提示"路由名已被内置页面占用"。因为同名的菜单路由注册时会替换掉内置页面。
 
-这份名单是 `packages/shared/src/common/reserved-names.ts` 中的 `WEB_STATIC_ROUTE_NAMES`。新增固定路由时，要把它的 `name` 加进这份名单，并把它（带短横线的名字取第一段，比如 `my-inbox` 取 `my`）加进同一文件的保留名 `pages`，否则架构检查（`pnpm verify`）会报错。0.14 起名单里多了 `sso` 和 `503`。
+这份名单是 `packages/shared/src/common/reserved-names.ts` 中的 `WEB_STATIC_ROUTE_NAMES`。新增固定路由时，要把它的 `name` 加进这份名单，并把它（带短横线的名字取第一段，比如 `my-inbox` 取 `my`）加进同一文件的保留名 `pages`，否则架构检查（`pnpm verify`）会报错。
 
 ## 路由守卫的流程
 
@@ -147,7 +147,7 @@ await router.push('/iam/users')
 6. 有 `meta.perm` 但没有权限 → 403；
 7. 放行。
 
-第 3 步和第 5 步遇到网络错误、429 或 5xx（服务端正在重启）时，不会跳到登录页，而是退避重试约 20 秒；仍然失败就跳到 `/503`（同样带上 `redirect`），页面上的"重试"会回到原页面再试一次。详见[接口请求 · 服务端暂时连不上](/core/web-request#服务端暂时连不上)。0.13 及更早的版本没有重试，任何失败都跳到登录页。
+第 3 步和第 5 步遇到网络错误、429 或 5xx（服务端正在重启）时，不会跳到登录页，而是退避重试约 20 秒；仍然失败就跳到 `/503`（同样带上 `redirect`），页面上的"重试"会回到原页面再试一次。详见[接口请求 · 服务端暂时连不上](/core/web-request#服务端暂时连不上)。
 
 页面标题会自动设置为"页面名称 - 系统名称"（可以在页面设置中关闭）。
 

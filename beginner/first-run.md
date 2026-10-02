@@ -227,7 +227,7 @@ pnpm dev
 
 | 现象 | 原因和解决办法 |
 | --- | --- |
-| 启动时报错，提到 `APP_SECRET` | 第 4 步的 `.env.local` 没有创建成功，执行 `cat apps/server/.env.local` 看看内容对不对。如果 `apps/server/.env` 里有一行 `APP_SECRET=`（旧版本的模板），把这一行删掉 |
+| 启动时报错，提到 `APP_SECRET` | 第 4 步的 `.env.local` 没有创建成功，执行 `cat apps/server/.env.local` 看看内容对不对。再检查 `apps/server/.env` 里有没有 `APP_SECRET` 这一行（哪怕是空的 `APP_SECRET=`），有就删掉，原因见第 4 步的说明 |
 | 报错 `Access denied for user 'qiwu'` | 数据库的用户名或密码不对。检查第 3 步和第 4 步的密码是否一致 |
 | 报错 `ECONNREFUSED 127.0.0.1:3306` | MySQL 没有启动。Mac：`brew services start mysql`；Windows：在"服务"里启动 MySQL 服务；WSL2：`sudo service mysql start` |
 | 报错 `ECONNREFUSED 127.0.0.1:6379` | Redis 没有启动。Mac：`brew services start redis`；Windows：在"服务"里启动 Memurai；WSL2：`sudo service redis-server start` |

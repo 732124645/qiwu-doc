@@ -111,10 +111,6 @@ const max = await uploadMaxSize() // 读不到参数时是 20 MB
 
 表单设计器的"附件"组件有"单个文件上限（MB）"设置，填了就作为 `max-size` 传给 `FileUpload`，不填就跟随参数。移动端的 `QwUpload`（`mobile/src/core/components/QwUpload.vue`）规则相同，只是每次启动应用读一次参数。
 
-::: info 0.13.0 版本
-0.13.0 的两个组件不读参数，`max-size` 默认固定是 20 MB；参数 `storage.max_size_mb` 也不是登录前可读的。从 0.13.0 升级的库要重新执行 `pnpm db:seed` 给它打上标记，再到 **系统管理 → 参数设置** 点"刷新缓存"，见[文件管理 · 两个参数](/features/storage#两个参数)。
-:::
-
 ## 服务端做了哪些检查
 
 上传接口是 `POST /api/storage/objects`（multipart，字段是 `bizTag` 和 `file`），任何已登录用户都可以调用。每个文件都会经过：

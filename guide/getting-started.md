@@ -72,10 +72,6 @@ node -e "console.log(require('crypto').randomBytes(32).toString('base64url'))"
 服务端先读 `.env`，再读 `.env.local`，两个文件里都有的变量**以 `.env` 为准**，空值（`KEY=`）也算。所以这些变量只写在 `.env.local`，在 `.env` 里写了，哪怕是空值，`.env.local` 里的值也不会生效。
 :::
 
-::: tip 用的是 0.12 或更早的版本？
-那时的 `.env.example` 里还有一行空的 `APP_SECRET=`，复制成 `.env` 以后要**先把这一行删掉**，否则 `.env.local` 里的 `APP_SECRET` 不会生效。
-:::
-
 配置在启动时会校验，缺少或者格式不对的话，服务会直接拒绝启动，并提示是哪一项有问题。所有配置项的含义见[环境变量](/reference/env)。
 
 ## 4. 初始化数据库

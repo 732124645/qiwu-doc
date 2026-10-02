@@ -2,10 +2,6 @@
 
 这一页写给**第三方系统的开发者**：怎样让你的系统"用栖梧账号登录"，读取用户的基本资料，或者以机器身份申请令牌。功能介绍和管理员的操作见[单点登录（OAuth2）](/features/oauth)。
 
-::: info 版本
-本页描述 v0.14.0。0.13 及更早版本没有 OAuth2 功能。
-:::
-
 ## 概览
 
 栖梧是一个 OAuth2 授权服务器，支持：
@@ -19,7 +15,7 @@
 
 - OIDC：没有 `id_token`，没有 discovery 和 JWKS 地址；
 - `password` 和 `implicit` 授权方式；
-- 公共客户端：v0.14.0 只支持**机密客户端**，申请、校验、撤销令牌都必须带客户端密钥，用了 PKCE 也一样。纯前端网页和手机 App 要经过自己的后端接入。
+- 公共客户端：目前只支持**机密客户端**，申请、校验、撤销令牌都必须带客户端密钥，用了 PKCE 也一样。纯前端网页和手机 App 要经过自己的后端接入。
 
 令牌是不透明的随机字符串（43 个 base64url 字符），**不是 JWT**，第三方没法自己验签。想知道令牌是否有效，调用 [introspect](#_2-6-校验令牌-introspect) 或直接调用 [userinfo](#_2-4-读取用户信息-userinfo)。服务端只保存令牌的 SHA-256 摘要。
 
@@ -258,7 +254,7 @@ curl -sS -u "$CLIENT_ID:$CLIENT_SECRET" --data-urlencode grant_type=client_crede
 
 - 没有 `refresh_token`，过期后重新申请；
 - `scope` 可以不写，默认取客户端登记的全部范围；超出登记范围返回 `invalid_scope`。客户端没有登记 `client_credentials` 方式时返回 `unauthorized_client`。客户端没有登记任何授权范围时，申请会返回 `invalid_scope`；
-- 这种令牌不代表任何用户：调用 userinfo 返回 403 `B4003`，调用其他需要登录的接口返回 401。v0.14.0 还没有接受机器令牌的业务接口，可以对它做 introspect（结果里没有 `sub`）和 revoke；
+- 这种令牌不代表任何用户：调用 userinfo 返回 403 `B4003`，调用其他需要登录的接口返回 401。目前还没有接受机器令牌的业务接口，可以对它做 introspect（结果里没有 `sub`）和 revoke；
 - 它的会话也出现在 **系统监控 → 在线用户** 里，但只有超级管理员能看到和强退。
 
 ## 4. 错误
