@@ -4,9 +4,10 @@ import { defineConfig } from 'vitepress'
 import { groupIconMdPlugin, groupIconVitePlugin } from 'vitepress-plugin-group-icons'
 import { MermaidMarkdown, MermaidPlugin } from 'vitepress-plugin-mermaid'
 
-// 发布到 GitHub Pages 时站点在子路径下（流水线设 DOCS_BASE=/qiwu-doc/），本地预览是根路径
+// 站点部署在 Cloudflare Pages 的根路径（https://qiwuadmin.com）；GitHub Pages 的副本在子路径下（流水线设 DOCS_BASE=/qiwu-doc/）
 const base = process.env.DOCS_BASE ?? '/'
-const origin = 'https://732124645.github.io'
+// 规范地址：站点地图、分享卡片、canonical 一律指向官方域名，副本也不例外，避免被当成重复内容
+const site = 'https://qiwuadmin.com'
 // 只保留插件的虚拟配置模块，组件由主题按需加载，不静态注入全站入口。
 const mermaidConfigPlugin = MermaidPlugin({ theme: 'default' })
 delete mermaidConfigPlugin.transform
@@ -33,14 +34,15 @@ export default defineConfig({
       md.use(groupIconMdPlugin)
     },
   },
-  sitemap: { hostname: `${origin}${base}` },
+  sitemap: { hostname: `${site}/` },
   transformHead({ pageData, siteData }) {
     const path = pageData.relativePath.replace(/(^|\/)index\.md$/, '$1').replace(/\.md$/, '')
-    const url = new URL(`${base}${path}`, origin).href
-    const image = new URL(`${base}og.png`, origin).href
+    const url = new URL(`/${path}`, site).href
+    const image = new URL('/og.png', site).href
     const title = pageData.title || siteData.title
     const description = pageData.frontmatter.description || siteData.description
     return [
+      ['link', { rel: 'canonical', href: url }],
       ['meta', { property: 'og:type', content: 'website' }],
       ['meta', { property: 'og:site_name', content: siteData.title }],
       ['meta', { property: 'og:title', content: title }],

@@ -1,4 +1,4 @@
 User-agent: *
 Allow: /
 
-Sitemap: https://732124645.github.io/qiwu-doc/sitemap.xml
+Sitemap: https://qiwuadmin.com/sitemap.xml
