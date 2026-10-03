@@ -1,4 +1,4 @@
-# 推送到 main 后构建文档：正式站点发布到 Cloudflare Pages（https://qiwuadmin.com），GitHub Pages 保留一份副本
+# 推送到 main 后构建文档并发布到 Cloudflare Pages（https://qiwuadmin.com）；GitHub Pages 上的旧地址只做跳转
 name: 发布文档
 
 on:
@@ -17,24 +17,34 @@ concurrency:
 
 jobs:
   build:
+    # GitHub Pages 上的旧地址只做跳转：所有页面都转到 qiwuadmin.com 上的同一路径
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-        with:
-          fetch-depth: 0 # "最后更新"时间要用完整的提交历史
-      - uses: pnpm/action-setup@v4 # 版本取 package.json 的 packageManager
-      - uses: actions/setup-node@v4
-        with:
-          node-version: 22
-          cache: pnpm
-      - run: pnpm install --frozen-lockfile
-      - run: pnpm build
-        env:
-          DOCS_BASE: /${{ github.event.repository.name }}/
+      - run: |
+          mkdir -p redirect
+          cat > redirect/index.html <<'HTML'
+          <!doctype html>
+          <html lang="zh-CN">
+          <head>
+          <meta charset="utf-8">
+          <meta name="robots" content="noindex">
+          <link rel="canonical" href="https://qiwuadmin.com/">
+          <title>栖梧 Qiwu 文档已迁移</title>
+          <script>
+          var p = location.pathname.replace(/^\/[^/]+/, '') || '/';
+          location.replace('https://qiwuadmin.com' + p + location.search + location.hash);
+          </script>
+          </head>
+          <body>
+          <p>文档已迁移到 <a href="https://qiwuadmin.com/">qiwuadmin.com</a>。</p>
+          </body>
+          </html>
+          HTML
+          cp redirect/index.html redirect/404.html
       - uses: actions/configure-pages@v5
       - uses: actions/upload-pages-artifact@v3
         with:
-          path: .vitepress/dist
+          path: redirect
 
   deploy:
     needs: build
