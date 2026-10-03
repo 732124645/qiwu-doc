@@ -1,7 +1,11 @@
 import { PageProperties, PagePropertiesMarkdownSection } from '@nolebase/vitepress-plugin-page-properties/vite'
 import { defineConfig } from 'vitepress'
 
+// 发布到 GitHub Pages 时站点在子路径下（流水线设 DOCS_BASE=/qiwu-doc/），本地预览是根路径
+const base = process.env.DOCS_BASE ?? '/'
+
 export default defineConfig({
+  base,
   lang: 'zh-CN',
   title: '栖梧 Qiwu',
   description: 'Node 全栈管理后台模板：NestJS + Vue 3 + Element Plus，MIT 开源',
@@ -14,7 +18,7 @@ export default defineConfig({
     ssr: { noExternal: ['@nolebase/vitepress-plugin-page-properties', '@nolebase/ui'] },
   },
   head: [
-    ['link', { rel: 'icon', type: 'image/svg+xml', href: '/logo.svg' }],
+    ['link', { rel: 'icon', type: 'image/svg+xml', href: `${base}logo.svg` }],
     // 禁用脚本时首页不做滚动叙事，章节按顺序排开（同组件里的 .is-fallback）
     [
       'noscript',
