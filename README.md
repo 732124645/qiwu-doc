@@ -2,7 +2,7 @@
 
 栖梧 Qiwu 的文档站（VitePress）。
 
-在线阅读：<https://732124645.github.io/qiwu-doc/>（推送到 `main` 后由 GitHub Actions 自动发布）
+在线阅读：<https://qiwuadmin.com>（推送到 `main` 后由 GitHub Actions 自动发布到 Cloudflare Pages）
 
 ```bash
 pnpm i
