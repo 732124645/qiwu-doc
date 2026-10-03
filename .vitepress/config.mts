@@ -1,8 +1,15 @@
 import { PageProperties, PagePropertiesMarkdownSection } from '@nolebase/vitepress-plugin-page-properties/vite'
+import { GitChangelog, GitChangelogMarkdownSection } from '@nolebase/vitepress-plugin-git-changelog/vite'
 import { defineConfig } from 'vitepress'
+import { groupIconMdPlugin, groupIconVitePlugin } from 'vitepress-plugin-group-icons'
+import { MermaidMarkdown, MermaidPlugin } from 'vitepress-plugin-mermaid'
 
 // 发布到 GitHub Pages 时站点在子路径下（流水线设 DOCS_BASE=/qiwu-doc/），本地预览是根路径
 const base = process.env.DOCS_BASE ?? '/'
+const origin = 'https://732124645.github.io'
+// 只保留插件的虚拟配置模块，组件由主题按需加载，不静态注入全站入口。
+const mermaidConfigPlugin = MermaidPlugin({ theme: 'default' })
+delete mermaidConfigPlugin.transform
 
 export default defineConfig({
   base,
@@ -11,9 +18,56 @@ export default defineConfig({
   description: 'Node 全栈管理后台模板：NestJS + Vue 3 + Element Plus，MIT 开源',
   cleanUrls: true,
   lastUpdated: true,
+  srcExclude: ['README.md'],
+  markdown: {
+    codeCopyButtonTitle: '复制代码',
+    container: {
+      tipLabel: '提示',
+      infoLabel: '说明',
+      warningLabel: '注意',
+      dangerLabel: '警告',
+      detailsLabel: '详细信息',
+    },
+    config(md) {
+      md.use(MermaidMarkdown)
+      md.use(groupIconMdPlugin)
+    },
+  },
+  sitemap: { hostname: `${origin}${base}` },
+  transformHead({ pageData, siteData }) {
+    const path = pageData.relativePath.replace(/(^|\/)index\.md$/, '$1').replace(/\.md$/, '')
+    const url = new URL(`${base}${path}`, origin).href
+    const image = new URL(`${base}og.png`, origin).href
+    const title = pageData.title || siteData.title
+    const description = pageData.frontmatter.description || siteData.description
+    return [
+      ['meta', { property: 'og:type', content: 'website' }],
+      ['meta', { property: 'og:site_name', content: siteData.title }],
+      ['meta', { property: 'og:title', content: title }],
+      ['meta', { property: 'og:description', content: description }],
+      ['meta', { property: 'og:url', content: url }],
+      ['meta', { property: 'og:image', content: image }],
+      ['meta', { property: 'og:locale', content: 'zh_CN' }],
+      ['meta', { name: 'twitter:card', content: 'summary_large_image' }],
+      ['meta', { name: 'twitter:title', content: title }],
+      ['meta', { name: 'twitter:description', content: description }],
+      ['meta', { name: 'twitter:url', content: url }],
+      ['meta', { name: 'twitter:image', content: image }],
+    ]
+  },
   vite: {
     // 字数和预计阅读时间（首页 index.md 默认不显示）
-    plugins: [PageProperties(), PagePropertiesMarkdownSection()],
+    plugins: [
+      PageProperties(),
+      PagePropertiesMarkdownSection(),
+      mermaidConfigPlugin,
+      groupIconVitePlugin({
+        // 插件从本地 Iconify 图标包读取 SVG，不在构建时请求网络。
+        customIcon: { macos: 'logos:apple', windows: 'logos:microsoft-windows-icon' },
+      }),
+      GitChangelog({ repoURL: 'https://github.com/732124645/qiwu-doc' }),
+      GitChangelogMarkdownSection({ excludes: ['index.md'], sections: { disableContributors: true } }),
+    ],
     optimizeDeps: { exclude: ['@nolebase/vitepress-plugin-page-properties/client'] },
     ssr: { noExternal: ['@nolebase/vitepress-plugin-page-properties', '@nolebase/ui'] },
   },
@@ -235,12 +289,36 @@ export default defineConfig({
     search: {
       provider: 'local',
       options: {
+        miniSearch: {
+          searchOptions: { combineWith: 'AND' },
+          options: {
+            // VitePress 1.6 会序列化函数并在浏览器还原，因此不能引用外部闭包。
+            tokenize: (text) => {
+              const segmenter = new Intl.Segmenter('zh', { granularity: 'word' })
+              return Array.from(segmenter.segment(text))
+                .filter((word) => word.isWordLike)
+                .map((word) => word.segment)
+                .flatMap((word) => word.split(/\p{P}+/u))
+                .filter(Boolean)
+            },
+          },
+        },
         translations: {
           button: { buttonText: '搜索', buttonAriaLabel: '搜索' },
           modal: {
             noResultsText: '没有找到结果',
             resetButtonTitle: '清除',
-            footer: { selectText: '选择', navigateText: '切换', closeText: '关闭' },
+            backButtonTitle: '关闭搜索',
+            displayDetails: '显示详细列表',
+            footer: {
+              selectText: '选择',
+              selectKeyAriaLabel: '回车键',
+              navigateText: '切换',
+              navigateUpKeyAriaLabel: '向上方向键',
+              navigateDownKeyAriaLabel: '向下方向键',
+              closeText: '关闭',
+              closeKeyAriaLabel: '退出键',
+            },
           },
         },
       },
@@ -249,6 +327,17 @@ export default defineConfig({
     docFooter: { prev: '上一页', next: '下一页' },
     lastUpdated: { text: '最后更新' },
     darkModeSwitchLabel: '外观',
+    darkModeSwitchTitle: '切换到深色模式',
+    lightModeSwitchTitle: '切换到浅色模式',
+    langMenuLabel: '切换语言',
+    skipToContentLabel: '跳到正文',
+    notFound: {
+      title: '页面不存在',
+      quote: '这个地址没有对应的页面，可以返回首页继续浏览。',
+      linkLabel: '返回首页',
+      linkText: '返回首页',
+    },
+    externalLinkIcon: true,
     sidebarMenuLabel: '菜单',
     returnToTopLabel: '回到顶部',
     footer: { message: '基于 MIT 协议发布', copyright: '© 2026 栖梧 Qiwu' },

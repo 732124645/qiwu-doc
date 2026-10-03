@@ -8,10 +8,11 @@
 
 写任何一个后端功能，都会用到这几层：
 
-```text
-请求 ──▶ 控制器 ──▶ 服务 ──▶ 实体 / 查询 ──▶ 数据库
-          │          │
-       参数校验     异常处理
+```mermaid
+flowchart LR
+  request[请求] --> controller[控制器] --> service[服务] --> entity[实体 / 查询] --> database[数据库]
+  controller --> validation[参数校验]
+  service --> errors[异常处理]
 ```
 
 | 页面 | 讲什么 |

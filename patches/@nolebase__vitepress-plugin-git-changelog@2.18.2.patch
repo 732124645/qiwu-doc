@@ -1,0 +1,42 @@
+diff --git a/dist/vite/index.cjs b/dist/vite/index.cjs
+index 6b320789172f821250b882d394fa287c23b29451..8ccb9cc41213f7ac7ac1762e58383fa2707c17a3 100644
+--- a/dist/vite/index.cjs
++++ b/dist/vite/index.cjs
+@@ -91,7 +91,7 @@ async function getRawCommitLogs(file, maxGitLogCount) {
+   const fileDir = node_path.dirname(file);
+   const fileName = node_path.basename(file);
+   const format = "%H|%an|%ae|%ad|%s|%d|%b";
+-  const { stdout } = await execa.execa("git", ["log", `--max-count=${maxGitLogCount ?? -1}`, `--format=${format}[GIT_LOG_COMMIT_END]`, "--follow", "--", fileName], { cwd: fileDir });
++  const { stdout } = await execa.execa("git", ["-c", "core.quotepath=false", "log", `--max-count=${maxGitLogCount ?? -1}`, `--format=${format}[GIT_LOG_COMMIT_END]`, "--follow", "--", fileName], { cwd: fileDir });
+   return stdout.replace(/\[GIT_LOG_COMMIT_END\]$/, "").split("[GIT_LOG_COMMIT_END]\n");
+ }
+ function parseRawCommitLogs(path, rawLogs) {
+@@ -337,7 +337,6 @@ function GitChangelog(options = {}) {
+       logger.info(`${logModulePrefix} Prepare to gather git logs...`);
+       if (changelog.commits.length > 0)
+         return;
+-      await execa.execa("git", ["config", "--local", "core.quotepath", "false"]);
+       const paths = await globby.globby(include, {
+         gitignore: true,
+         cwd,
+diff --git a/dist/vite/index.mjs b/dist/vite/index.mjs
+index 69ca89450b58681fa0319db409adca569c44ba61..d69e7c0018a50b2c4c68183e3661a74c6ce5bac4 100644
+--- a/dist/vite/index.mjs
++++ b/dist/vite/index.mjs
+@@ -85,7 +85,7 @@ async function getRawCommitLogs(file, maxGitLogCount) {
+   const fileDir = dirname(file);
+   const fileName = basename(file);
+   const format = "%H|%an|%ae|%ad|%s|%d|%b";
+-  const { stdout } = await execa("git", ["log", `--max-count=${maxGitLogCount ?? -1}`, `--format=${format}[GIT_LOG_COMMIT_END]`, "--follow", "--", fileName], { cwd: fileDir });
++  const { stdout } = await execa("git", ["-c", "core.quotepath=false", "log", `--max-count=${maxGitLogCount ?? -1}`, `--format=${format}[GIT_LOG_COMMIT_END]`, "--follow", "--", fileName], { cwd: fileDir });
+   return stdout.replace(/\[GIT_LOG_COMMIT_END\]$/, "").split("[GIT_LOG_COMMIT_END]\n");
+ }
+ function parseRawCommitLogs(path, rawLogs) {
+@@ -331,7 +331,6 @@ function GitChangelog(options = {}) {
+       logger.info(`${logModulePrefix} Prepare to gather git logs...`);
+       if (changelog.commits.length > 0)
+         return;
+-      await execa("git", ["config", "--local", "core.quotepath", "false"]);
+       const paths = await globby(include, {
+         gitignore: true,
+         cwd: cwd$1,
