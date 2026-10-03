@@ -30,6 +30,11 @@ export default defineConfig({
     ],
   ],
   themeConfig: {
+    // 每页底部的"在 GitHub 上编辑此页"：读者可以直接提交修改（Pull Request）
+    editLink: {
+      pattern: 'https://github.com/732124645/qiwu-doc/edit/main/:path',
+      text: '在 GitHub 上编辑此页',
+    },
     logo: '/logo.svg',
     nav: [
       { text: '指南', link: '/guide/introduction', activeMatch: '/guide/' },
