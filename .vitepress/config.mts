@@ -41,7 +41,24 @@ export default defineConfig({
     const image = new URL('/og.png', site).href
     const title = pageData.title || siteData.title
     const description = pageData.frontmatter.description || siteData.description
+    const head: [string, Record<string, string>, string?][] = []
+    // 首页加结构化数据：告诉搜索引擎这是哪个网站、什么语言
+    if (path === '')
+      head.push([
+        'script',
+        { type: 'application/ld+json' },
+        JSON.stringify({
+          '@context': 'https://schema.org',
+          '@type': 'WebSite',
+          name: siteData.title,
+          url: `${site}/`,
+          description: siteData.description,
+          inLanguage: 'zh-CN',
+        }),
+      ])
     return [
+      ...head,
+      ['meta', { name: 'theme-color', content: '#03050a' }],
       ['link', { rel: 'canonical', href: url }],
       ['meta', { property: 'og:type', content: 'website' }],
       ['meta', { property: 'og:site_name', content: siteData.title }],
