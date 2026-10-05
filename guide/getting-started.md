@@ -22,7 +22,7 @@
 ## 1. 获取代码
 
 ```bash
-git clone <仓库地址> my-admin
+git clone https://github.com/732124645/qiwu-vue-admin.git my-admin
 cd my-admin
 pnpm i
 ```

@@ -435,6 +435,7 @@ onBeforeUnmount(() => {
           <a :href="withBase('/beginner/')">入门</a>
           <a :href="withBase('/core/')">开发指南</a>
           <a :href="withBase('/changelog')">更新日志</a>
+          <a href="https://demo.qiwuadmin.com" target="_blank" rel="noopener">在线演示</a>
         </nav>
         <a class="qws-btn is-primary is-small" :href="withBase('/guide/getting-started')">开始使用 →</a>
       </header>
@@ -516,6 +517,8 @@ onBeforeUnmount(() => {
 
           <div v-if="i === 0" class="qws-actions">
             <a class="qws-btn is-primary" :href="withBase('/guide/getting-started')">快速开始</a>
+            <a class="qws-btn" href="https://demo.qiwuadmin.com" target="_blank" rel="noopener">在线演示</a>
+            <a class="qws-btn" href="https://github.com/732124645/qiwu-vue-admin" target="_blank" rel="noopener">源码</a>
             <button type="button" class="qws-btn" @click="goChapter(1)">看看它能做什么</button>
           </div>
           <template v-if="i === chapters.length - 1">
@@ -526,6 +529,8 @@ onBeforeUnmount(() => {
             </div>
             <div class="qws-actions">
               <a class="qws-btn is-primary" :href="withBase('/guide/getting-started')">快速开始</a>
+              <a class="qws-btn" href="https://demo.qiwuadmin.com" target="_blank" rel="noopener">在线演示</a>
+              <a class="qws-btn" href="https://github.com/732124645/qiwu-vue-admin" target="_blank" rel="noopener">源码</a>
               <a class="qws-btn" :href="withBase('/core/')">开发指南</a>
             </div>
           </template>

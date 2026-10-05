@@ -124,7 +124,9 @@ export default defineConfig({
       { text: '功能', link: '/features/', activeMatch: '/features/' },
       { text: '参考', link: '/reference/api', activeMatch: '/reference/' },
       { text: '更新日志', link: '/changelog' },
+      { text: '在线演示', link: 'https://demo.qiwuadmin.com' },
     ],
+    socialLinks: [{ icon: 'github', link: 'https://github.com/732124645/qiwu-vue-admin' }],
     sidebar: {
       '/guide/': [
         {

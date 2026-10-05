@@ -24,11 +24,11 @@ New-Item -ItemType Directory -Force ~/work
 
 ```bash
 cd ~/work
-git clone <项目地址> qiwu-vue-admin
+git clone https://github.com/732124645/qiwu-vue-admin.git
 cd qiwu-vue-admin
 ```
 
-`<项目地址>` 请换成项目主页上的仓库地址（或者老师给你的地址）。
+这条命令会从公开的[源码仓库](https://github.com/732124645/qiwu-vue-admin)下载代码，保存到当前目录下的 `qiwu-vue-admin` 文件夹。
 
 你应该看到：
 
