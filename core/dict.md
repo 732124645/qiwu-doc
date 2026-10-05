@@ -66,7 +66,7 @@ export async function seedDemo(q: EntityManager): Promise<string[]> {
 | 字段 | 说明 |
 | --- | --- |
 | `tagType` | 在 `<DictTag>` 中显示为什么颜色的标签：`primary`、`success`、`info`、`warning`、`danger` |
-| `isDefault` | 是否为默认项 |
+| `isDefault` | 是否为默认项。每个字典最多一个默认项（停用的项也算），由数据库唯一索引保证；在字典管理里再设一个默认项会返回 409，要先取消原来的 |
 
 规则：
 

@@ -177,7 +177,7 @@ if (saved) await refresh()
 | --- | --- |
 | `useAuthStore` | 当前用户 `me`、权限 `perms`、角色、`hasPerm()`、登录、退出、锁屏 |
 | `useMenuStore` | 菜单树、路由、缓存的页面名称 |
-| `useAppStore` | 布局设置（侧边栏/顶部/混合、主题色、暗色模式……） |
+| `useAppStore` | 布局设置（侧边栏/顶部/混合、侧边栏深色/浅色、主题色、暗色模式、用户名水印……） |
 | `useDictStore` | 字典缓存 |
 | `useLocaleStore` | 当前语言，`set('en-US')` 切换语言 |
 | `useNotifyStore` | 铃铛的未读数量、公告和站内信 |

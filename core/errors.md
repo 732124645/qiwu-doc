@@ -41,6 +41,7 @@ throw new ForbiddenException()      // 403
 | 仍在被使用，不能删除 | 由 `referencedBy` 自动处理 | 409 |
 | 参数格式不对 | 由 zod 规则自动处理 | 400 |
 | 没有权限 | 由 `@RequirePerm` 自动处理 | 403 |
+| 演示模式下的写操作 | 由全局的演示模式守卫自动处理（`A0431`） | 403 |
 
 ## 错误码
 
@@ -52,6 +53,7 @@ export const Err = {
   VALIDATION_FAILED: def('A0401', 400, 'error.common.validation_failed'),
   UNAUTHENTICATED: def('A0410', 401, 'error.common.unauthenticated'),
   FORBIDDEN: def('A0430', 403, 'error.common.forbidden'),
+  DEMO_READ_ONLY: def('A0431', 403, 'error.common.demo_read_only'),
   NOT_FOUND: def('A0440', 404, 'error.common.not_found'),
   CONFLICT: def('A0490', 409, 'error.common.conflict'),
   DUPLICATE: def('A0491', 409, 'error.common.duplicate'),
@@ -156,7 +158,7 @@ X-Request-Id: 6f1c2a…
 | `traceId` | 请求编号，和响应头 `X-Request-Id`、服务端日志中的 `reqId` 相同 |
 
 ::: info 例外：OAuth2 的三个标准接口
-`/api/oauth2/token`、`/introspect`、`/revoke` 出错时返回 OAuth2 标准的 `{ error, error_description }`（`error_description` 可能没有），不是上面的格式；只有限流（429）和服务器内部错误（500）仍然是上面的格式。见 [OAuth2 接入指南](/reference/oauth2)。
+`/api/oauth2/token`、`/introspect`、`/revoke` 出错时返回 OAuth2 标准的 `{ error, error_description }`（`error_description` 可能没有），不是上面的格式；只有限流（429）、演示模式拒绝（403）和服务器内部错误（500）仍然是上面的格式。见 [OAuth2 接入指南](/reference/oauth2)。
 :::
 
 ## 过滤器如何转换各种异常

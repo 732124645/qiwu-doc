@@ -89,8 +89,8 @@ await upsertTemplates(
       body: '{initiator} 于 {startedAt} 发起的{model}（编号 {instanceId}）已到「{node}」，等待您审批。',
     },
     'en-US': {
-      title: 'To review: {model} from {initiator}',
-      body: '{model} #{instanceId}, started by {initiator} at {startedAt}, is waiting for your review at "{node}".',
+      title: 'Approval needed: {model} from {initiator}',
+      body: '{model} #{instanceId}, started by {initiator} at {startedAt}, is waiting for your approval at "{node}".',
     },
   },
   {

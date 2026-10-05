@@ -82,10 +82,11 @@ config.headers['X-Timezone'] = Intl.DateTimeFormat().resolvedOptions().timeZone 
 
 **守卫**（Guard）相当于前端的 `router.beforeEach`，它只回答一个问题："这个请求能不能继续往下走？"
 
-项目注册了两个全局守卫，每个请求都会经过：
+项目注册了三个全局守卫，每个请求都按顺序经过：
 
-1. **`AuthGuard`**：从 `Authorization` 头里取出令牌，到 Redis 里查这个令牌对应的会话。查不到就返回 **401**（未登录）。
-2. **`PermGuard`**：读取控制器方法上的 `@RequirePerm(...)`，检查当前用户是否拥有这个权限。没有就返回 **403**（没有权限）。
+1. **`DemoModeGuard`**：只在开启演示模式（`APP_DEMO_MODE=true`，公开演示站用的只读模式）时起作用。除了登录、退出、保存个人偏好等少数几个接口，其他写操作（非 GET 请求）一律返回 **403**。没开演示模式时直接放行。
+2. **`AuthGuard`**：从 `Authorization` 头里取出令牌，到 Redis 里查这个令牌对应的会话。查不到就返回 **401**（未登录）。
+3. **`PermGuard`**：读取控制器方法上的 `@RequirePerm(...)`，检查当前用户是否拥有这个权限。没有就返回 **403**（没有权限）。
 
 岗位列表方法上声明的权限是：
 

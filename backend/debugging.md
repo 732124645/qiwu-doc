@@ -120,7 +120,7 @@ SELECT * FROM meta_migrations ORDER BY id DESC LIMIT 5;           -- 最近执�
 | 检查 | 常见原因 |
 | --- | --- |
 | lint | 代码风格；跨层导入（比如 platform 导入了 biz） |
-| arch | 非 GET 接口缺少 `@ActionLog`；带数据范围的修改接口没有用 `lockScopedIds`；拼接了 SQL 字符串；直接写了 Redis 键。构建过前端时还会扫描 `apps/web/dist`：出现白名单以外的 `eval` / `Function` 调用或 wangeditor v4 的代码，通常是新加的依赖带进来的 |
+| arch | 非 GET 接口缺少 `@ActionLog`；带数据范围的修改接口没有用 `lockScopedIds`；拼接了 SQL 字符串；直接写了 Redis 键；`scripts/` 里的脚本直接用 `spawn('pnpm', …)` 这类在 Windows 上跑不通的写法启动命令。构建过前端时还会扫描 `apps/web/dist`：出现白名单以外的 `eval` / `Function` 调用或 wangeditor v4 的代码，通常是新加的依赖带进来的 |
 | typecheck | 类型错误 |
 | i18n | 缺少某种语言的翻译；代码里写了中文 |
 | originality | 使用了参考项目里的标识符 |

@@ -83,9 +83,10 @@ apps/web/src/
 | `fs_` | `platform/storage/` | 文件 |
 | `job_` | `platform/scheduler/` | 定时任务 |
 | `oauth_` | `platform/oauth/` | OAuth2 |
+| `im_` | `platform/im/` | 平台为即时通讯（聊天）保留的前缀，模板里没有这类表，项目的表不要用这个前缀 |
 | `wf_` | `workflow/` | 工作流 |
 
-**保留名**不能用作领域，比如 `iam`、`system`、`auth`、`password`。完整列表在 `packages/shared/src/common/reserved-names.ts`，第一段是保留名的表会归入 `biz`。
+**保留名**不能用作领域，比如 `iam`、`auth`、`password`、`im`。完整列表在 `packages/shared/src/common/reserved-names.ts`，第一段是保留名的表会归入 `biz`。
 
 **名字的写法**：
 

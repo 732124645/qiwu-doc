@@ -115,7 +115,7 @@ update(@Param('id', ParseIntPipe) id: number, @Body({ schema: bookUpdate }) dto:
 
 ```ts
 // apps/server/src/modules/platform/iam/role/role.controller.ts（节选）
-/** Any signed-in user (role pickers of the user page, M3); root only for root. */
+/** Any signed-in user (role pickers of the user page); root only for root. */
 @Get('options')
 options() {
   return this.roles.options()
@@ -246,7 +246,7 @@ export class Book extends BaseEntity {
 一组角色合起来一个条件也没有时（比如"本部门"但用户没有部门、"指定部门"但一个部门都没选），这一组加的是 `1=0`。所有的值都是绑定参数，不会拼进 SQL。
 
 ::: info 规则链
-`BaseCrudService` 上有一个受保护的 `scopeRules` 字段，默认是 `[deptScopeRule(), tenantRule]`，子类可以替换。`tenantRule` 是给以后的多租户预留的，**目前什么都不做**。
+`BaseCrudService` 上有一个受保护的 `scopeRules` 字段，默认是 `[deptScopeRule(), tenantRule]`，子类可以替换。`tenantRule` 是为多租户预留的位置，模板没有实现多租户，它**什么都不做**，也不提供任何租户隔离。
 :::
 
 ### 读：scopedQb
@@ -365,7 +365,7 @@ await this.assertWritableScope({ ...row, createdBy: clsGet('principal')?.userId 
 
 ```ts
 // apps/server/src/modules/workflow/admin/wf-admin.service.ts（节选）
-/** The data scope of instances (admin pages, CR-30): the initiator's dept, and the initiator for `own_rows`. */
+/** The data scope of instances (admin pages): the initiator's dept, and the initiator for `own_rows`. */
 export const WF_INSTANCE_SCOPE: DataScopeColumns = {
   dept: 'initiator_dept_id',
   owner: 'initiator_id',

@@ -70,7 +70,7 @@
 | `POST /api/oauth2/introspect` | 同上 | `{ "active": true, … }` 或 `{ "active": false }` | 400 `{ "error": "invalid_request" }` 或 401 `{ "error": "invalid_client" }` |
 | `POST /api/oauth2/revoke` | 同上 | 200，响应体为空 | 同上一行 |
 
-- 这三个接口超出限流（429）或服务器内部错误（500）时，返回的不是 RFC 格式，而是前面[响应格式](#响应格式)里的统一错误信封 `{ code, msg, data: null, traceId }`，`code` 分别是 `A0429` 和 `A0500`；
+- 这三个接口超出限流（429）、被演示模式拒绝（403）或服务器内部错误（500）时，返回的不是 RFC 格式，而是前面[响应格式](#响应格式)里的统一错误信封 `{ code, msg, data: null, traceId }`，`code` 分别是 `A0429`、`A0431` 和 `A0500`；
 - `GET /api/oauth2/userinfo` 和同意页内部调用的 `GET`、`POST /api/oauth2/authorize` 用的是普通的 `{ code, msg, data }` 格式。
 
 字段、错误和限流的完整说明见 [OAuth2 接入指南](/reference/oauth2)。
@@ -84,12 +84,13 @@
 | 200 / 201 | 成功 |
 | 400 | 参数校验失败（`errors` 中列出每个字段的错误） |
 | 401 | 未登录或令牌失效 |
-| 403 | 没有权限 |
+| 403 | 没有权限；开启演示模式（`APP_DEMO_MODE=true`）时，除了登录、退出等少数接口，写操作也返回 403（`A0431`） |
 | 404 | 不存在，**或者不在你的数据范围内** |
 | 409 | 唯一性冲突，或者记录正在被引用 |
 | 413 | 文件太大 |
 | 422 | 业务规则不允许 |
 | 429 | 请求太频繁，或者重复提交 |
+| 500 | 服务器内部错误（比如 Redis 暂时连不上），`msg` 里没有内部细节，凭 `traceId` 查日志 |
 
 ## 业务错误码
 
@@ -98,7 +99,7 @@
 ## 时间与 ID
 
 - 数据库存 UTC 时间，接口返回 ISO-8601 格式（带 `Z`），前端按本地时区显示；
-- 服务端生成的时间（Excel、邮件、短信）按请求头 `X-Timezone` → 用户时区 → 默认 `Asia/Shanghai` 的顺序确定时区；
+- 服务端生成的时间按这个顺序确定时区：Excel 按请求头 `X-Timezone` → 参数 `core.default_timezone` → `Asia/Shanghai`；发给用户的站内信、邮件、短信，先用收件人最近一次登录时浏览器的时区，没有时再按参数 `core.default_timezone` → `Asia/Shanghai`；
 - 枚举值在接口里一律传字符串编码，显示文本由前端通过字典或翻译转换。
 
 ## 接口文档

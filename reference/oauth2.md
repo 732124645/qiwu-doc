@@ -35,6 +35,10 @@
 - `/token`、`/introspect`、`/revoke` 的请求体是表单编码（`application/x-www-form-urlencoded`），客户端认证用 HTTP Basic，或者表单字段 `client_id` + `client_secret`，二选一；
 - 统一信封就是[API 约定](/reference/api#响应格式)里的 `{ code, msg, data }`。
 
+::: warning 演示模式下不能接入
+栖梧开启演示模式（`APP_DEMO_MODE=true`，公开演示站用的只读模式）时，`POST /api/oauth2/authorize`、`/token`、`/introspect`、`/revoke` 一律返回 403（`A0431`），授权走不完。联调请用没有开启演示模式的安装。
+:::
+
 命令示例按 macOS 和 Windows PowerShell 分栏；共用项目命令（如 `pnpm dev`）不分栏。Windows 示例使用 PowerShell 自带的 HTTP 命令，避免 `curl` 别名和外部程序引号传参的差异；正常响应会显示 JSON。HTTP 出错时 PowerShell 会显示红色错误，第一行就是服务端返回的 JSON，比如 `Invoke-RestMethod : {"error":"invalid_grant","error_description":"Invalid grant: authorization code is invalid"}`，不显示状态码；需要状态码时，紧接着执行 `$Error[0].Exception.Response.StatusCode.value__`。下面的变量要在**同一个终端**里依次设置和使用，关闭终端后需要重新设置。
 
 ## 1. 登记客户端
@@ -406,7 +410,7 @@ Invoke-RestMethod -Method Post -Uri "$BASE/api/oauth2/token" -Headers @{ Authori
 | `invalid_scope` | 400 | `client_credentials` 申请的范围超出登记范围，或者客户端没有登记任何授权范围；换授权码时，授权码里的范围已经不在客户端当前登记的范围内（比如授权后管理员删掉了某个范围）；刷新时的范围超出原来的授权 |
 
 - 换令牌失败（授权码错误、`code_verifier` 错误、`redirect_uri` 不一致）时，**这个授权码也作废了**，只能让用户重新走一遍 `/sso`；
-- 有两种情况返回的不是 RFC 格式，而是本系统的错误信封 `{ code, msg, data: null, traceId }`：超出限流返回 429，`code` 是 `A0429`；服务端内部错误返回 500，`msg` 里没有内部细节，可以凭 `traceId` 请管理员查日志。
+- 有三种情况返回的不是 RFC 格式，而是本系统的错误信封 `{ code, msg, data: null, traceId }`：超出限流返回 429，`code` 是 `A0429`；栖梧开启了演示模式时返回 403，`code` 是 `A0431`；服务端内部错误（包括 Redis 暂时连不上）返回 500，`msg` 里没有内部细节，可以凭 `traceId` 请管理员查日志。
 
 ### 回调地址收到的结果
 
@@ -447,7 +451,7 @@ Invoke-RestMethod -Method Post -Uri "$BASE/api/oauth2/token" -Headers @{ Authori
 
 - 超出后返回 429 错误信封（`code` 是 `A0429`），不是 RFC 格式；
 - 按来源 IP 计数。栖梧部署在反向代理后面时，`TRUST_PROXY` 要设成代理的地址，否则所有请求都算在代理一个 IP 上，见[部署 · OAuth2 与单点登录](/guide/deploy#oauth2-与单点登录)；
-- 计数存在服务进程的内存里，多实例部署时每个实例各算各的；
+- 计数存在 Redis 里，栖梧部署了多个服务实例时，所有实例共用同一份额度；
 - 你的后端一般只有一个出口 IP，上限是按"一个后端的正常流量"定的。如果你的资源服务器每个请求都要 introspect，可以按令牌把结果缓存几秒，代价是令牌被撤销后，最多还会被接受这么久。
 
 ## 6. 令牌什么时候失效

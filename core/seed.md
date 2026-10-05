@@ -182,7 +182,7 @@ export const PROJECT_MENU_GROUPS: ProjectMenuGroup[] = [
 
 生成的页面，**父菜单、图标、排序只在第一次插入时写入**。管理员在菜单管理中把页面挪到别的分组、换了图标或排序，重新执行种子不会改回去（名称、路径、页面文件和按钮权限仍然每次更新）。
 
-内置的分组有：首页 `home`、流程审批 `workflow`、**业务管理 `biz`**、系统管理 `system`、系统监控 `monitor`、消息中心 `messaging`、文件管理 `storage`、日志管理 `audit`、系统工具 `devtools`、生成示例 `demo`、流程管理 `wf-admin`。
+内置的分组有：流程审批 `workflow`、流程管理 `wf-admin`、**业务管理 `biz`**、系统管理 `system`、消息中心 `messaging`、日志管理 `audit`、文件管理 `storage`、系统监控 `monitor`、系统工具 `devtools`、生成示例 `demo`。首页 `home` 是一个页面，不是分组。
 
 ### 隐藏页面
 
@@ -223,6 +223,22 @@ const SEEDS: Record<string, Seed[]> = {
 
 - 按顺序执行：`seedProjectMenuGroups`（项目菜单分组）和 `seedProjectActionVerbs`（项目自己的操作日志动作名）在最前面，模块的种子放在它们后面；
 - `pnpm db:seed -- --only project` 只执行项目的种子。
+
+## 种子打印的密码
+
+有几个密码只在**第一次创建时打印一次**，重新执行种子不会再显示，请当场妥善保存，不要贴到聊天、日志或代码仓库里：
+
+| 打印的内容 | 说明 |
+| --- | --- |
+| 管理员 `admin` 的密码 | 只在没有设置 `SEED_ADMIN_PASSWORD` 时随机生成并打印，首次登录必须修改。设置了这个变量（写在 `apps/server/.env.local`）就用它，不打印，也不要求改密 |
+| 新用户初始密码（参数 `iam.user.initial_password`） | 随机生成，之后由管理员在参数设置里管理 |
+| 请假示例的演示用户的密码 | 首次登录必须修改 |
+
+开启演示模式（`APP_DEMO_MODE=true`）时，新建的管理员和演示用户不要求改密，因为演示站不允许修改密码。
+
+::: warning 生产环境不能用测试密钥
+`NODE_ENV=production` 时，如果 `APP_SECRET` 或 `SEED_ADMIN_PASSWORD` 里含有 `not-for-production`（不区分大小写），`pnpm db:seed`、`pnpm db:migrate` 和服务启动都会在连接数据库之前报错退出。仓库里提交的测试配置用的都是带这个标记的密钥，这样它们就不会被误用到生产环境。这个检查只防误用，不判断你自己的密码够不够强。
+:::
 
 ## 其他常见的种子
 

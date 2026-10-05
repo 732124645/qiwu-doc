@@ -166,7 +166,7 @@ export class ProjectModule {}
 
 | 类型 | 什么时候执行 | 负责什么 | 前端类比 | 项目中的例子 |
 | --- | --- | --- | --- | --- |
-| 守卫 Guard | 最先执行 | 能不能访问 | `router.beforeEach` | `AuthGuard`、`PermGuard` |
+| 守卫 Guard | 最先执行 | 能不能访问 | `router.beforeEach` | `DemoModeGuard`、`AuthGuard`、`PermGuard` |
 | 管道 Pipe | 调用方法前 | 校验和转换参数 | 表单校验 | `ZodValidationPipe` |
 | 拦截器 Interceptor | 方法前后 | 加工返回值、记日志 | axios 拦截器 | `EnvelopeInterceptor`、`@ActionLog`、`@Idempotent` |
 | 过滤器 Filter | 出错时 | 把异常转换成统一的错误响应 | `app.config.errorHandler` | `HttpErrorFilter` |

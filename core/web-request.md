@@ -58,7 +58,7 @@ const page = await api.get<Page<CustomerVo>>('/crm/customers', { params: { page:
 | `Authorization` | `Bearer <访问令牌>` |
 | `Accept-Language` | 当前界面语言，后端据此翻译错误信息 |
 | `X-Request-Id` | 随机的请求编号，就是错误信息中的 `traceId` |
-| `X-Timezone` | 浏览器时区，后端据此格式化 Excel、消息中的时间 |
+| `X-Timezone` | 浏览器时区。后端据此格式化 Excel 中的时间；登录时还会记到用户资料里，之后发给这个用户的消息按它显示时间 |
 
 ### 登录过期
 

@@ -120,7 +120,7 @@ const max = await uploadMaxSize() // 读不到参数时是 20 MB
 3. **按文件内容判断真实类型**，而不是相信扩展名。改了扩展名的文件会被拒绝；
 4. 使用随机文件名保存，路径是 `yyyy/MM/dd/<uuid>.<扩展名>`。
 
-每个 IP 每分钟最多上传 60 次。
+每个 IP 每分钟最多上传 60 次。计数存在 Redis 里，部署了多个实例时按所有实例合计，见[防重复提交、限流与锁](/core/guards)。
 
 ## 显示私有图片
 
@@ -142,7 +142,7 @@ const url = URL.createObjectURL(await storageApi.blob(fileId))
 业务模块可以为自己的标签注册一个检查器，比如"审批人可以下载申请人上传的附件"：
 
 ```ts
-// 在模块初始化时注册
+// 注入 StorageAccess，在模块初始化（onModuleInit）时注册；一个标签只能注册一个检查器
 this.storageAccess.register('my-tag', async (obj, principal) => {
   return /* 这个 principal 能否访问 obj */
 })

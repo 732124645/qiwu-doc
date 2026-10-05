@@ -49,6 +49,23 @@ const {
 - 值为空字符串或 `null` 的查询条件不会发送给后端；
 - **日期范围**：查询条件命名为 `xxxRange`（值是 `[开始, 结束]`），会自动转换成 `xxxFrom` 和 `xxxTo` 两个参数；只选日期时，结束日期会包含当天的全部时间。
 
+日期范围选择框可以加上"今天""最近 7 天""最近 30 天"三个快捷选项（代码生成器生成的列表页，有日期范围条件时已经加好了）：
+
+```vue
+<script setup lang="ts">
+import { useDateRangeShortcuts } from '@/core/date-shortcuts'
+
+const dateRangeShortcuts = useDateRangeShortcuts()
+</script>
+
+<template>
+  <el-date-picker v-model="query.createdAtRange" type="daterange" :shortcuts="dateRangeShortcuts"
+                  value-format="YYYY-MM-DD" />
+</template>
+```
+
+快捷选项的文字跟着界面语言切换，日期按浏览器的本地时间计算。
+
 ## 2. 列定义
 
 ```ts
@@ -148,7 +165,7 @@ const columns: QwColumn[] = [
 | `table-id` | 必填 | 表格标识，格式 `<域>.<模块>`，用来保存用户的列设置 |
 | `columns` | 必填 | 列定义 |
 | `data` | 必填 | 数据 |
-| `loading` | `false` | |
+| `loading` | `false` | 第一次加载时显示几行灰色占位（骨架屏）；之后再加载时，在表格上显示加载遮罩 |
 | `selection` | `false` | 是否显示勾选列 |
 | `selectable` | | `(row) => boolean`，哪些行可以勾选 |
 | `filtered` | `false` | 有查询条件时，空结果会显示"清除条件"按钮 |

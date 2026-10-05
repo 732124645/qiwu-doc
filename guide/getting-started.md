@@ -2,28 +2,32 @@
 
 目标：10 分钟内在本机跑起来。
 
+::: tip 要开始自己的项目？
+本页带你把模板本身跑起来。准备在模板上开发自己的业务系统时，推荐用仓库自带的新项目脚本初始化，让新项目使用自己的数据库、Redis 库号和密钥，见[创建自己的项目](#创建自己的项目)。
+:::
+
 ## 环境要求
 
 | 软件 | 版本 | 说明 |
 | --- | --- | --- |
 | Node.js | ≥ 22.22.1 | 推荐 22 LTS |
-| pnpm | 11 | 用 `npm install -g pnpm@11` 安装，仓库 `packageManager` 已固定版本 |
+| pnpm | 11 | 用 `npm install -g pnpm@11` 安装，仓库 `packageManager` 固定为 11.28.3 |
 | MySQL | 8.4 及以上 | 单数据源 |
-| Redis | 7.0 及以上 | 需要支持 ACL、`GETDEL` 和 `PEXPIRE` 的 `NX`/`XX`/`GT` 选项；Windows 推荐 Memurai 4.x 或以上 |
+| Redis | 7.0 及以上 | 需要支持 ACL、`GETDEL`、`PEXPIRE` 的 `NX`/`XX`/`GT` 选项，以及实时推送用到的分片订阅（`SSUBSCRIBE`、`SPUBLISH`）；Windows 推荐 Memurai 4.x 或以上 |
 
 ::: tip macOS
 用 Homebrew 安装最简单：`brew install mysql redis`，再分别用 `brew services start mysql`、`brew services start redis` 启动服务。
 :::
 
 ::: tip Windows
-推荐在 Windows 终端或 VS Code 的终端里使用自带的 Windows PowerShell 5.1。先按[安装环境（Windows）](/beginner/install-windows)安装 Git、Node.js、MySQL、Memurai，并完成“允许运行脚本”后安装 pnpm。MySQL 和 Memurai 的启动、停止在“服务”（`services.msc`）里操作，服务名以安装时的实际名称为准。
+推荐在 Windows 终端或 VS Code 的终端里使用自带的 Windows PowerShell 5.1，开发和全部检查命令都已在 Windows 11 上验证过。先按[安装环境（Windows）](/beginner/install-windows)安装 Git、Node.js、MySQL、Memurai，并完成“允许运行脚本”后安装 pnpm。MySQL 和 Memurai 的启动、停止在“服务”（`services.msc`）里操作，服务名以安装时的实际名称为准。
 :::
 
 ## 1. 获取代码
 
 ```bash
-git clone https://github.com/732124645/qiwu-vue-admin.git my-admin
-cd my-admin
+git clone https://github.com/732124645/qiwu-vue-admin.git
+cd qiwu-vue-admin
 pnpm i
 ```
 
@@ -44,7 +48,7 @@ GRANT ALL ON qiwu_dev.* TO 'qiwu'@'localhost';
 GRANT ALL ON qiwu_dev.* TO 'qiwu'@'127.0.0.1';
 ```
 
-Redis 的所有键都带 `qw:` 前缀，可以和其他项目共用一个 Redis。如果要限制权限，可以建一个只能访问 `qw:*` 的 ACL 用户。
+Redis 的所有键都带 `qw:` 前缀，可以和其他项目共用一个 Redis。如果要限制权限，可以建一个只能访问 `qw:*` 键和 `qw:*` 频道的 ACL 用户（键写成 `~qw:*`，频道写成 `&qw:*`），不要给它 `FLUSHDB`、`KEYS`、`CONFIG` 这类管理命令。
 
 ## 3. 配置环境变量
 
@@ -119,6 +123,57 @@ pnpm dev
 ```
 
 这条命令会同时启动三个进程：共享包编译监听、服务端（端口 3000）、前端 Vite（端口 5173）。打开 `http://localhost:5173`，用 `admin` 和上一步的密码登录即可。
+
+## 创建自己的项目
+
+上面的步骤运行的是模板本身（开发库 `qiwu_dev`）。在模板上开发自己的业务系统时，推荐把模板克隆到一个新目录，再用仓库自带的**新项目脚本**完成初始配置，这样新项目有自己的数据库、Redis 库号和密钥，不会和模板混在一起。
+
+脚本只用 Node 自带的功能，只改下面 4 个文件，不改包名、表前缀和业务代码：
+
+| 文件 | 写入的内容 |
+| --- | --- |
+| `apps/server/.env` | `DB_NAME`、`REDIS_DB`（文件不存在时先从 `.env.example` 复制） |
+| `apps/server/.env.local` | 缺少的 `APP_SECRET` 和管理员密码 `SEED_ADMIN_PASSWORD`（随机生成，不在终端显示） |
+| `apps/web/.env.development`、`apps/web/.env.production` | 系统名称 `VITE_APP_TITLE` |
+
+先预览，再正式执行：
+
+```bash
+git clone https://github.com/732124645/qiwu-vue-admin.git my-admin
+cd my-admin
+node scripts/new-project.mjs --dry-run --name my-admin            # 只预览，不写任何文件
+node scripts/new-project.mjs --name my-admin --redis-db 0 --title "我的后台"
+```
+
+也可以直接执行 `node scripts/new-project.mjs`，按提示逐项输入。主要参数：
+
+| 参数 | 说明 |
+| --- | --- |
+| `--name` | 项目名，小写字母开头，只能有小写字母、数字和 `-` |
+| `--db-name` | 数据库名，默认把项目名的 `-` 换成 `_` 再加 `_dev`（例如 `my_admin_dev`）；必须以 `_dev` 结尾，不能用 `qiwu_dev` |
+| `--redis-db` | Redis 库号；4～15 留给模板开发和测试，不能用。脚本不检查这个库是否空闲，要自己确认没有别的项目在用 |
+| `--title` | 系统名称，显示在浏览器标签、侧栏和登录页；默认用项目名 |
+| `--dry-run` | 只预览，不写文件 |
+
+脚本**不会**建库、配置 Redis 账号或启动服务。执行完后还要自己做这几件事：
+
+1. 按[第 2 步](#_2-准备数据库和-redis)的方法创建脚本里的数据库（比如 `my_admin_dev`），并给数据库账号授权；
+2. 在 `apps/server/.env.local` 里补上 `DB_USER`、`DB_PASSWORD`、`REDIS_USERNAME`、`REDIS_PASSWORD`；
+3. 在仓库根目录依次执行：
+
+   ```bash
+   pnpm i
+   pnpm --filter @qiwu/shared build
+   pnpm db:migrate
+   pnpm db:seed
+   pnpm dev
+   ```
+
+登录账号是 `admin`，密码就是 `.env.local` 里 `SEED_ADMIN_PASSWORD` 的值，用它登录后不会被要求修改密码。相同参数可以重复执行脚本，已有的密钥会保留，不会被替换。
+
+::: tip 和模板同时运行
+脚本不改端口。如果同一台电脑上模板也在运行，要在新项目的 `apps/server/.env` 里换一个空闲的 `PORT`（比如 `3310`），并把 `CORS_ORIGIN` 改成新前端的地址（比如 `http://localhost:5190`）。然后分两个终端启动：第一个终端执行 `pnpm --filter @qiwu/shared --filter @qiwu/server --parallel dev`；第二个终端先把环境变量 `API_PROXY_TARGET` 设为 `http://127.0.0.1:3310`，再执行 `pnpm --filter @qiwu/web dev --port 5190 --strictPort`。不要用 `pnpm dev --port 5190`，这个参数会传给所有包，导致启动失败。
+:::
 
 ## 可选：IP 归属地数据
 

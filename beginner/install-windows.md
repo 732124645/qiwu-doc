@@ -11,12 +11,13 @@
 | Memurai（Redis 兼容） | 缓存 |
 | VS Code | 写代码的编辑器 |
 
-<span id="windows-known-issues"></span>
+::: info 已经验证的范围
+Windows 11 + 自带的 Windows PowerShell 5.1 已经完整验证过：安装依赖、启动开发、初始化数据库、`pnpm verify`、全部测试和完整检查 `pnpm ci:local` 都能正常运行，不需要 WSL 或 Git Bash；在 cmd 命令提示符里也能安装依赖和运行 `pnpm verify`。验证时用的是 MySQL 8.4 和 Memurai 8.2。
 
-::: warning 目前 Windows 环境的已知问题
-安装依赖、启动开发（`pnpm dev`）、初始化数据库（`pnpm db:migrate`、`pnpm db:seed`、`pnpm db:reset`）在 Windows 自带的 PowerShell 里都能正常使用，按这套教程可以完整跑起来。
+还有几点限制：
 
-目前几个检查和测试命令在 Windows 自带环境里还不能完整运行：`pnpm verify`、`pnpm gen:check-golden`、服务端测试、`pnpm ci:local`；单独运行 `pnpm license:check` 也会失败。另外，用代码生成器**重新生成已有的模块**时，文件会被当成冲突，写不进去；第一次生成新模块不受影响。这些问题已经在修复中，修好后会删掉这条说明。
+- 没有创建文件符号链接（symlink，类似快捷方式）的权限时（没有开启“开发者模式”就是这种情况），少数检查符号链接防护的测试会自动跳过，不算失败；
+- 把服务**部署到 Windows 服务器**，以及在 Windows 上**发布 App 和小程序**，还没有验证过。
 :::
 
 ## 1. 打开 PowerShell
