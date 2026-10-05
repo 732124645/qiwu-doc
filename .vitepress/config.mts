@@ -12,6 +12,43 @@ const site = 'https://qiwuadmin.com'
 const mermaidConfigPlugin = MermaidPlugin({ theme: 'default' })
 delete mermaidConfigPlugin.transform
 
+// 英文页面放在 en/ 下，和中文页面同名；英文版只翻译了下面这几页，其余页面只有中文
+const enSidebar = [
+  {
+    text: 'Guide',
+    items: [
+      { text: 'Introduction', link: '/en/guide/introduction' },
+      { text: 'Project story', link: '/en/guide/story' },
+      { text: 'Getting started', link: '/en/guide/getting-started' },
+    ],
+  },
+  {
+    text: 'Features',
+    items: [
+      { text: 'Features overview', link: '/en/features/' },
+      { text: 'System management', link: '/en/features/system' },
+      { text: 'Single sign-on (OAuth2)', link: '/en/features/oauth' },
+      { text: 'Permissions and data scope', link: '/en/features/permission' },
+      { text: 'Code generator', link: '/en/features/codegen' },
+      { text: 'Form designer', link: '/en/features/formkit' },
+      { text: 'Workflow', link: '/en/features/workflow' },
+      { text: 'Internationalization', link: '/en/features/i18n' },
+      { text: 'Security baseline', link: '/en/features/security' },
+    ],
+  },
+  { text: 'Changelog', items: [{ text: 'Changelog', link: '/en/changelog' }] },
+  {
+    text: 'More docs (Chinese)',
+    items: [
+      { text: 'Developer guide (Chinese)', link: '/core/' },
+      { text: 'Reference (Chinese)', link: '/reference/api' },
+    ],
+  },
+]
+// 不带标题的提示框在英文页面用英文标题（markdown.container 的标签是全站共用的）
+const enContainerLabels = { tip: 'TIP', info: 'INFO', warning: 'WARNING', danger: 'DANGER', details: 'Details' }
+const isEnPage = (env: { relativePath?: string }) => env.relativePath?.startsWith('en/') ?? false
+
 export default defineConfig({
   base,
   lang: 'zh-CN',
@@ -21,6 +58,7 @@ export default defineConfig({
   lastUpdated: true,
   srcExclude: ['README.md'],
   markdown: {
+    image: { lazyLoading: true },
     codeCopyButtonTitle: '复制代码',
     container: {
       tipLabel: '提示',
@@ -32,18 +70,35 @@ export default defineConfig({
     config(md) {
       md.use(MermaidMarkdown)
       md.use(groupIconMdPlugin)
+      for (const [type, label] of Object.entries(enContainerLabels)) {
+        const render = md.renderer.rules[`container_${type}_open`]!
+        md.renderer.rules[`container_${type}_open`] = (tokens, idx, options, env, self) => {
+          const token = tokens[idx]!
+          if (isEnPage(env) && token.info.trim() === type) token.info = `${type} ${label}`
+          return render(tokens, idx, options, env, self)
+        }
+      }
+      const fence = md.renderer.rules.fence!
+      md.renderer.rules.fence = (tokens, idx, options, env, self) => {
+        const html = fence(tokens, idx, options, env, self)
+        return isEnPage(env) ? html.replace('title="复制代码"', 'title="Copy code"') : html
+      }
     },
   },
   sitemap: { hostname: `${site}/` },
-  transformHead({ pageData, siteData }) {
-    const path = pageData.relativePath.replace(/(^|\/)index\.md$/, '$1').replace(/\.md$/, '')
-    const url = new URL(`/${path}`, site).href
+  transformHead({ pageData, siteData, siteConfig }) {
+    const toUrl = (page: string) =>
+      new URL(`/${page.replace(/(^|\/)index\.md$/, '$1').replace(/\.md$/, '')}`, site).href
+    const page = pageData.relativePath
+    const url = toUrl(page)
+    const isEn = page.startsWith('en/')
     const image = new URL('/og.png', site).href
+    // siteData 已按页面所在语言解析（英文页面拿到的是 locales.en 的标题和描述）
     const title = pageData.title || siteData.title
     const description = pageData.frontmatter.description || siteData.description
     const head: [string, Record<string, string>, string?][] = []
     // 首页加结构化数据：告诉搜索引擎这是哪个网站、什么语言
-    if (path === '')
+    if (page === 'index.md' || page === 'en/index.md')
       head.push([
         'script',
         { type: 'application/ld+json' },
@@ -51,11 +106,20 @@ export default defineConfig({
           '@context': 'https://schema.org',
           '@type': 'WebSite',
           name: siteData.title,
-          url: `${site}/`,
+          url,
           description: siteData.description,
-          inLanguage: 'zh-CN',
+          inLanguage: siteData.lang,
         }),
       ])
+    // 中英文两个版本都存在时，互相标出另一种语言的地址
+    const zhPage = isEn ? page.slice(3) : page
+    const enPage = `en/${zhPage}`
+    if (siteConfig.pages.includes(zhPage) && siteConfig.pages.includes(enPage))
+      head.push(
+        ['link', { rel: 'alternate', hreflang: 'zh-CN', href: toUrl(zhPage) }],
+        ['link', { rel: 'alternate', hreflang: 'en', href: toUrl(enPage) }],
+        ['link', { rel: 'alternate', hreflang: 'x-default', href: toUrl(zhPage) }],
+      )
     return [
       ...head,
       ['meta', { name: 'theme-color', content: '#03050a' }],
@@ -66,7 +130,7 @@ export default defineConfig({
       ['meta', { property: 'og:description', content: description }],
       ['meta', { property: 'og:url', content: url }],
       ['meta', { property: 'og:image', content: image }],
-      ['meta', { property: 'og:locale', content: 'zh_CN' }],
+      ['meta', { property: 'og:locale', content: isEn ? 'en_US' : 'zh_CN' }],
       ['meta', { name: 'twitter:card', content: 'summary_large_image' }],
       ['meta', { name: 'twitter:title', content: title }],
       ['meta', { name: 'twitter:description', content: description }],
@@ -78,14 +142,14 @@ export default defineConfig({
     // 字数和预计阅读时间（首页 index.md 默认不显示）
     plugins: [
       PageProperties(),
-      PagePropertiesMarkdownSection(),
+      PagePropertiesMarkdownSection({ excludes: ['index.md', 'en/index.md'] }),
       mermaidConfigPlugin,
       groupIconVitePlugin({
         // 插件从本地 Iconify 图标包读取 SVG，不在构建时请求网络。
         customIcon: { macos: 'logos:apple', windows: 'logos:microsoft-windows-icon' },
       }),
       GitChangelog({ repoURL: 'https://github.com/732124645/qiwu-doc' }),
-      GitChangelogMarkdownSection({ excludes: ['index.md'], sections: { disableContributors: true } }),
+      GitChangelogMarkdownSection({ excludes: ['index.md', 'en/index.md'], sections: { disableContributors: true } }),
     ],
     optimizeDeps: { exclude: ['@nolebase/vitepress-plugin-page-properties/client'] },
     ssr: { noExternal: ['@nolebase/vitepress-plugin-page-properties', '@nolebase/ui'] },
@@ -102,6 +166,55 @@ export default defineConfig({
         '.qws-chapter{position:static!important;max-width:820px!important;margin:0 auto 72px!important;opacity:1!important;translate:none!important;text-align:left!important}</style>',
     ],
   ],
+  // 中文是根语言；英文版在 /en/ 下，导航和侧边栏只列出已经翻译的页面
+  locales: {
+    root: { label: '简体中文', lang: 'zh-CN' },
+    en: {
+      label: 'English',
+      lang: 'en-US',
+      link: '/en/',
+      title: 'Qiwu',
+      description: 'Full-stack Node admin template: NestJS + Vue 3 + Element Plus, MIT licensed',
+      themeConfig: {
+        editLink: {
+          pattern: 'https://github.com/732124645/qiwu-doc/edit/main/:path',
+          text: 'Edit this page on GitHub',
+        },
+        nav: [
+          { text: 'Guide', link: '/en/guide/introduction', activeMatch: '/en/guide/' },
+          { text: 'Features', link: '/en/features/', activeMatch: '/en/features/' },
+          { text: 'Changelog', link: '/en/changelog' },
+          { text: 'Live demo', link: 'https://demo.qiwuadmin.com' },
+          {
+            text: 'More docs (Chinese)',
+            items: [
+              { text: 'Developer guide (Chinese)', link: '/core/' },
+              { text: 'Reference (Chinese)', link: '/reference/api' },
+            ],
+          },
+        ],
+        sidebar: { '/en/': enSidebar },
+        outline: { level: [2, 3], label: 'On this page' },
+        docFooter: { prev: 'Previous page', next: 'Next page' },
+        lastUpdated: { text: 'Last updated' },
+        darkModeSwitchLabel: 'Appearance',
+        darkModeSwitchTitle: 'Switch to dark theme',
+        lightModeSwitchTitle: 'Switch to light theme',
+        langMenuLabel: 'Change language',
+        skipToContentLabel: 'Skip to content',
+        notFound: {
+          title: 'PAGE NOT FOUND',
+          quote: 'There is no page at this address. Some pages exist only in Chinese; switch the language to 简体中文 to read them.',
+          linkLabel: 'Go to the English home page',
+          linkText: 'Take me home',
+          link: '/en/',
+        },
+        sidebarMenuLabel: 'Menu',
+        returnToTopLabel: 'Return to top',
+        footer: { message: 'Released under the MIT License.', copyright: '© 2026 Qiwu' },
+      },
+    },
+  },
   themeConfig: {
     // 每页底部的"在 GitHub 上编辑此页"：读者可以直接提交修改（Pull Request）
     editLink: {
@@ -339,6 +452,28 @@ export default defineConfig({
               navigateDownKeyAriaLabel: '向下方向键',
               closeText: '关闭',
               closeKeyAriaLabel: '退出键',
+            },
+          },
+        },
+        locales: {
+          en: {
+            translations: {
+              button: { buttonText: 'Search', buttonAriaLabel: 'Search' },
+              modal: {
+                noResultsText: 'No results for',
+                resetButtonTitle: 'Clear the query',
+                backButtonTitle: 'Close search',
+                displayDetails: 'Display detailed list',
+                footer: {
+                  selectText: 'to select',
+                  selectKeyAriaLabel: 'enter',
+                  navigateText: 'to navigate',
+                  navigateUpKeyAriaLabel: 'up arrow',
+                  navigateDownKeyAriaLabel: 'down arrow',
+                  closeText: 'to close',
+                  closeKeyAriaLabel: 'escape',
+                },
+              },
             },
           },
         },

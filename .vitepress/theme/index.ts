@@ -2,7 +2,7 @@ import type { Theme } from 'vitepress'
 import DefaultTheme from 'vitepress/theme'
 import { defineAsyncComponent } from 'vue'
 import { NolebaseGitChangelogPlugin } from '@nolebase/vitepress-plugin-git-changelog/client'
-import { defaultZhCNLocale } from '@nolebase/vitepress-plugin-git-changelog/locales'
+import { defaultEnLocale, defaultZhCNLocale } from '@nolebase/vitepress-plugin-git-changelog/locales'
 import {
   NolebasePageProperties,
   NolebasePagePropertiesPlugin,
@@ -19,7 +19,7 @@ export default {
   Layout,
   enhanceApp({ app }) {
     app.component('Mermaid', defineAsyncComponent(() => import('vitepress-plugin-mermaid/Mermaid.vue')))
-    app.use(NolebaseGitChangelogPlugin, { locales: { 'zh-CN': defaultZhCNLocale } })
+    app.use(NolebaseGitChangelogPlugin, { locales: { 'zh-CN': defaultZhCNLocale, 'en-US': defaultEnLocale } })
     app.component('NolebasePageProperties', NolebasePageProperties)
     app.component('QwStory', QwStory)
     app.use(NolebasePagePropertiesPlugin(), {
@@ -31,6 +31,15 @@ export default {
             type: 'dynamic',
             title: '预计阅读',
             options: { type: 'readingTime', dateFnsLocaleName: 'zhCN' },
+          },
+        ],
+        'en-US': [
+          { key: 'wordsCount', type: 'dynamic', title: 'Word count', options: { type: 'wordsCount' } },
+          {
+            key: 'readingTime',
+            type: 'dynamic',
+            title: 'Reading time',
+            options: { type: 'readingTime', dateFnsLocaleName: 'enUS' },
           },
         ],
       },

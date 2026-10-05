@@ -5,112 +5,237 @@
  * 滚动停在两个场景之间时，顺着滚动方向走完这段过渡（吸附到下一个场景）。
  */
 import { computed, nextTick, onBeforeUnmount, onMounted, ref } from 'vue'
-import { withBase } from 'vitepress'
+import { useData, withBase } from 'vitepress'
 import type { Frame, Stage } from './story/engine'
 import { FILES, FLOW, INPUT, PANELS, RINGS, TREE, TUNNEL } from './story/shapes'
 import { SCROLL_RATE, createTimeline, smooth } from './story/timeline'
 
-interface Chapter {
-  first: number
-  last: number
-  pos: 'left' | 'top' | 'bottom'
-  kicker: string
-  title: string
-  body: string
-  rail: string
-}
-const chapters: Chapter[] = [
-  {
-    first: 0,
-    last: 0,
-    pos: 'left',
-    rail: '首页',
-    kicker: '栖梧 QIWU · 开源 · MIT · Node 全栈',
-    title: '一个仓库\n撑起整个后台',
-    body: 'NestJS + Vue 3 + Element Plus + MySQL + Redis。登录、权限、组织、字典、日志、定时任务、消息、文件、代码生成、审批流，开箱即用。',
-  },
-  {
-    first: 1,
-    last: 1,
-    pos: 'left',
-    rail: '一个仓库',
-    kicker: '01 · 单仓库',
-    title: '三个包\n一种语言',
-    body: '后端、前端、共享包放在同一个仓库里，全部是 TypeScript。类型从数据库一路贯通到页面。',
-  },
-  {
-    first: 2,
-    last: 3,
-    pos: 'top',
-    rail: '共享校验',
-    kicker: '02 · 一份规则',
-    title: '写一次，前后端同时生效',
-    body: '用 zod 写一次校验规则：后端拿它校验请求、生成接口文档，前端拿它做表单校验。',
-  },
-  {
-    first: 4,
-    last: 4,
-    pos: 'left',
-    rail: '代码生成',
-    kicker: '03 · 代码生成',
-    title: '建一张表\n剩下的交给生成器',
-    body: '从表名推导出领域、接口、权限点和菜单，前后端代码和测试一次生成，从不覆盖你已经写好的文件。',
-  },
-  {
-    first: 5,
-    last: 5,
-    pos: 'left',
-    rail: '权限',
-    kicker: '04 · 权限',
-    title: '权限\n真的在后端',
-    body: '菜单与按钮权限、五种数据范围、防越权授予。超出范围一律 404，不泄露数据是否存在。',
-  },
-  {
-    first: 6,
-    last: 6,
-    pos: 'left',
-    rail: '审批流',
-    kicker: '05 · 工作流',
-    title: '审批流\n开箱即用',
-    body: '会签、或签、条件与并行分支、退回、转办、加签、催办、超时提醒，和业务数据在同一个事务里提交。',
-  },
-  {
-    first: 7,
-    last: 7,
-    pos: 'bottom',
-    rail: '中英双语',
-    kicker: '06 · 国际化',
-    title: '中英双语',
-    body: '界面、错误信息、菜单、字典、消息模板、Excel 表头，全部可以切换语言。',
-  },
-  {
-    first: 8,
-    last: 8,
-    pos: 'left',
-    rail: '全部模块',
-    kicker: '07 · 开箱即用',
-    title: '穿过所有模块',
-    body: '用户、角色、菜单、部门、字典、日志、任务、消息、文件、代码生成、审批……一个模板全部带上。',
-  },
-  {
-    first: 9,
-    last: 9,
-    pos: 'bottom',
-    rail: '开始',
-    kicker: '栖梧 · Qiwu',
-    title: '从这里开始',
-    body: '选一条适合你的路线：',
-  },
+/** 章节在时间线上的位置；文字按页面语言取自 ZH / EN */
+const chapters: { first: number; last: number; pos: 'left' | 'top' | 'bottom' }[] = [
+  { first: 0, last: 0, pos: 'left' },
+  { first: 1, last: 1, pos: 'left' },
+  { first: 2, last: 3, pos: 'top' },
+  { first: 4, last: 4, pos: 'left' },
+  { first: 5, last: 5, pos: 'left' },
+  { first: 6, last: 6, pos: 'left' },
+  { first: 7, last: 7, pos: 'bottom' },
+  { first: 8, last: 8, pos: 'left' },
+  { first: 9, last: 9, pos: 'bottom' },
 ]
 
-const routes = [
-  { title: '学生和新手', desc: '从安装环境讲起，一步步做出第一个模块', link: '/beginner/' },
-  { title: '前端开发者', desc: '用前端的概念理解后端，再做一个完整功能', link: '/backend/' },
-  { title: 'Java 开发者', desc: 'Spring、RuoYi 的写法在这里对应什么', link: '/java/' },
-]
+const ZH = {
+  brand: '栖梧 Qiwu',
+  navLabel: '文档',
+  nav: [
+    { text: '指南', link: '/guide/introduction' },
+    { text: '入门', link: '/beginner/' },
+    { text: '开发指南', link: '/core/' },
+    { text: '更新日志', link: '/changelog' },
+  ],
+  demo: '在线演示',
+  getStarted: '开始使用 →',
+  quickStart: '快速开始',
+  source: '源码',
+  tour: '看看它能做什么',
+  devGuide: '开发指南',
+  railLabel: '章节',
+  cue: '向下滚动',
+  skip: '跳到结尾 ↓',
+  stack: '技术栈：',
+  sep: '、',
+  panels: [
+    { name: '后端 · NestJS', ok: '✓ 校验通过 · 400 已拦截' },
+    { name: '前端 · Vue', ok: '✓ 表单提示已生成' },
+  ],
+  checking: '校验中…',
+  scopeLabel: '数据范围',
+  scopes: ['全部数据', '本部门及下级', '仅本人'],
+  progress: '审批进度',
+  flow: FLOW.labels,
+  modules: TUNNEL.modules,
+  chapters: [
+    {
+      rail: '首页',
+      kicker: '栖梧 QIWU · 开源 · MIT · Node 全栈',
+      title: '一个仓库\n撑起整个后台',
+      body: 'NestJS + Vue 3 + Element Plus + MySQL + Redis。登录、权限、组织、字典、日志、定时任务、消息、文件、代码生成、审批流，开箱即用。',
+    },
+    {
+      rail: '一个仓库',
+      kicker: '01 · 单仓库',
+      title: '三个包\n一种语言',
+      body: '后端、前端、共享包放在同一个仓库里，全部是 TypeScript。类型从数据库一路贯通到页面。',
+    },
+    {
+      rail: '共享校验',
+      kicker: '02 · 一份规则',
+      title: '写一次，前后端同时生效',
+      body: '用 zod 写一次校验规则：后端拿它校验请求、生成接口文档，前端拿它做表单校验。',
+    },
+    {
+      rail: '代码生成',
+      kicker: '03 · 代码生成',
+      title: '建一张表\n剩下的交给生成器',
+      body: '从表名推导出领域、接口、权限点和菜单，前后端代码和测试一次生成，从不覆盖你已经写好的文件。',
+    },
+    {
+      rail: '权限',
+      kicker: '04 · 权限',
+      title: '权限\n真的在后端',
+      body: '菜单与按钮权限、五种数据范围、防越权授予。超出范围一律 404，不泄露数据是否存在。',
+    },
+    {
+      rail: '审批流',
+      kicker: '05 · 工作流',
+      title: '审批流\n开箱即用',
+      body: '会签、或签、条件与并行分支、退回、转办、加签、催办、超时提醒，和业务数据在同一个事务里提交。',
+    },
+    {
+      rail: '中英双语',
+      kicker: '06 · 国际化',
+      title: '中英双语',
+      body: '界面、错误信息、菜单、字典、消息模板、Excel 表头，全部可以切换语言。',
+    },
+    {
+      rail: '全部模块',
+      kicker: '07 · 开箱即用',
+      title: '穿过所有模块',
+      body: '用户、角色、菜单、部门、字典、日志、任务、消息、文件、代码生成、审批……一个模板全部带上。',
+    },
+    { rail: '开始', kicker: '栖梧 · Qiwu', title: '从这里开始', body: '选一条适合你的路线：' },
+  ],
+  routes: [
+    { title: '学生和新手', desc: '从安装环境讲起，一步步做出第一个模块', link: '/beginner/' },
+    { title: '前端开发者', desc: '用前端的概念理解后端，再做一个完整功能', link: '/backend/' },
+    { title: 'Java 开发者', desc: 'Spring、RuoYi 的写法在这里对应什么', link: '/java/' },
+  ],
+}
+
+const EN: typeof ZH = {
+  brand: 'Qiwu',
+  navLabel: 'Docs',
+  nav: [
+    { text: 'Guide', link: '/guide/introduction' },
+    { text: 'Tutorials (Chinese)', link: '/beginner/' },
+    { text: 'Dev guide (Chinese)', link: '/core/' },
+    { text: 'Changelog', link: '/changelog' },
+  ],
+  demo: 'Live demo',
+  getStarted: 'Get started →',
+  quickStart: 'Quick start',
+  source: 'Source code',
+  tour: 'See what it can do',
+  devGuide: 'Dev guide (Chinese)',
+  railLabel: 'Chapters',
+  cue: 'Scroll down',
+  skip: 'Skip to the end ↓',
+  stack: 'Tech stack: ',
+  sep: ', ',
+  panels: [
+    { name: 'Backend · NestJS', ok: '✓ Validated · 400 blocked' },
+    { name: 'Frontend · Vue', ok: '✓ Form hints ready' },
+  ],
+  checking: 'Validating…',
+  scopeLabel: 'Data scope',
+  scopes: ['All data', 'Own department and below', 'Own records only'],
+  progress: 'Progress',
+  flow: ['Start', 'Approve', 'All approve', 'CC', 'Done'],
+  modules: [
+    'Users',
+    'Roles',
+    'Menus',
+    'Departments',
+    'Positions',
+    'Dictionaries',
+    'Parameters',
+    'Action log',
+    'Scheduled tasks',
+    'Inbox messages',
+    'Files',
+    'Code generator',
+    'Online users',
+    'Approvals',
+  ],
+  chapters: [
+    {
+      rail: 'Home',
+      kicker: 'QIWU · OPEN SOURCE · MIT · FULL-STACK NODE',
+      title: 'One repo\nruns your whole admin',
+      body: 'NestJS + Vue 3 + Element Plus + MySQL + Redis. Sign-in, permissions, organization, dictionaries, logs, scheduled tasks, messages, files, code generation and approval workflows, all ready out of the box.',
+    },
+    {
+      rail: 'One repo',
+      kicker: '01 · MONOREPO',
+      title: 'Three packages\none language',
+      body: 'Backend, frontend and a shared package live in one repo, all in TypeScript. Types flow from the database all the way to the page.',
+    },
+    {
+      rail: 'Shared rules',
+      kicker: '02 · ONE RULE SET',
+      title: 'Write it once, both ends enforce it',
+      body: 'Write a validation rule once with zod: the backend uses it to check requests and generate API docs, the frontend uses it to validate forms.',
+    },
+    {
+      rail: 'Code generator',
+      kicker: '03 · CODE GENERATOR',
+      title: 'Create a table\nthe generator does the rest',
+      body: 'It derives the domain, API, permission codes and menu from the table name, then generates backend and frontend code plus tests in one go. It never overwrites a file you already wrote.',
+    },
+    {
+      rail: 'Permissions',
+      kicker: '04 · PERMISSIONS',
+      title: 'Permissions\nenforced on the server',
+      body: 'Menu and button permissions, five data scopes and a privilege escalation guard. Anything out of scope returns 404, so nobody learns whether a record exists.',
+    },
+    {
+      rail: 'Approvals',
+      kicker: '05 · WORKFLOW',
+      title: 'Approval workflows\nout of the box',
+      body: 'All-approve and any-one-approves steps, conditional and parallel branches, send back, transfer, add signers, reminders and overdue alerts, committed in the same transaction as your business data.',
+    },
+    {
+      rail: 'Bilingual',
+      kicker: '06 · I18N',
+      title: 'Bilingual',
+      body: 'UI, error messages, menus, dictionaries, message templates and Excel headers all switch language.',
+    },
+    {
+      rail: 'All modules',
+      kicker: '07 · BATTERIES INCLUDED',
+      title: 'Through every module',
+      body: 'Users, roles, menus, departments, dictionaries, logs, tasks, messages, files, code generation, approvals… one template ships them all.',
+    },
+    {
+      rail: 'Start',
+      kicker: 'QIWU',
+      title: 'Start here',
+      body: 'Pick the path that fits you (these tutorials are in Chinese):',
+    },
+  ],
+  routes: [
+    {
+      title: 'Students and beginners',
+      desc: 'From setting up your computer to your first module, step by step',
+      link: '/beginner/',
+    },
+    {
+      title: 'Frontend developers',
+      desc: 'Learn the backend through frontend concepts, then build a complete feature',
+      link: '/backend/',
+    },
+    { title: 'Java developers', desc: 'Where your Spring and RuoYi habits map to here', link: '/java/' },
+  ],
+}
+
+/** 已有英文版的页面：英文首页链到 /en/...，其余页面仍链到中文 */
+const EN_PAGES = new Set(['/', '/changelog', '/guide/introduction', '/guide/story', '/guide/getting-started', '/features/'])
+const { lang: pageLang } = useData()
+const isEn = computed(() => pageLang.value.startsWith('en'))
+const t = computed(() => (isEn.value ? EN : ZH))
+const link = (path: string) => withBase(isEn.value && EN_PAGES.has(path) ? `/en${path}` : path)
+
 const techs = ['NestJS', 'Vue 3', 'TypeScript', 'MySQL', 'Redis', 'Element Plus', 'zod', 'Socket.IO']
 const RULE = 'name: z.string().trim().max(64)'
-const SCOPES = ['全部数据', '本部门及下级', '仅本人']
 const langs = {
   zh: { title: '中英双语', body: '界面、错误信息、菜单、字典、消息模板、Excel 表头，全部可以切换语言。' },
   en: { title: 'Bilingual', body: 'UI, error messages, menus, dictionaries, message templates and Excel headers all switch language.' },
@@ -147,6 +272,8 @@ const fallback = ref(false)
 const ready = ref(false)
 const height = ref('1000vh')
 const helloText = computed(() => langs[lang.value])
+// 双语章节的文字语言和页面不同时，单独标出语言
+const helloLang = computed(() => (lang.value === 'en' ? (isEn.value ? undefined : 'en') : isEn.value ? 'zh-CN' : undefined))
 
 let engine: Stage | null = null
 let stopAll = () => {}
@@ -294,7 +421,8 @@ function onFrame(f: Frame) {
     const s = project.toScreen([TREE.root[0], TREE.root[1] + 1.05, TREE.root[2]])
     opacity(treeEl.value, p5)
     place(treeEl.value, s.x, s.y, 'translate(-50%, -100%)')
-    const k = Math.min(SCOPES.length - 1, Math.floor(progressOf(S, 5) * SCOPES.length))
+    const n = t.value.scopes.length
+    const k = Math.min(n - 1, Math.floor(progressOf(S, 5) * n))
     if (scope.value !== k) scope.value = k
   }
 
@@ -429,32 +557,29 @@ onBeforeUnmount(() => {
   <div ref="root" class="qws" :class="{ 'is-fallback': fallback, 'is-ready': ready }" :style="{ height }">
     <div ref="stage" class="qws-stage">
       <header class="qws-nav">
-        <a class="qws-brand" :href="withBase('/')"><img :src="withBase('/logo.svg')" alt="" />栖梧 Qiwu</a>
-        <nav class="qws-links" aria-label="文档">
-          <a :href="withBase('/guide/introduction')">指南</a>
-          <a :href="withBase('/beginner/')">入门</a>
-          <a :href="withBase('/core/')">开发指南</a>
-          <a :href="withBase('/changelog')">更新日志</a>
-          <a href="https://demo.qiwuadmin.com" target="_blank" rel="noopener">在线演示</a>
+        <a class="qws-brand" :href="link('/')"><img :src="withBase('/logo.svg')" alt="" />{{ t.brand }}</a>
+        <nav class="qws-links" :aria-label="t.navLabel">
+          <a v-for="n in t.nav" :key="n.link" :href="link(n.link)">{{ n.text }}</a>
+          <a href="https://demo.qiwuadmin.com" target="_blank" rel="noopener">{{ t.demo }}</a>
         </nav>
-        <a class="qws-btn is-primary is-small" :href="withBase('/guide/getting-started')">开始使用 →</a>
+        <a class="qws-btn is-primary is-small" :href="link('/guide/getting-started')">{{ t.getStarted }}</a>
       </header>
       <div class="qws-progress"><i ref="bar" /></div>
-      <nav class="qws-rail" aria-label="章节">
+      <nav class="qws-rail" :aria-label="t.railLabel">
         <button
           v-for="(c, i) in chapters"
           :key="i"
           type="button"
           :class="{ 'is-on': railOn === i }"
-          :aria-label="c.rail"
+          :aria-label="t.chapters[i]!.rail"
           :aria-current="railOn === i ? 'step' : undefined"
           @click="goChapter(i)"
         >
-          <span>{{ c.rail }}</span>
+          <span>{{ t.chapters[i]!.rail }}</span>
         </button>
       </nav>
-      <div ref="cue" class="qws-cue" aria-hidden="true"><i />向下滚动</div>
-      <button ref="skip" type="button" class="qws-skip" @click="skipToEnd">跳到结尾 ↓</button>
+      <div ref="cue" class="qws-cue" aria-hidden="true"><i />{{ t.cue }}</div>
+      <button ref="skip" type="button" class="qws-skip" @click="skipToEnd">{{ t.skip }}</button>
       <canvas ref="canvas" class="qws-canvas" aria-hidden="true" />
 
       <div class="qws-hud" aria-hidden="true">
@@ -466,8 +591,8 @@ onBeforeUnmount(() => {
         </div>
 
         <div v-for="(p, j) in PANELS" :key="j" ref="headEls" class="qws-head" :class="{ 'is-done': panelDone[j] }">
-          <b>{{ j === 0 ? '后端 · NestJS' : '前端 · Vue' }}</b>
-          <span>{{ panelDone[j] ? (j === 0 ? '✓ 校验通过 · 400 已拦截' : '✓ 表单提示已生成') : '校验中…' }}</span>
+          <b>{{ t.panels[j]!.name }}</b>
+          <span>{{ panelDone[j] ? t.panels[j]!.ok : t.checking }}</span>
         </div>
 
         <div ref="filesEl" class="qws-panel">
@@ -478,7 +603,7 @@ onBeforeUnmount(() => {
           <div class="qws-file">{{ FILES[fileIndex]!.name }}</div>
         </div>
 
-        <div ref="treeEl" class="qws-pill">数据范围 · <b>{{ SCOPES[scope] }}</b></div>
+        <div ref="treeEl" class="qws-pill">{{ t.scopeLabel }} · <b>{{ t.scopes[scope] }}</b></div>
 
         <span
           v-for="(label, j) in FLOW.labels"
@@ -486,16 +611,16 @@ onBeforeUnmount(() => {
           ref="flowEls"
           class="qws-tag"
           :class="{ 'is-done': j < flowStep }"
-          >{{ label }}</span
+          >{{ t.flow[j] }}</span
         >
-        <div ref="flowHudEl" class="qws-pill">审批进度 <b>{{ flowStep }} / {{ FLOW.nodes.length }}</b></div>
+        <div ref="flowHudEl" class="qws-pill">{{ t.progress }} <b>{{ flowStep }} / {{ FLOW.nodes.length }}</b></div>
 
         <div ref="helloEl" class="qws-toggle">
           <span :class="{ 'is-on': lang === 'zh' }">中文</span>
           <span :class="{ 'is-on': lang === 'en' }">EN</span>
         </div>
 
-        <span v-for="m in TUNNEL.modules" :key="m" ref="moduleEls" class="qws-module">{{ m }}</span>
+        <span v-for="(m, j) in TUNNEL.modules" :key="m" ref="moduleEls" class="qws-module">{{ t.modules[j] }}</span>
       </div>
 
       <main ref="chaptersEl" class="qws-chapters">
@@ -506,32 +631,32 @@ onBeforeUnmount(() => {
           class="qws-chapter"
           :class="[`is-${c.pos}`, { 'is-last': i === chapters.length - 1 }]"
         >
-          <p class="qws-kicker">{{ c.kicker }}</p>
-          <component :is="i === 0 ? 'h1' : 'h2'" class="qws-title" tabindex="-1" :lang="i === 6 && lang === 'en' ? 'en' : undefined">
-            <template v-for="(line, n) in (i === 6 ? helloText.title : c.title).split('\n')" :key="n">
+          <p class="qws-kicker">{{ t.chapters[i]!.kicker }}</p>
+          <component :is="i === 0 ? 'h1' : 'h2'" class="qws-title" tabindex="-1" :lang="i === 6 ? helloLang : undefined">
+            <template v-for="(line, n) in (i === 6 ? helloText.title : t.chapters[i]!.title).split('\n')" :key="n">
               <br v-if="n" />{{ line }}
             </template>
           </component>
-          <p class="qws-body" :lang="i === 6 && lang === 'en' ? 'en' : undefined">{{ i === 6 ? helloText.body : c.body }}</p>
-          <p v-if="i === 0" class="visually-hidden">技术栈：{{ techs.join('、') }}</p>
+          <p class="qws-body" :lang="i === 6 ? helloLang : undefined">{{ i === 6 ? helloText.body : t.chapters[i]!.body }}</p>
+          <p v-if="i === 0" class="visually-hidden">{{ t.stack }}{{ techs.join(t.sep) }}</p>
 
           <div v-if="i === 0" class="qws-actions">
-            <a class="qws-btn is-primary" :href="withBase('/guide/getting-started')">快速开始</a>
-            <a class="qws-btn" href="https://demo.qiwuadmin.com" target="_blank" rel="noopener">在线演示</a>
-            <a class="qws-btn" href="https://github.com/732124645/qiwu-vue-admin" target="_blank" rel="noopener">源码</a>
-            <button type="button" class="qws-btn" @click="goChapter(1)">看看它能做什么</button>
+            <a class="qws-btn is-primary" :href="link('/guide/getting-started')">{{ t.quickStart }}</a>
+            <a class="qws-btn" href="https://demo.qiwuadmin.com" target="_blank" rel="noopener">{{ t.demo }}</a>
+            <a class="qws-btn" href="https://github.com/732124645/qiwu-vue-admin" target="_blank" rel="noopener">{{ t.source }}</a>
+            <button type="button" class="qws-btn" @click="goChapter(1)">{{ t.tour }}</button>
           </div>
           <template v-if="i === chapters.length - 1">
             <div class="qws-routes">
-              <a v-for="r in routes" :key="r.link" class="qws-route" :href="withBase(r.link)">
+              <a v-for="r in t.routes" :key="r.link" class="qws-route" :href="link(r.link)">
                 <strong>{{ r.title }}</strong><span>{{ r.desc }}</span>
               </a>
             </div>
             <div class="qws-actions">
-              <a class="qws-btn is-primary" :href="withBase('/guide/getting-started')">快速开始</a>
-              <a class="qws-btn" href="https://demo.qiwuadmin.com" target="_blank" rel="noopener">在线演示</a>
-              <a class="qws-btn" href="https://github.com/732124645/qiwu-vue-admin" target="_blank" rel="noopener">源码</a>
-              <a class="qws-btn" :href="withBase('/core/')">开发指南</a>
+              <a class="qws-btn is-primary" :href="link('/guide/getting-started')">{{ t.quickStart }}</a>
+              <a class="qws-btn" href="https://demo.qiwuadmin.com" target="_blank" rel="noopener">{{ t.demo }}</a>
+              <a class="qws-btn" href="https://github.com/732124645/qiwu-vue-admin" target="_blank" rel="noopener">{{ t.source }}</a>
+              <a class="qws-btn" :href="link('/core/')">{{ t.devGuide }}</a>
             </div>
           </template>
         </section>

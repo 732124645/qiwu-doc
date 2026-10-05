@@ -2,6 +2,8 @@
 
 代码生成器是这个模板保持一致性的核心：平台里大部分标准模块本身就是生成出来的，所以你生成的代码和平台代码是同一种写法。
 
+![代码生成器的表列表](/screenshots/zh-codegen.webp)
+
 ## 能生成什么
 
 | 模板 | 适用场景 | 示例 |
@@ -53,6 +55,10 @@
 
 - **页面**：系统工具 → 代码生成。可以导入表、编辑配置、预览代码、下载 zip（支持多张表批量下载），也可以从数据库同步表结构。
 - **命令行**：`pnpm gen import` 导入表并保存默认配置，`pnpm gen render … --out <目录>` 输出到仓库外的目录，`pnpm gen write` 写入仓库（需要开发环境，并设置 `CODEGEN_WRITE=true`）。
+
+![代码生成器的字段配置](/screenshots/zh-codegen-fields.webp)
+
+![生成代码的预览](/screenshots/zh-codegen-preview.webp)
 
 完整步骤见[新增业务模块](/guide/new-module)。
 

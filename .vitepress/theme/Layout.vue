@@ -4,7 +4,7 @@ import { useData } from 'vitepress'
 import DefaultTheme from 'vitepress/theme'
 import { giscusIds } from './giscus'
 
-const { isDark, page } = useData()
+const { isDark, page, lang } = useData()
 const { Layout } = DefaultTheme
 </script>
 
@@ -12,7 +12,7 @@ const { Layout } = DefaultTheme
   <Layout>
     <template #doc-after>
       <ClientOnly>
-        <section v-if="giscusIds.repoId && giscusIds.categoryId" class="qw-comments" aria-label="评论">
+        <section v-if="giscusIds.repoId && giscusIds.categoryId" class="qw-comments" :aria-label="lang.startsWith('en') ? 'Comments' : '评论'">
           <Giscus
             :key="page.relativePath"
             repo="732124645/qiwu-doc"
@@ -20,7 +20,7 @@ const { Layout } = DefaultTheme
             category="Announcements"
             :category-id="giscusIds.categoryId"
             mapping="pathname"
-            lang="zh-CN"
+            :lang="lang.startsWith('en') ? 'en' : 'zh-CN'"
             reactions-enabled="1"
             input-position="top"
             :theme="isDark ? 'dark' : 'light'"
