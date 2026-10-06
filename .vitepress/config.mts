@@ -36,6 +36,7 @@ const enSidebar = [
       { text: 'Code generator', link: '/en/features/codegen' },
       { text: 'Form designer', link: '/en/features/formkit' },
       { text: 'Workflow', link: '/en/features/workflow' },
+      { text: 'Mobile', link: '/en/features/mobile' },
       { text: 'Internationalization', link: '/en/features/i18n' },
       { text: 'Security baseline', link: '/en/features/security' },
     ],
@@ -401,6 +402,10 @@ export default defineConfigWithTheme<DefaultTheme.Config & { enPages?: string[] 
             { text: '常用组件', link: '/core/web-components' },
           ],
         },
+        {
+          text: '移动端',
+          items: [{ text: '移动端开发', link: '/core/mobile' }],
+        },
       ],
       '/features/': [
         { text: '总览', items: [{ text: '功能总览', link: '/features/' }] },
@@ -427,6 +432,10 @@ export default defineConfigWithTheme<DefaultTheme.Config & { enPages?: string[] 
         {
           text: '审批',
           items: [{ text: '工作流', link: '/features/workflow' }],
+        },
+        {
+          text: '移动端',
+          items: [{ text: '移动端', link: '/features/mobile' }],
         },
         {
           text: '全局能力',

@@ -30,6 +30,12 @@ For the status of each item, see [Introduction · Features at a glance](/en/guid
 | --- | --- |
 | [Workflow](/en/features/workflow) | Draw processes in the tree or BPMN designer, no-code approvals, dynamic forms, automatic timeout handling, approval data |
 
+## Mobile
+
+| Feature | In one sentence |
+| --- | --- |
+| [Mobile app](/en/features/mobile) | The employee phone client (WeChat mini program, Android, iOS): sign-in, Workbench, approvals, messages, new to-do WeChat alerts, app updates |
+
 ## Cross-cutting capabilities
 
 | Feature | In one sentence |

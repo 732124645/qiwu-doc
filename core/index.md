@@ -56,3 +56,9 @@ flowchart LR
 | [表单弹框](/core/crud-form) | `useCrudForm`、`openDialog` |
 | [权限与翻译](/core/web-perm-i18n) | `v-perm`、`usePerm`、`t()`、`tx()` |
 | [常用组件](/core/web-components) | 项目自带的全部组件和组合式函数 |
+
+## 移动端
+
+| 页面 | 讲什么 |
+| --- | --- |
+| [移动端开发](/core/mobile) | uni-app 移动端的运行调试、基础层、新增页面、构建打包、发布清单，以及只要电脑端时怎么删除 |
