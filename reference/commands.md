@@ -44,7 +44,7 @@ pnpm gen:check-golden
 第二条命令正常结束、没有输出差异，就说明仓库里的生成物和模板一致。然后用 `git diff` 查看具体改了哪些文件。
 
 ::: warning 先确认数据和改动
-`gen:check-golden` 会先构建服务端，再**重置**测试数据库（`.env.test` 配置的库，默认 `qiwu_test` + Redis 15 号库；为防止误删，它只接受模板登记过的测试库和库号组合），所以执行前要确认测试配置，并且不要和其他测试同时运行。`--write` 只改零手改模块的文件；目标文件有未提交的改动时，它会拒绝写入，所以先提交或保存当前改动。不要手动修改这些生成物，应该改模板或生成配置后再用这条命令同步。
+`gen:check-golden` 会先构建服务端，再**重置**测试数据库（`.env.test` 配置的库，`qiwu_test` + Redis 15 号库；为防止误删，它只接受这一组库和库号），所以执行前要确认测试配置，并且不要和其他测试同时运行。`--write` 只改零手改模块的文件；目标文件有未提交的改动时，它会拒绝写入，所以先提交或保存当前改动。不要手动修改这些生成物，应该改模板或生成配置后再用这条命令同步。
 :::
 
 ## 检查与测试
@@ -55,7 +55,7 @@ pnpm gen:check-golden
 | `pnpm --filter @qiwu/server test <文件名>` | 运行服务端的单个测试文件（不要加 `--`） |
 | `pnpm --filter @qiwu/web test <文件名>` | 运行前端单元测试 |
 | `pnpm --filter @qiwu/web e2e <文件>` | 运行 Playwright 端到端测试 |
-| `pnpm ci:local` | 完整检查：锁定依赖安装、verify、构建、前端构建产物扫描、前端开发模式冒烟测试、全部测试和覆盖率、移动端检查和构建、代码生成一致性、Playwright、移动端端到端测试、启动冒烟测试。默认逐步串行执行；Windows 上只能串行，加 `--parallel` 会被拒绝 |
+| `pnpm ci:local` | 完整检查：锁定依赖安装、共享包构建、verify、构建、前端构建产物扫描、前端开发模式冒烟测试、全部测试和覆盖率、移动端检查和构建、代码生成一致性、Playwright、移动端端到端测试、启动冒烟测试。默认逐步串行执行；Windows 上只能串行，加 `--parallel` 会被拒绝 |
 | `pnpm mobile:<命令>` | 在 `mobile/` 目录运行移动端命令：`verify`、`test`、`e2e`、`build:h5`、`build:mp-weixin`、`build:app` |
 | `pnpm smoke:boot` | 启动构建产物，确认 `/api/health` 正常后退出 |
 | `pnpm smoke:web-dev` | 前端开发模式冒烟测试：用全新的临时依赖缓存启动 Vite 开发服务器（不需要后端），在本机 Edge 中加载 `apps/web/src` 下的全部 `.vue` 模块和源码中按需导入的包，再打开表单设计器，确认它能正常显示；最多 240 秒 |

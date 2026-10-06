@@ -339,7 +339,7 @@ const errors = computed(() => fieldErrors(leaveCreate, issues.value)) // 共享�
 ```
 
 - 移动端的文字放在 `mobile/src/locales/{zh-CN,en-US}/*.json`，文件名的合并规则和电脑端相同；`validation.*`、`field.*`、`seed.*` 直接来自共享包，见[在代码中使用国际化](/core/i18n)；
-- 启动时依次取：本机保存的选择（键 `qw.locale`）→ 系统语言以英文开头时用 English → 简体中文；
+- 启动时依次取：本机保存的选择（键 `qw.locale`）→ 系统语言以英文开头时用 English → 简体中文；wot-ui 组件自带的文字（占位提示、选择器按钮等）在第一个页面显示前就使用这个语言；
 - `setLocale()` 同时切换移动端自己的文字、wot-ui 组件自带的文字和 uni 内置的界面（弹窗、选择器），并保存在本机。在 **我的** 页切换语言时，还会保存到账号上（`PUT /api/iam/profile/locale`），服务端发的消息跟着变；
 - 页面标题也要翻译：在 `onLoad` 里调用 `uni.setNavigationBarTitle({ title: t('…') })`，`pages.json` 里的标题只是默认值。
 

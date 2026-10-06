@@ -4,7 +4,7 @@ description: '单仓库的目录结构：后端 apps/server 的分层规则和�
 
 # 目录结构
 
-这是一个 pnpm workspace 单仓库，包含三个包：
+这是一个 pnpm workspace 单仓库，workspace 里有三个包；根目录的 `mobile/` 是独立的移动端工程，见[移动端开发](/core/mobile)：
 
 ```text
 qiwu-vue-admin/
@@ -13,8 +13,10 @@ qiwu-vue-admin/
 │  └─ web/             # @qiwu/web     Vue 3 前端
 ├─ packages/
 │  └─ shared/          # @qiwu/shared  前后端共享：zod 规则、类型、错误码、权限常量
-├─ scripts/            # 检查脚本（许可证、国际化、原创性、分层架构……）
-└─ docs/               # 内部开发文档（计划、架构决策记录）
+├─ mobile/             # 移动端（uni-app），独立工程，不在 workspace 里；只要电脑端时可以删除
+├─ scripts/            # 检查脚本（许可证、国际化、原创性、分层架构……），deploy/ 是服务器部署脚本
+├─ .github/            # GitHub Actions 工作流（CI、发布）和问题模板、合并请求（PR）模板
+└─ docs/               # 使用文档、架构决策记录（adr/）、设计说明（design-notes.md）
 ```
 
 ## 后端 `apps/server`

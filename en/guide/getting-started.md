@@ -159,7 +159,7 @@ You can also run `node scripts/new-project.mjs` on its own and answer the prompt
 | --- | --- |
 | `--name` | Project name: starts with a lowercase letter and contains only lowercase letters, digits and `-` |
 | `--db-name` | Database name. Default: the project name with `-` replaced by `_`, plus `_dev` (for example `my_admin_dev`); must end in `_dev` and cannot be `qiwu_dev` |
-| `--redis-db` | Redis database number; 4 to 15 are reserved for template development and tests and cannot be used. The script does not check whether the database is free, so make sure no other project uses it |
+| `--redis-db` | Redis database number; 9, 13, 14 and 15 are reserved for template development and tests and cannot be used (`--help` lists them). The script does not check whether the database is free, so make sure no other project uses it |
 | `--title` | System name, shown in the browser tab, the sidebar and the sign-in page; defaults to the project name |
 | `--dry-run` | Preview only, writes no files |
 

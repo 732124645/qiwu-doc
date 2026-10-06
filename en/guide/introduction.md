@@ -11,7 +11,7 @@ Qiwu (栖梧, project name `qiwu-vue-admin`) is a **full-stack Node admin templa
 To learn why I built this project, see [Project story](/en/guide/story).
 
 ::: info Current status
-**v1.0.0** was released on 2026-10-05, open source under the **MIT license**. See the [Changelog](/en/changelog) for changes. The mobile app can already be built and debugged locally; testing on real devices and pre-release checks for the app stores are still in progress. The feature tables below show the status of each item.
+**v1.0.3** was released on 2026-10-06, open source under the **MIT license**. See the [Changelog](/en/changelog) for changes. The mobile app can already be built and debugged locally; testing on real devices and pre-release checks for the app stores are still in progress. The feature tables below show the status of each item.
 :::
 
 ## Live demo
@@ -124,6 +124,7 @@ For details on each feature, see the [Features overview](/en/features/).
 | --- | --- |
 | Three layouts, tabs, dark mode, light / dark sidebar, lock screen, username watermark, Chinese / English switch | ✅ |
 | Multi-instance deployment (cross-instance realtime push, rate limits shared through Redis) | ✅ |
+| Server deploy kit (one directory per release, PM2 cluster restarts one process at a time, health checks, automatic switch back to the previous release's code on failure) and GitHub Actions checks and releases | ✅ |
 | New project script (sets up a separate database, Redis database number, secrets and system name for the new project) | ✅ |
 | OAuth2 authorization server / single sign-on (authorization code + PKCE, so other systems can let users sign in with their Qiwu accounts; OAuth2 client management, consent page, remembered consent) | ✅ |
 | Mobile app (uni-app: WeChat mini program, Android, iOS; sign-in, Workbench, messages, approvals (including dynamic forms), realtime push, WeChat subscribe message reminders and app update checks are done, with light and dark themes; checks on real devices before release are still in progress) | 🚧 |
