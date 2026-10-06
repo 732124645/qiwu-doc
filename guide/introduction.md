@@ -129,6 +129,18 @@
 
 ![暗色模式下的工作台](/screenshots/zh-home-dark.webp)
 
+## 参与贡献
+
+栖梧是开源项目，欢迎参与。按你想做的事找入口：
+
+| 想做什么 | 去哪里 |
+| --- | --- |
+| 提问，交流用法和想法 | [讨论区（Discussions）](https://github.com/732124645/qiwu-vue-admin/discussions) |
+| 报告缺陷，提出功能建议 | [问题（Issues）](https://github.com/732124645/qiwu-vue-admin/issues)，请用问题模板，写明版本、环境和复现步骤 |
+| 提交代码，或改进模板仓库里的文档 | 先读[贡献指南](https://github.com/732124645/qiwu-vue-admin/blob/main/CONTRIBUTING.md)，再发起合并请求（PR）；较大的改动请先在讨论区或问题里商量方案 |
+| 报告安全漏洞 | **不要公开提交**，按[报告安全漏洞](/features/security#报告安全漏洞)里的步骤私密报告 |
+| 指出本文档站的错误 | 点页面底部的"在 GitHub 上编辑此页"，或在页面下方的评论区留言 |
+
 ## 下一步
 
 - [快速开始](/guide/getting-started)：在本机跑起来

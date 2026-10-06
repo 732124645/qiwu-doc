@@ -127,6 +127,18 @@ For details on each feature, see the [Features overview](/en/features/).
 | Other third-party sign-in (GitHub, DingTalk, WeCom, Feishu (Lark), WeChat QR code, etc.) | ⏸ |
 | Instant messaging (one-to-one chat, group chat, staff directory), offline push for the app | ⏸ |
 
+## Contributing
+
+Qiwu is open source and contributions are welcome. Pick the place that fits what you want to do:
+
+| What you want to do | Where to go |
+| --- | --- |
+| Ask a question, share usage tips or ideas | [Discussions](https://github.com/732124645/qiwu-vue-admin/discussions) |
+| Report a bug or suggest a feature | [Issues](https://github.com/732124645/qiwu-vue-admin/issues); use the issue templates and include the version, environment and reproduction steps |
+| Contribute code, or improve the docs in the template repository | Read the [contributing guide](https://github.com/732124645/qiwu-vue-admin/blob/main/CONTRIBUTING.md) first, then open a pull request; for larger changes, discuss the approach in Discussions or an issue first |
+| Report a security vulnerability | **Do not report it in public.** Report it privately as described in [Reporting a vulnerability](/en/features/security#reporting-a-vulnerability) |
+| Point out a mistake on this docs site | Use "Edit this page on GitHub" at the bottom of the page, or leave a comment below it |
+
 ## Next steps
 
 - [Getting started](/en/guide/getting-started): run it on your machine

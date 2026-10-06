@@ -84,3 +84,15 @@ When editing an S3 storage config, if you change any of **Endpoint**, **Bucket**
 - **Production secret check**: with `NODE_ENV=production`, if `APP_SECRET` or `SEED_ADMIN_PASSWORD` contains `not-for-production` (case-insensitive), the service refuses to start, and `pnpm db:migrate` and `pnpm db:seed` also exit before connecting to the database. Every test password committed to the repository carries this marker, so none of them can slip into production by mistake. The check only looks for this marker and does not judge password strength; you still need to generate random values for production secrets yourself;
 - **Demo mode**: with `APP_DEMO_MODE=true`, all write operations return 403, for the super administrator too, except for a few such as signing in, signing out, unlocking the lock screen, saving personal preferences and marking as read. IPs, locations, browsers and similar details in online users and the various logs are masked both on the page and in exports (the original records in the database are unchanged). See [Deployment · Demo mode](/guide/deploy#演示模式) (Chinese);
 - **Supply chain**: dependency versions are locked; a new version can be installed only once it has been released for 24 hours; the install scripts of dependencies must be approved one by one; dependency licenses are checked automatically.
+
+## Reporting a vulnerability
+
+If you find a security vulnerability in the Qiwu template itself (the server, web, shared package and mobile client source), **do not** disclose the details in public issues, discussions or pull requests. Report it through GitHub private vulnerability reporting: open the [repository](https://github.com/732124645/qiwu-vue-admin) → **Security** → **Report a vulnerability** (you need to be signed in to GitHub). Include the affected version or commit; the module, endpoint or page involved; the vulnerability type and impact; and the reproduction steps with the configuration and permissions they need. Do not include real personal data or production credentials.
+
+- Supported version: 1.0.x.
+- Reports are handled on a best-effort basis and usually acknowledged within 7 days; there is no guaranteed response time. Once an issue is confirmed, you are kept informed about the fix.
+- Details are disclosed after a fixed release is published; reporters are credited in the release notes if they wish.
+- The [live demo](https://demo.qiwuadmin.com) runs in demo mode. Do not run destructive, stress or load tests against it, and do not attempt denial of service.
+- Systems that others deploy from this template are the responsibility of their operators and are out of scope for this policy.
+
+See the [security policy](https://github.com/732124645/qiwu-vue-admin/blob/main/SECURITY.md) for the full text.
