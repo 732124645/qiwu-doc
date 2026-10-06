@@ -1,3 +1,7 @@
+---
+description: '后台标准列表页：useCrudList 管理查询、分页、排序、删除和导出，QwTable 列定义与用户列设置，TableToolbar、Pagination、时间显示和行内开关。'
+---
+
 # 列表页
 
 一个标准的列表页由这几部分组成：

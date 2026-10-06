@@ -1,3 +1,7 @@
+---
+description: '用 @ActionLog 为接口记录操作日志：domain、verb、bizId 选项，何时用 @SkipActionLog，记录内容、敏感字段脱敏、API 访问日志和保留时间。'
+---
+
 # 操作日志
 
 ::: tip 后台怎么用

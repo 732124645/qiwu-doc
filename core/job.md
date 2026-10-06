@@ -1,3 +1,8 @@
+---
+title: 定时任务开发
+description: '用 @JobHandler 写定时任务处理器：zod 参数规则、signal 和 log、用种子预置任务、支持的 Cron 写法，并发、错过策略、超时和重试配置，以及内置处理器。'
+---
+
 # 定时任务
 
 ::: tip 后台怎么用

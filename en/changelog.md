@@ -1,3 +1,7 @@
+---
+description: 'Qiwu release notes: what version 1.0.0 includes, from permissions, workflow and code generation to the mobile app and deployment, plus known limitations.'
+---
+
 # Changelog
 
 This page records the changes in each Qiwu release. For the current features and the status of each one, see [Introduction · Features at a glance](/en/guide/introduction#features-at-a-glance).

@@ -1,3 +1,7 @@
+---
+description: 'Run the Qiwu NestJS and Vue 3 admin template locally on macOS or Windows: MySQL and Redis setup, env files, database seeding and the new project script.'
+---
+
 # Getting started
 
 Goal: get it running on your machine in 10 minutes.

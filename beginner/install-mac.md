@@ -1,3 +1,7 @@
+---
+description: '在 Mac 上依次安装 Xcode 命令行工具、Homebrew、Node.js 22、pnpm、MySQL、Redis 和 VS Code，每一步都用命令确认装好。'
+---
+
 # 安装开发环境（Mac）
 
 要安装的东西有点多，但每一样都是做开发必备的，**装一次，以后一直能用**。

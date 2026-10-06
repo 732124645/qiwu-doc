@@ -1,3 +1,7 @@
+---
+description: '单仓库的目录结构：后端 apps/server 的分层规则和模块组成，前端 apps/web 的页面、接口与样式目录，以及前后端共享包 packages/shared 里放什么。'
+---
+
 # 目录结构
 
 这是一个 pnpm workspace 单仓库，包含三个包：

@@ -1,3 +1,7 @@
+---
+description: '后端查询的三种方式：带数据范围的 scopedQb 和 QueryBuilder、参数化条件、pageQuery 分页排序、联表和子查询、原生 SQL 的规则、行锁和性能建议。'
+---
+
 # 查询
 
 项目中查询数据有三种方式，按推荐程度排列：

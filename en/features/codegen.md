@@ -1,3 +1,7 @@
+---
+description: 'How the code generator builds single-table, tree and master-detail modules: backend, frontend, tests, optional mobile pages, safety rules and numeric limits.'
+---
+
 # Code generator
 
 The code generator is the core of how this template stays consistent: most of the platform's standard modules are generated themselves, so the code you generate is written the same way as the platform's own code.

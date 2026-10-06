@@ -1,3 +1,7 @@
+---
+description: 'Qiwu''s employee mobile app built with uni-app for WeChat mini program, Android and iOS: sign-in, Workbench, approvals, messages, WeChat alerts and app updates.'
+---
+
 # Mobile app
 
 Qiwu includes a client for employees' phones, called the **mobile app** below. On their phones, employees can sign in, check their to-dos, handle approvals, and read messages and bulletins.

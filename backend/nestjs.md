@@ -1,3 +1,7 @@
+---
+description: '以岗位模块为例讲 NestJS 基础：装饰器、控制器路由、服务与 BaseCrudService、依赖注入、模块注册，守卫、管道、拦截器、过滤器的分工，以及抛出业务错误。'
+---
+
 # NestJS 基础
 
 NestJS 是一个 Node.js 后端框架。它的设计参考了 Java 的 Spring 和前端的 Angular，核心只有几个概念：**模块、控制器、服务、依赖注入**，外加**装饰器**这种写法。

@@ -1,3 +1,7 @@
+---
+description: 'How menu and button permissions, five data scopes, multi-role users and the privilege escalation guard work, with an example of a manager viewing approval data.'
+---
+
 # Permissions and data scope
 
 Permissions have two layers:

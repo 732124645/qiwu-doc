@@ -1,3 +1,7 @@
+---
+description: 'The drag-and-drop form designer: basic, business and calculated components, day counts and detail tables, JSON and Vue export, and the security allowlist.'
+---
+
 # Form designer
 
 Design forms by drag and drop, without writing code. The designer is based on the open-source form-create designer (MIT license). Its UI language follows the language selected in the admin console and changes immediately when you switch between Chinese and English.

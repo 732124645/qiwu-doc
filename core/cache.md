@@ -1,3 +1,7 @@
+---
+description: '后端 Redis 缓存的规范写法：登记命名空间，用 redisKey() 生成键并读写，先提交事务再删缓存，以及带版本号的 readThrough 进阶写法。'
+---
+
 # 缓存
 
 先读一下 [Redis 是做什么的](/backend/redis)。这一页讲具体怎么写。

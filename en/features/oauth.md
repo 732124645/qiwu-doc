@@ -1,3 +1,7 @@
+---
+description: 'Using Qiwu as an OAuth2 authorization server for single sign-on: registering clients, the consent page, remembered consent, token lifetimes and PKCE limits.'
+---
+
 # Single sign-on (OAuth2)
 
 Qiwu can act as an **OAuth2 authorization server** that other systems connect to:

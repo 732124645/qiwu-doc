@@ -1,3 +1,7 @@
+---
+description: 'TypeORM 实体的写法：基类和审计列、MySQL 列类型对照、只读关联、用 referencedBy 代替外键、数据范围声明，以及迁移的建表约定和执行回退。'
+---
+
 # 实体与数据库
 
 **实体**是一个 TypeScript 类，用来描述一张表的结构。项目使用 TypeORM，数据库是 MySQL。

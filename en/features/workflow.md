@@ -1,3 +1,7 @@
+---
+description: 'Tree-based approval engine with a BPMN designer: no-code wizard, approvers, branches, approval actions, timeout handling, dynamic forms and approval data.'
+---
+
 # Workflow
 
 The project ships with a **tree-based approval engine**, similar in spirit to DingTalk approvals (DingTalk is a workplace app widely used in China): a process is a tree of nodes that runs from top to bottom. This covers most approval scenarios, and business users find it easier to understand.

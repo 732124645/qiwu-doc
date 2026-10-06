@@ -1,3 +1,7 @@
+---
+description: 'TypeScript 与 Java 的不同之处：类型运行时被擦除需用 zod 校验、结构类型、null 与 undefined、相等比较、字面量联合代替枚举、ESM 导入和装饰器。'
+---
+
 # TypeScript 速成
 
 TypeScript 的语法和 Java 很接近，这一页**只讲和 Java 不一样的地方**。

@@ -1,3 +1,7 @@
+---
+description: 'Spring Boot 与 NestJS 并排对照：控制器、依赖注入和模块、zod 校验、全局异常、事务、MyBatis 与 TypeORM、配置、拦截器、定时任务、日志和测试。'
+---
+
 # Spring Boot 对照 NestJS
 
 下面每一节都把 Spring Boot 的写法和本项目的写法并排放在一起，点击代码块上方的标签即可切换。

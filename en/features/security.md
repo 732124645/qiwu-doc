@@ -1,3 +1,7 @@
+---
+description: 'Default-on security measures: random tokens instead of JWT, sign-in lockout, OAuth2 PKCE, IDOR and injection defenses, upload checks and vulnerability reports.'
+---
+
 # Security baseline
 
 The following measures are **on by default**, and each one has matching tests or automated checks.

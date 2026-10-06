@@ -1,3 +1,7 @@
+---
+description: 'Overview of Qiwu admin features by menu: system management, OAuth2 single sign-on, permissions, code generator, form designer, workflow, mobile and security.'
+---
+
 # Features overview
 
 This section describes **what Qiwu can do**: which admin console menu each feature lives under, how administrators use it, and what its limitations are. It does not cover code; to use these capabilities in your own modules, every page ends with links to the [Developer guide](/core/) (Chinese).

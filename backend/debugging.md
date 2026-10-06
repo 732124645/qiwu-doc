@@ -1,3 +1,7 @@
+---
+description: '后端排查问题：用 traceId 对照日志、用 Swagger 绕开前端调接口、直接查数据库，以及 404、403、400、依赖注入失败、pnpm verify 不通过的常见原因。'
+---
+
 # 排查问题
 
 ## 先看 traceId

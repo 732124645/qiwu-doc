@@ -1,3 +1,7 @@
+---
+description: '前端自带组件速查：表格与左侧树、可编辑明细表、字典和部门等表单输入、openDialog 弹框、组合式函数、Pinia 状态、Lucide 图标以及 --qw-* 样式变量的用法。'
+---
+
 # 常用组件
 
 项目自带的组件都在 `src/core/components/` 下。

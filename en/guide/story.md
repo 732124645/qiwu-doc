@@ -1,3 +1,7 @@
+---
+description: 'Why Qiwu was built: the lack of a complete, secure open-source Node admin framework, Node''s lower cost for small projects, who it is for and why MIT.'
+---
+
 # Project story
 
 On this page I want to talk about why I built Qiwu, who I hope will use it, and why I chose to open-source it.

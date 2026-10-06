@@ -1,3 +1,7 @@
+---
+description: '在表单里用 ImageUpload、FileUpload 和 uploadField 上传图片与附件：公开和私有业务标签、大小上限、服务端检查，以及私有文件的显示和下载权限。'
+---
+
 # 文件上传
 
 ::: tip 后台怎么用

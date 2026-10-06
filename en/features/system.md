@@ -1,3 +1,7 @@
+---
+description: 'Admin guide to the System menus: users, roles, menus, departments, positions, dictionaries, parameters, app versions, regions, OAuth2 clients and my profile.'
+---
+
 # System management
 
 **System** is the most basic group of menus in the admin console. It covers accounts, roles, menus and the organization structure; settings such as dictionaries and parameters that you can adjust "without changing code"; and mobile app versions, plus the third-party apps that can sign in with accounts of this system. This page walks through what each page can do, in menu order.

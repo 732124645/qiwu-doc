@@ -1,3 +1,7 @@
+---
+description: '仓库根目录的 pnpm 命令速查：日常开发、数据库迁移与种子、代码生成及一致性检查、verify 和 ci:local 等检查与测试命令，以及在 Windows 上的验证情况。'
+---
+
 # 命令
 
 在仓库根目录执行。Windows 上，在自带的 Windows PowerShell 5.1 中执行同样的 `pnpm` 命令即可：安装依赖、启动开发、数据库命令、检查、测试和 `pnpm ci:local` 都已在 Windows 11 上验证过；移动端 App 的打包和发布、新项目脚本的完整演练还没有在 Windows 上验证。环境安装、脚本执行策略和验证范围见[安装环境（Windows）](/beginner/install-windows)。

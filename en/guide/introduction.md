@@ -1,3 +1,7 @@
+---
+description: 'Qiwu is an MIT-licensed full-stack Node admin template on NestJS and Vue 3: live demo, tech stack, differences from Java templates and feature status.'
+---
+
 # Introduction
 
 Qiwu (栖梧, project name `qiwu-vue-admin`) is a **full-stack Node admin template**. It provides the building blocks that business admin consoles usually need: sign-in, single sign-on, permissions, organization structure, dictionaries, logs, monitoring, scheduled tasks, messaging, files, code generation and approval workflows. You only write your own business logic on top.

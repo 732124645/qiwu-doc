@@ -1,3 +1,7 @@
+---
+description: '在 Windows 上用 PowerShell 5.1 安装 Git、Node.js 22、pnpm、MySQL、Memurai 和 VS Code，设置执行策略并排查常见问题。'
+---
+
 # 安装开发环境（Windows）
 
 **推荐直接在 Windows 上开发**：软件装在 Windows 里，命令在 Windows 终端（Windows Terminal）或 VS Code 的终端里执行，使用系统自带的 **Windows PowerShell 5.1**。

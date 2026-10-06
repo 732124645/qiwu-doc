@@ -1,3 +1,7 @@
+---
+description: '写给 Spring Boot 和 RuoYi 开发者的入门：要补哪些运行时、TypeScript 和前端知识，推荐的学习顺序，Java 概念总对照表，以及选 Node 的得与失。'
+---
+
 # 先看这里：写给 Java 开发者
 
 如果你一直用 Spring Boot 写后端，用过 RuoYi 这类后台框架，这一栏是为你准备的。

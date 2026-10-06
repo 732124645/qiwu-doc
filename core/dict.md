@@ -1,3 +1,7 @@
+---
+description: '字典的开发写法：用种子预置字典、重新执行种子时哪些不覆盖、用数据迁移改已有文字，以及 DictSelect、DictTag、useDict 和 DictService 的用法。'
+---
+
 # 字典
 
 ::: tip 后台怎么用
