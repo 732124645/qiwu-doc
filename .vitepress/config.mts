@@ -185,6 +185,8 @@ export default defineConfigWithTheme<DefaultTheme.Config & { enPages?: string[] 
   },
   head: [
     ['link', { rel: 'icon', type: 'image/svg+xml', href: `${base}logo.svg` }],
+    // 百度搜索资源平台的站点验证
+    ['meta', { name: 'baidu-site-verification', content: 'codeva-fODLyHC3WH' }],
     // 禁用脚本时首页不做滚动叙事，章节按顺序排开（同组件里的 .is-fallback）
     [
       'noscript',
