@@ -1,9 +1,11 @@
 import { PageProperties, PagePropertiesMarkdownSection } from '@nolebase/vitepress-plugin-page-properties/vite'
 import { GitChangelog, GitChangelogMarkdownSection } from '@nolebase/vitepress-plugin-git-changelog/vite'
+import taskLists from 'markdown-it-task-lists'
 import { readdirSync } from 'node:fs'
 import { fileURLToPath } from 'node:url'
 import { type DefaultTheme, defineConfigWithTheme } from 'vitepress'
 import { groupIconMdPlugin, groupIconVitePlugin } from 'vitepress-plugin-group-icons'
+import llmstxt from 'vitepress-plugin-llms'
 import { MermaidMarkdown, MermaidPlugin } from 'vitepress-plugin-mermaid'
 
 // 站点部署在 Cloudflare Pages 的根路径（https://qiwuadmin.com）；GitHub Pages 的副本在子路径下（流水线设 DOCS_BASE=/qiwu-doc/）
@@ -77,6 +79,8 @@ export default defineConfigWithTheme<DefaultTheme.Config & { enPages?: string[] 
     config(md) {
       md.use(MermaidMarkdown)
       md.use(groupIconMdPlugin)
+      // "- [ ]" 渲染成读者可以勾选的复选框，点文字也能勾选
+      md.use(taskLists, { enabled: true, label: true })
       for (const [type, label] of Object.entries(enContainerLabels)) {
         const render = md.renderer.rules[`container_${type}_open`]!
         md.renderer.rules[`container_${type}_open`] = (tokens, idx, options, env, self) => {
@@ -157,6 +161,15 @@ export default defineConfigWithTheme<DefaultTheme.Config & { enPages?: string[] 
       }),
       GitChangelog({ repoURL: 'https://github.com/732124645/qiwu-doc' }),
       GitChangelogMarkdownSection({ excludes: ['index.md', 'en/index.md'], sections: { disableContributors: true } }),
+      // 给 AI 工具读的 /llms.txt、/llms-full.txt 和每页的 .md；英文只翻译了一部分，两份汇总只收中文页面，
+      // 英文页面只单独生成 .md。首页是滚动叙事组件，没有正文，不收。
+      llmstxt({
+        domain: site,
+        injectLLMHint: false,
+        customLLMsTxtTemplate: '# {title}\n\n{description}\n\n{details}\n\n## 目录\n\n{toc}',
+        ignoreFiles: ['en/index.md'],
+        ignoreFilesPerOutput: { llmsTxt: ['en/**'], llmsFullTxt: ['en/**'] },
+      }),
     ],
     // 替换默认主题内部的语言切换：链接不进 404（langs.ts），导航栏按钮显示语言名
     // 升级 VitePress 后检查：theme-default 是否仍从 '../composables/langs' 导入，并对比 VPNavBarTranslations.vue 与副本

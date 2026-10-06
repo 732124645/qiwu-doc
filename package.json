@@ -14,9 +14,12 @@
     "@nolebase/vitepress-plugin-git-changelog": "2.18.2",
     "@nolebase/vitepress-plugin-page-properties": "^2.18.2",
     "@types/three": "^0.186.0",
+    "markdown-it-task-lists": "^2.1.1",
+    "medium-zoom": "^1.1.0",
     "mermaid": "^11.17.2",
     "vitepress": "^1.6.4",
     "vitepress-plugin-group-icons": "^1.7.6",
+    "vitepress-plugin-llms": "^1.14.0",
     "vitepress-plugin-mermaid": "^2.0.17"
   },
   "dependencies": {

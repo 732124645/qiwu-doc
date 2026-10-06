@@ -1,11 +1,21 @@
 <script setup lang="ts">
 import Giscus from '@giscus/vue'
-import { useData } from 'vitepress'
+import mediumZoom from 'medium-zoom'
+import { useData, useRoute } from 'vitepress'
 import DefaultTheme from 'vitepress/theme'
+import { onMounted, watch } from 'vue'
 import { giscusIds } from './giscus'
 
 const { isDark, page, lang } = useData()
 const { Layout } = DefaultTheme
+const route = useRoute()
+
+// 正文图片点击放大（链接里的图片除外）；换页后解绑旧图片、绑定新页面的图片
+const zoomable = '.vp-doc img:not(a img)'
+onMounted(() => {
+  const zoom = mediumZoom(zoomable, { background: 'var(--vp-c-bg)', margin: 24 })
+  watch(() => route.path, () => zoom.detach().attach(zoomable), { flush: 'post' })
+})
 </script>
 
 <template>

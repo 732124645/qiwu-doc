@@ -35,3 +35,26 @@
   border-radius: 8px;
   box-shadow: var(--vp-shadow-2);
 }
+
+/* 图片放大：遮罩盖住导航栏和侧边栏（它们的层级最高到 60）；放大的截图带阴影，浅色背景上也看得出边缘 */
+.medium-zoom-overlay {
+  z-index: 100;
+}
+.medium-zoom-image--opened {
+  z-index: 101;
+  box-shadow: var(--vp-shadow-3);
+}
+
+/* 勾选清单：不显示列表圆点，勾选框和文字对齐 */
+.vp-doc .contains-task-list {
+  padding-left: 0;
+  list-style: none;
+}
+.vp-doc .task-list-item label {
+  cursor: pointer;
+}
+.vp-doc .task-list-item-checkbox {
+  margin: 0 0.5em 0 0;
+  vertical-align: middle;
+  accent-color: var(--vp-c-brand-1);
+}
