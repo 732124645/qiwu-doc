@@ -1,6 +1,8 @@
 import { PageProperties, PagePropertiesMarkdownSection } from '@nolebase/vitepress-plugin-page-properties/vite'
 import { GitChangelog, GitChangelogMarkdownSection } from '@nolebase/vitepress-plugin-git-changelog/vite'
-import { defineConfig } from 'vitepress'
+import { readdirSync } from 'node:fs'
+import { fileURLToPath } from 'node:url'
+import { type DefaultTheme, defineConfigWithTheme } from 'vitepress'
 import { groupIconMdPlugin, groupIconVitePlugin } from 'vitepress-plugin-group-icons'
 import { MermaidMarkdown, MermaidPlugin } from 'vitepress-plugin-mermaid'
 
@@ -45,11 +47,16 @@ const enSidebar = [
     ],
   },
 ]
+// 已有英文版的页面（相对 en/ 的路径，如 guide/story.md），语言切换据此决定去同一页还是英文首页
+const enPages = readdirSync(new URL('../en', import.meta.url), { recursive: true })
+  .map((file) => file.replaceAll('\\', '/'))
+  .filter((file) => file.endsWith('.md'))
+const themeFile = (file: string) => fileURLToPath(new URL(`./theme/${file}`, import.meta.url))
 // 不带标题的提示框在英文页面用英文标题（markdown.container 的标签是全站共用的）
 const enContainerLabels = { tip: 'TIP', info: 'INFO', warning: 'WARNING', danger: 'DANGER', details: 'Details' }
 const isEnPage = (env: { relativePath?: string }) => env.relativePath?.startsWith('en/') ?? false
 
-export default defineConfig({
+export default defineConfigWithTheme<DefaultTheme.Config & { enPages?: string[] }>({
   base,
   lang: 'zh-CN',
   title: '栖梧 Qiwu',
@@ -151,6 +158,14 @@ export default defineConfig({
       GitChangelog({ repoURL: 'https://github.com/732124645/qiwu-doc' }),
       GitChangelogMarkdownSection({ excludes: ['index.md', 'en/index.md'], sections: { disableContributors: true } }),
     ],
+    // 替换默认主题内部的语言切换：链接不进 404（langs.ts），导航栏按钮显示语言名
+    // 升级 VitePress 后检查：theme-default 是否仍从 '../composables/langs' 导入，并对比 VPNavBarTranslations.vue 与副本
+    resolve: {
+      alias: [
+        { find: /^\.{1,2}\/composables\/langs$/, replacement: themeFile('langs.ts') },
+        { find: /^.*\/VPNavBarTranslations\.vue$/, replacement: themeFile('components/QwNavBarTranslations.vue') },
+      ],
+    },
     optimizeDeps: { exclude: ['@nolebase/vitepress-plugin-page-properties/client'] },
     ssr: { noExternal: ['@nolebase/vitepress-plugin-page-properties', '@nolebase/ui'] },
   },
@@ -222,6 +237,7 @@ export default defineConfig({
       text: '在 GitHub 上编辑此页',
     },
     logo: '/logo.svg',
+    enPages,
     nav: [
       { text: '指南', link: '/guide/introduction', activeMatch: '/guide/' },
       {

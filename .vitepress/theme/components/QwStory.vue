@@ -34,6 +34,7 @@ const ZH = {
   ],
   demo: '在线演示',
   getStarted: '开始使用 →',
+  switchLang: { text: 'English', label: 'English version', link: '/en/', lang: 'en' },
   quickStart: '快速开始',
   source: '源码',
   tour: '看看它能做什么',
@@ -122,6 +123,7 @@ const EN: typeof ZH = {
   ],
   demo: 'Live demo',
   getStarted: 'Get started →',
+  switchLang: { text: '中文', label: '中文版', link: '/', lang: 'zh-CN' },
   quickStart: 'Quick start',
   source: 'Source code',
   tour: 'See what it can do',
@@ -227,12 +229,17 @@ const EN: typeof ZH = {
   ],
 }
 
-/** 已有英文版的页面：英文首页链到 /en/...，其余页面仍链到中文 */
-const EN_PAGES = new Set(['/', '/changelog', '/guide/introduction', '/guide/story', '/guide/getting-started', '/features/'])
-const { lang: pageLang } = useData()
+const { lang: pageLang, theme } = useData()
+/** 已有英文版的页面（config.mts 从 en/ 目录算出）：英文首页链到 /en/...，其余页面仍链到中文 */
+const enPages = computed(
+  () =>
+    new Set(
+      (theme.value.enPages ?? []).map((p: string) => '/' + p.replace(/(^|\/)index\.md$/, '$1').replace(/\.md$/, '')),
+    ),
+)
 const isEn = computed(() => pageLang.value.startsWith('en'))
 const t = computed(() => (isEn.value ? EN : ZH))
-const link = (path: string) => withBase(isEn.value && EN_PAGES.has(path) ? `/en${path}` : path)
+const link = (path: string) => withBase(isEn.value && enPages.value.has(path) ? `/en${path}` : path)
 
 const techs = ['NestJS', 'Vue 3', 'TypeScript', 'MySQL', 'Redis', 'Element Plus', 'zod', 'Socket.IO']
 const RULE = 'name: z.string().trim().max(64)'
@@ -562,6 +569,13 @@ onBeforeUnmount(() => {
           <a v-for="n in t.nav" :key="n.link" :href="link(n.link)">{{ n.text }}</a>
           <a href="https://demo.qiwuadmin.com" target="_blank" rel="noopener">{{ t.demo }}</a>
         </nav>
+        <a
+          class="qws-lang"
+          :href="withBase(t.switchLang.link)"
+          :hreflang="t.switchLang.lang"
+          :lang="t.switchLang.lang"
+          :aria-label="t.switchLang.label"
+        >{{ t.switchLang.text }}</a>
         <a class="qws-btn is-primary is-small" :href="link('/guide/getting-started')">{{ t.getStarted }}</a>
       </header>
       <div class="qws-progress"><i ref="bar" /></div>
@@ -1023,13 +1037,27 @@ onBeforeUnmount(() => {
   gap: 22px;
   margin-right: auto;
 }
-.qws-links a {
+.qws-links a,
+.qws-lang {
   color: var(--muted);
   font-size: 14px;
   text-decoration: none;
 }
-.qws-links a:hover {
+.qws-links a:hover,
+.qws-lang:hover {
   color: var(--ink);
+}
+.qws-lang {
+  white-space: nowrap;
+}
+/* 窄平板：收紧间距，英文首页多出的语言链接不把导航挤成两行 */
+@media (min-width: 768px) and (max-width: 1023px) {
+  .qws-nav {
+    gap: 20px;
+  }
+  .qws-links {
+    gap: 14px;
+  }
 }
 .qws-progress {
   position: absolute;
@@ -1134,6 +1162,7 @@ onBeforeUnmount(() => {
 .qws-rail button:focus-visible,
 .qws-skip:focus-visible,
 .qws-links a:focus-visible,
+.qws-lang:focus-visible,
 .qws-brand:focus-visible {
   outline: 2px solid var(--accent);
   outline-offset: 3px;
@@ -1185,7 +1214,10 @@ onBeforeUnmount(() => {
     display: none;
   }
   .qws-nav {
-    justify-content: space-between;
+    gap: 16px;
+  }
+  .qws-brand {
+    margin-right: auto;
   }
   .qws-chapter.is-left,
   .qws-chapter.is-top,
