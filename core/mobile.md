@@ -749,10 +749,6 @@ App 这边的代码在 `mobile/src/core/update.ts`：
    只跑一个文件：`pnpm mobile:e2e mobile-login.spec.ts`；
 4. 默认用本机安装的 Microsoft Edge（Windows 自带，macOS 要自己安装）。用别的浏览器时设置环境变量 `PW_CHANNEL`，比如 `chrome`。
 
-::: tip 端口被占用，或者要在两个工作目录里同时运行
-在 `apps/server/.env.mobile-e2e.local`（不提交到 git）里改这一份的库、库号、端口和上传目录。只能写 `DB_NAME`（必须以 `_e2e` 结尾）、`REDIS_DB`、`PORT`、`STORAGE_LOCAL_ROOT` 和 H5 预览端口 `E2E_H5_PORT`，写了别的键会直接报错。Windows 上用记事本创建：`notepad apps\server\.env.mobile-e2e.local`。新的库同样要先建好并授权。
-:::
-
 ## 升级 uni-app
 
 在 `mobile/` 目录里用 DCloud 的官方工具统一升级 `@dcloudio/*`，并和本机 HBuilderX 的版本对应；`vite`、`vue`、`@vue/runtime-core`、`@dcloudio/types` 跟着它要求的精确版本走。macOS 和 Windows 命令相同：
