@@ -88,7 +88,7 @@ The process type **cannot be changed after the model is created**; the model lis
 - With a branching gateway selected, you can **Add a path** and reorder the paths with **Move up** and **Move down**. With one of its outgoing flows selected, you can set conditions or **Make default path**. Flows with conditions are drawn as dashed lines on the canvas.
 
 ::: warning Keep the bpmn.io logo
-Diagrams are drawn with the open-source bpmn-js. Its license requires the bpmn.io logo in the lower-right corner of the canvas to stay **visible, unobscured and unchanged**. The designer, the read-only diagram in instance details and printed diagrams all keep the logo. In the dark theme it gets a light backing, and turning on **Show watermark** in **Page settings** does not cover it either. Projects built on this template must follow the same rule: do not hide or change it with styles, and do not place anything permanent in the lower-right corner of the canvas.
+Diagrams are drawn with the open-source bpmn-js. Its license requires the bpmn.io logo in the lower-right corner of the canvas to stay **visible, unobscured and unchanged**. The designer, the read-only diagram in instance details and printed diagrams all keep the logo. In the dark theme it gets a light backing, and turning on **Show watermark** in **Page settings** does not cover it either. Projects built on this template must follow the same rule: do not hide or change it with styles, and do not place anything permanent in the lower-right corner of the canvas. For the full obligation, see the repository's [BPMN docs](https://github.com/732124645/qiwu-vue-admin/blob/main/docs/workflow-bpmn.md#bpmnio-水印义务) (Chinese).
 :::
 
 ### Available elements
@@ -113,23 +113,15 @@ Follow a few rules when drawing:
 - **No loops**: use **Send back** or **Reject** when work needs redoing.
 - Names are at most 64 characters.
 
+For the supported elements and drawing rules, see the repository's [BPMN docs](https://github.com/732124645/qiwu-vue-admin/blob/main/docs/workflow-bpmn.md#元素子集) (Chinese).
+
 ### Checks on publish
 
-The designer checks before publishing, and the server checks again on publish, with the same rules. When a check fails, the errors are listed above the canvas and the elements at fault are **marked red** on the canvas. These are rejected:
+The designer checks before publishing, and the server checks again on publish, with the same rules. When a check fails, the errors are listed above the canvas and the elements at fault are **marked red**.
 
-- Loops, unpaired splits and joins, more than one start event, unreachable elements, and wrong numbers of flows (for example two flows going straight into the same approval step).
-- Pools, lanes, and any element not in the table above.
-- Scripts, expressions (such as `${...}`), listeners, and other tool-specific BPMN extensions (such as attributes starting with `camunda:` or `flowable:`). Conditions can only be set with the condition builder.
-- Files with a DOCTYPE or entity declarations, and diagrams over 80 KiB (about 90 elements).
+Besides the drawing rules in the previous section, scripts, expressions (such as `${...}`), listeners, extensions of other BPMN tools, files with a DOCTYPE and diagrams over 80 KiB are all rejected. The engine runs the tree derived from the diagram, so the layout is checked too: nodes must not overlap, both ends of a flow must sit on its own nodes, flows must not cross other nodes, and elements must not carry custom colors.
 
-Saving a draft only checks the size, the DOCTYPE, and whether the file is readable BPMN XML, so you can save a half-finished diagram.
-
-The engine runs the tree derived from the diagram, so what the diagram shows must be exactly what runs. Publishing therefore also checks the **layout**:
-
-- Every node is at least 10 × 10, and nodes do not overlap.
-- Every flow has at least two distinct points, starts on its source node and ends on its target node.
-- Flows do not cross other nodes or come close to them (within 5 px).
-- Elements carry no custom colors.
+Saving a draft only checks the size and the format, so you can save a half-finished diagram. For the full rules, see the repository's [BPMN docs](https://github.com/732124645/qiwu-vue-admin/blob/main/docs/workflow-bpmn.md#发布规则与错误) (Chinese).
 
 ::: tip A flow crosses another node
 The designer draws straight lines by default. A straight line that crosses another node is marked red; redraw it as a bent line that goes around the node.
@@ -186,36 +178,15 @@ After you turn on **Overdue reminder** on an approval step, fill in **Due in (ho
 | **Reject automatically** | Rejects on the assignee's behalf, then follows the step's **On rejection** setting: end the process, or send it back to the previous approval step |
 | **Hand to the manager** | Hands the to-do to the assignee's manager; the new to-do starts a new clock |
 
-**Who counts as the manager**:
-
-1. The head of the assignee's department. If the assignee is that head, the head of the parent department.
-2. If nobody is found (for example, no department, no head, or the head is disabled), or that person has already handled this step in this round, or that person is the initiator and the step does not let initiators approve their own requests, then the first suitable, enabled process manager in list order.
-3. If there is still nobody, only the assignee is reminded, and this is recorded in the approval history.
-
-If the new assignee is also overdue, the to-do goes to **their** manager by the same rules. Each handover only goes to someone who has not handled the step in this round, so a to-do never bounces back and forth. On an any-one-approval step, if the manager or the process manager already has a to-do on this step, only a reminder is sent and nobody else is pulled in.
+When handing to the manager, the system looks for the head of the assignee's department (the head of the parent department if the assignee is that head). If nobody suitable is found, it goes to this model's process managers; if there is still nobody, only a reminder is sent. Each handover only goes to someone who has not handled the step in this round, so a to-do never bounces back and forth.
 
 ::: tip Two different handovers
 **Hand to the manager** here looks for **the assignee's manager**. **Hand to the process managers**, which [Approvers](#approvers) uses when no approver is found, looks for the process managers of this model.
 :::
 
-**How time is counted**: both the time limit and the reminder interval count **calendar hours**, including nights, weekends and holidays. With sequential approval, people whose turn has not come yet have no due time; their clock starts when their turn comes.
+Time limits count calendar hours, including nights and holidays. The built-in task **Send overdue to-do reminders** handles them every 5 minutes (see [Scheduled tasks · Built-in tasks](/features/job#内置任务) (Chinese)), so this is not a deadline accurate to the minute.
 
-**When it is handled**: by the built-in scheduled task **Send overdue to-do reminders**, which runs every 5 minutes. In normal operation, a to-do is therefore handled about 5 minutes after it falls due (see [Scheduled tasks · Built-in tasks](/features/job#内置任务) (Chinese)). If the task is disabled, backed up or failing, it takes longer, so do not treat it as a deadline accurate to the minute.
-
-- Each to-do is **handled only once**, even when a person acts at the same moment: if the person acts first, the system skips it; if the system acts first, the person's action fails. This also holds in multi-instance deployments.
-- Only the assignee's own to-dos are handled. To-dos that were delegated or had signers added, and to-dos created by delegating or adding signers, only get reminders when overdue.
-- Once a to-do has gone through automatic handling (including a handover to the manager that found nobody and only reminded the assignee, and an attempt that failed), it only gets ordinary reminders; nothing more happens automatically.
-- On steps with automatic handling, a to-do that reappears after a transfer, a reassignment or a withdrawal starts a new clock from that moment.
-- **An automatic approval cannot be withdrawn**, and the detail page does not show **Withdraw** for it.
-- When an automatic rejection sends a request back to the previous approval step, it skips steps that were approved automatically in this round, and goes back to the initiator if all of them are skipped. So automatic approval and automatic rejection never loop.
-
-**Nothing happens silently**:
-
-- Each automatic action writes a **Timed out** entry to the approval history with **System** as the operator. The comment says whose to-do it was and what the system did, for example "Zhang San's to-do: Not handled in time; approved automatically".
-- The initiator and the enabled process managers of the model receive the **Approval to-do timed out** notification (inbox message and email). After an automatic approval, an automatic rejection or a handover, the original assignee receives it too; the new assignee receives the usual new to-do notification.
-- The **Handled by me** list does not count the system's actions under the original assignee.
-
-**When handling fails**: for example, after an automatic approval, the next approval step finds no approver. The whole automatic action is then rolled back, the approval history records the failure, the assignee gets an overdue reminder, and the initiator and the process managers are notified. After fixing the process or the organization structure, reassign the to-do once in **Approvals → Process admin → Approval tasks**: it starts a new clock and goes back into automatic handling.
+Each to-do is handled automatically only once, even when a person acts at the same moment or several instances are deployed; **an automatic approval cannot be withdrawn**. Each action writes a **Timed out** entry to the approval history and notifies the initiator and the process managers. If handling fails, the whole action is rolled back and only a reminder is sent; after fixing the cause, reassign the to-do once in **Approvals → Process admin → Approval tasks**: it starts a new clock and goes back into automatic handling. For the full rules, see the repository's [timeout handling docs](https://github.com/732124645/qiwu-vue-admin/blob/main/docs/workflow-timeout.md) (Chinese).
 
 ::: tip Permissions process managers need
 Process managers are only notification recipients; being one does not let them view or reassign process instances. For them to act on these notifications, also grant their role **Browse** on **Process instances** and **View** on **Approval detail** below it, plus **Browse** and **Reassign and terminate** on **Approval tasks**, with a data scope that covers the initiator's department.

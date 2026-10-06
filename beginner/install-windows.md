@@ -96,14 +96,18 @@ npm --version
 
 你应该看到 `RemoteSigned` 和 npm 的版本号。
 
+::: tip 不想修改执行策略
+也可以照仓库的做法用 npm 自带的 `.cmd` 入口：安装写 `npm.cmd install -g pnpm@11.28.3`，之后把命令里的 `pnpm` 写成 `pnpm.cmd`，见仓库的[入门指南 · Windows](https://github.com/732124645/qiwu-vue-admin/blob/main/docs/getting-started.md#windows原生-powershell-51)。
+:::
+
 ## 5. pnpm
 
 ```powershell
-npm install -g pnpm@11
+npm install -g pnpm@11.28.3
 pnpm --version
 ```
 
-等安装成功后再执行第二行，你应该看到 `11.x.x`。
+等安装成功后再执行第二行，你应该看到 `11.28.3`。
 
 ## 6. MySQL
 
@@ -167,7 +171,7 @@ pnpm --version
 
 - [ ] `git version 2.x`
 - [ ] `v22.x.x`，不低于 `v22.22.1`
-- [ ] `11.x.x`
+- [ ] `11.28.3`
 - [ ] MySQL Workbench 能连上本地数据库
 - [ ] Memurai 返回 `PONG`
 
@@ -175,7 +179,7 @@ pnpm --version
 
 **报“无法加载文件 …pnpm.ps1，因为在此系统上禁止运行脚本”**
 
-执行第 4 步的 `Set-ExecutionPolicy -Scope CurrentUser RemoteSigned`，确认后再运行 `pnpm --version`。如果 `npm.ps1` 报同样的错误，也用这个办法。如果提示策略被组织的组策略覆盖，需要联系学校或公司的电脑管理员。
+执行第 4 步的 `Set-ExecutionPolicy -Scope CurrentUser RemoteSigned`，确认后再运行 `pnpm --version`。如果 `npm.ps1` 报同样的错误，也用这个办法。如果提示策略被组织的组策略覆盖，需要联系学校或公司的电脑管理员。公司或学校的电脑不允许改策略时，改用 `pnpm.cmd`（见第 4 步的提示）。
 
 **安装后仍然提示找不到 `git`、`node` 或 `pnpm`**
 

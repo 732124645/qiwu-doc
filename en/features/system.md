@@ -417,6 +417,8 @@ People with the **Add** or **Edit** permission (`settings.appVersion.create`, `s
 - The phone refuses to install a hot update that is not newer than the current version, or that does not belong to this app;
 - If the check fails (for example, without a network), nothing is shown and the app works as usual.
 
+For the full details of the endpoint and the app side, see the repository's [mobile docs](https://github.com/732124645/qiwu-vue-admin/blob/main/docs/mobile.md#app-版本更新) (Chinese).
+
 ### The two app update parameters
 
 Both are changed in [Parameters](#parameters) and take effect immediately:

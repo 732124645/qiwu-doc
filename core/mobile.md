@@ -56,24 +56,7 @@ resolve: {
 
 ### 版本
 
-版本跟着 uni-app 走，全部写死精确版本，不跟主工程一起升级：
-
-| 包 | 版本 | 说明 |
-| --- | --- | --- |
-| `@dcloudio/*`（uni-app） | 3.0.0-5020620260917001（`@dcloudio/types` 是 3.4.31） | 对应 HBuilderX 5.26 |
-| `vue` | 3.4.21 | uni-app 要求的版本，和电脑端不同 |
-| `vite` | 5.2.8 | uni-app 要求的版本 |
-| `pinia` | 2.2.4 | 状态管理 |
-| `vue-i18n` | 9.1.9 | 只用来保存当前语言，文字不用它的翻译函数，见[国际化](#国际化) |
-| `@wot-ui/ui` | 2.3.2 | 界面组件库（组件名以 `wd-` 开头） |
-| `z-paging` | 2.8.8 | 分页列表：下拉刷新、滚到底加载下一页 |
-| `go-captcha-uni` | 1.0.7 | 滑块验证码 |
-| `socket.io-client` | 4.8.4 | 实时推送 |
-| `zod` | 4.6.5 | 校验，和根目录 catalog 一致 |
-| `typescript` / `vue-tsc` | 6.0.3 / 3.3.11 | 类型检查 |
-| `vitest` / `@playwright/test` | 3.2.7 / 1.63.0 | 单元测试 / 端到端测试 |
-
-`packageManager` 是 `pnpm@11.28.3`，要求 Node 22.22.1 及以上，和主工程相同。
+依赖全部写死精确版本，跟着 uni-app（对应 HBuilderX 5.26）走，不随主工程升级。`vue` 3.4.21、`vite` 5.2.8 是 uni-app 要求的版本，和电脑端不同；界面组件用 wot-ui（组件名以 `wd-` 开头），分页列表用 `z-paging`，`vue-i18n` 只用来保存当前语言（见[国际化](#国际化)）。`packageManager` 和 Node 的版本要求与主工程相同。准确版本以 `mobile/package.json` 为准，另见仓库的[移动端文档](https://github.com/732124645/qiwu-vue-admin/blob/main/docs/mobile.md#概览)。
 
 ### 根目录的检查管到哪里
 
@@ -718,160 +701,13 @@ App 这边的代码在 `mobile/src/core/update.ts`：
 
 ## App 权限
 
-**安卓**：`manifest.json` 的 `app-plus.distribute.android.permissions` 只列了代码用到的权限：
-
-| 权限 | 用途 |
-| --- | --- |
-| `ACCESS_NETWORK_STATE`、`ACCESS_WIFI_STATE` | 网络状态 |
-| `CAMERA`，以及 `uses-feature android.hardware.camera` | 换头像时 `uni.chooseImage` 可以拍照 |
-
-DCloud 模板默认带的其他权限都删掉了。没有 `REQUEST_INSTALL_PACKAGES`（整包走浏览器下载），也没有 `READ_EXTERNAL_STORAGE`；在安卓 12 及以下的手机上从相册选图是否正常，还没有在真机上验证。
-
-**iOS**：`app-plus.distribute.ios.privacyDescription` 里写了相机（`NSCameraUsageDescription`）和相册（`NSPhotoLibraryUsageDescription`）的用途说明。缺少用途说明时，iOS 调用会闪退，审核也会被拒。说明现在只有中文，英文系统的 iPhone 上也显示中文，措辞可以直接改。
-
-单元测试 `mobile/src/__tests__/mobile-manifest.spec.ts` 会检查这两份列表。新功能要用某项原生能力时：
-
-1. 在 `manifest.json` 里加上对应的权限或用途说明；
-2. 在同一次提交里修改这个测试；
-3. 在隐私政策里写明用途和什么时候申请；
-4. 改了权限属于改原生层，要发整包。
+安卓只申请网络状态和相机两类权限，没有安装包和读存储权限；iOS 写好了相机、相册的用途说明（目前只有中文），缺少时调用会闪退，审核也会被拒。单元测试 `mobile/src/__tests__/mobile-manifest.spec.ts` 检查这两份列表：新增原生能力时，在同一次提交里改 `manifest.json`、这个测试和隐私政策，并发整包。见仓库的[移动端文档 · App 权限](https://github.com/732124645/qiwu-vue-admin/blob/main/docs/mobile.md#app-权限安卓)。
 
 ## 发布清单
 
-每次正式发布按顺序做一遍，把这一节复制到你的发布记录里逐项确认。标"首次"的只在第一次发布、换主体或换域名时做。
+每次正式发布按仓库的[发布清单](https://github.com/732124645/qiwu-vue-admin/blob/main/docs/mobile.md#发布清单)逐项做，可以把清单复制进发布记录里勾选。清单分五块：**发布前**（去掉代码生成器示例页的登记、`pnpm ci:local` 通过、调高 `versionName` / `versionCode`、服务端完成备案并配好 HTTPS 和 WebSocket 转发、构建时带上 `VITE_API_BASE`，见[构建与打包](#构建与打包)）；**微信小程序**（服务器域名、用户隐私保护指引、上传与提审）；**App**（签名证书、隐私政策弹窗、上架资料；只改了页面和脚本时可以只发 wgt，见[发布一个 wgt](#发布一个-wgt)）；**真机核对**；**发布记录**。
 
-### 1. 发布前（小程序和 App 共用）
-
-1. **首次**：去掉代码生成器示例页的登记。图书、知识主题、发票三个示例模块的 9 个页面登记在 `pages.json` 的 `pages-biz` 里，没有入口，但登记过的页面会随小程序和 App 一起上线：
-   - 删掉 `mobile/src/pages.json` 里 `demo/book`、`demo/topic`、`demo/invoice` 下的 `index`、`detail`、`form` 共 9 条；
-   - 同时删掉 `mobile/e2e/mobile-codegen.spec.ts`，它按地址打开这些页面，页面没登记就会失败；
-   - 示例的源码（`mobile/src/pages-biz/demo/`、`mobile/src/api/demo/`、翻译片段）留着：`pnpm gen:check-golden` 会把它们和生成器的结果逐字比对；
-2. **首次**：换成自己的应用名和标志：`mobile/src/manifest.json` 的 `name`、`pages.json` 里 `globalStyle` 的 `navigationBarTitleText`（默认标题 `Qiwu`）、`mobile/src/locales/{zh-CN,en-US}/common.json` 的 `app.name`（页面上显示的"栖梧"和 `Qiwu`）、`login.json` 的 `motto` 和 `slogan`（登录页的题字和标语）、`mine.json` 的 `intro`（"关于"页的介绍），以及标志 `mobile/src/static/brand/mark-white.svg`。英文的 `motto` 要保持为空：英文界面不显示题字，单元测试会检查这一点。App 图标和启动图见[用 HBuilderX 打包 App](#用-hbuilderx-打包-app)；
-3. `pnpm ci:local` 全部通过（在前两步之后运行）；
-4. 调高 `manifest.json` 的 `versionName`（比如 `1.2.0`）和 `versionCode`（只增不减的整数，比如 `120`）。App 的更新检查和小程序上传时的版本号都用 `versionName`；`versionCode` 是安卓安装和应用市场判断能否升级用的；
-5. 服务端（部署见[部署](/guide/deploy)）：
-   - 接口域名已经备案（中国大陆的网站要先做 ICP 备案）；HTTPS 证书支持 TLS 1.2 及以上，证书链完整（iOS 不接受自签名证书）；
-   - 反向代理把 `/socket.io/` 按 WebSocket 方式转发，和电脑端相同，见[部署 · 反向代理](/guide/deploy#反向代理-nginx)；
-   - `CORS_ORIGIN` 先不用为移动端改，真机核对时按需添加（见下文第 4 节的实时推送）；
-   - 打开需要的功能：微信登录（`auth.wx_mp.enabled`，以及 `.env.local` 里的 `WX_MP_APPID`、`WX_MP_SECRET`）、订阅消息（`notify.wx_subscribe.*`）、App 更新（`app.update.enabled`）；
-6. 构建时带上 `VITE_API_BASE`，见[构建与打包](#构建与打包)。
-
-### 2. 微信小程序
-
-**首次**（在微信公众平台 mp.weixin.qq.com 操作）：
-
-1. 用企业主体注册小程序并完成小程序备案，服务类目选和实际功能一致的；
-2. 把 AppID 填进 `mobile/src/manifest.json` 的 `mp-weixin.appid`，也填进服务端 `apps/server/.env.local` 的 `WX_MP_APPID`；
-3. **开发管理 → 开发设置 → 服务器域名**：
-
-   | 类型 | 填什么 |
-   | --- | --- |
-   | request 合法域名 | `https://<接口域名>` |
-   | uploadFile 合法域名 | `https://<接口域名>`（附件和头像经后端上传） |
-   | socket 合法域名 | `wss://<接口域名>`（实时推送；不配也能用，角标退回每 60 秒查询） |
-   | downloadFile 合法域名 | 不用配，小程序不下载文件 |
-
-   域名只能是已备案的 https / wss 域名，不能用 IP 或 localhost；
-4. **用户隐私保护指引**（**设置 → 服务内容声明 → 用户隐私保护指引**，也可以在提交审核时填写），按代码实际调用的隐私接口声明：
-
-   | 指引里的信息类型 | 代码里的调用 | 用途 |
-   | --- | --- | --- |
-   | 选中的照片或视频信息 | `uni.chooseImage`（个人资料页换头像） | 更换头像 |
-   | 选中的文件 | `uni.chooseMessageFile`（`QwUpload`，附件上传） | 上传审批或单据的附件 |
-
-   没用到的不要勾（位置、手机号按钮、摄像头组件、通讯录、剪贴板等）。账号、姓名、手机号、头像、部门、审批内容这些你自己收集的个人信息，写进指引的补充文档或隐私政策。没有在指引里声明的隐私接口会直接调用失败。微信的规则会变，以提审页面的提示为准；
-5. 订阅消息（可选）：按[消息中心 · 微信订阅消息](/features/messaging#微信订阅消息)选模板、配置参数、打开开关；
-6. 用 miniprogram-ci 上传的话：在 **开发管理 → 开发设置 → 小程序代码上传** 下载代码上传密钥 `private.<AppID>.key`，放在仓库外（根目录的 `.gitignore` 已经忽略 `private.*.key`），并开启 IP 白名单，只填上传机器的出口 IP。
-
-**每次**：
-
-1. 上传，二选一：
-   - 微信开发者工具：导入 `mobile/dist/build/mp-weixin`（AppID 和 `manifest.json` 一致）→ 上传，版本号填 `versionName`，备注写这次的变更；
-   - miniprogram-ci（MIT 许可）：命令见下文；
-2. 在版本管理里把上传的开发版设为体验版 → 按第 4 节在真机上核对 → 提交审核 → 审核通过后发布。小程序必须登录才能用：提审时说明登录方式，并提供一个测试账号（用测试数据，不要用真实员工的账号）。
-
-用 miniprogram-ci 上传时，不把它加进依赖，用 `npx` 临时运行，版本写死。把 AppID、版本号、说明和仓库外的密钥路径换成你自己的：
-
-::: code-group
-
-```bash [macOS]
-npx miniprogram-ci@2.1.31 upload \
-  --pp mobile/dist/build/mp-weixin \
-  --pkp <仓库外的目录>/private.<AppID>.key \
-  --appid <AppID> \
-  --uv <versionName> --ud "<变更说明>" \
-  -r 1 --enable-es6 true
-```
-
-```powershell [Windows（PowerShell）]
-npx miniprogram-ci@2.1.31 upload --pp mobile/dist/build/mp-weixin --pkp "C:/keys/private.APPID.key" --appid APPID --uv 1.2.0 --ud "Release notes" -r 1 --enable-es6 true
-if ($LASTEXITCODE -ne 0) { throw "Mini program upload failed" }
-```
-
-:::
-
-`-r` 是机器人编号（1–30）。Windows 上所有参数写在一行，路径和说明加引号；中文说明在 Windows PowerShell 5.1 下的编码没有验证过，建议用英文。上传本身也没有在 Windows 上执行过。
-
-### 3. App（安卓、iOS）
-
-**首次**：
-
-1. HBuilderX 5.26 登录 DCloud 账号；`manifest.json` 的 `appid` 填 DCloud 应用标识，`name` 填应用名；
-2. 安卓：
-   - 包名（比如 `com.example.qiwu`）在云打包时填写，上架后不能再改；
-   - 签名证书二选一：DCloud 云端证书（本地不需要文件），或者自有证书（上架应用市场时推荐；证书丢了，同一个包名就再也发不了更新）。自有证书用 JDK 自带的 `keytool` 生成，macOS 和 Windows 命令相同：
-
-     ```bash
-     keytool -genkeypair -alias qiwu -keyalg RSA -keysize 2048 -validity 36500 -keystore qiwu.keystore
-     ```
-
-     证书文件和密码放在仓库外（比如密码管理器），另做备份。根目录的 `.gitignore` 已经忽略 `*.keystore`、`*.jks`；
-   - 隐私政策弹窗：国内应用市场要求用户同意隐私政策之前不申请权限、不读设备信息。在 `mobile/src/`（和 `manifest.json` 同一个目录）放一个 `androidPrivacy.json`，用模板模式（`"prompt": "template"`），正文链接到隐私政策和用户协议的网页。这个文件里不能写注释，格式见 DCloud 文档"Android 平台隐私与政策提示框"；
-3. iOS：
-   - 用公司的 Apple 开发者账号，在开发者后台建 App ID（Bundle ID，比如 `com.example.qiwu`）；
-   - 发布证书（导出成带密码的 `.p12`）和 App Store 类型的描述文件（`.mobileprovision`），云打包时上传。它们放在仓库外，`.gitignore` 已经忽略 `*.p12`、`*.mobileprovision`、`*.cer`；
-   - 相机和相册的用途说明已经写好，见[App 权限](#app-权限)；
-4. 隐私政策和用户协议：内容是你自己的法律文本，放在一个 https 网页上。登录页底部的 **隐私政策**、**用户协议** 现在打开的是"关于"页（`mobile/src/pages/login/index.vue` 的 `openAbout`），发布前改成打开这两个网页。权限说明照[App 权限](#app-权限)的列表写：相机（换头像、拍照上传）、网络状态，写明用途和什么时候申请；
-5. 上架资料：国内安卓应用市场通常要软件著作权证书、隐私政策网址和截图；App Store 要审核备注和测试账号（同样用测试数据）。
-
-**每次**：
-
-1. 带上 `VITE_API_BASE` 运行 `pnpm mobile:build:app` → HBuilderX 导入 `mobile/dist/build/app` → **发行 → 原生 App-云打包**（选好证书和描述文件）；
-2. 只改了页面和脚本、没动原生层的，可以只发 wgt，见[发布一个 wgt](#发布一个-wgt)；改了原生层必须发整包；
-3. 整包提交商店审核前，把参数 `app.update.review_version` 设成提交的版本号，审核通过后清空。
-
-### 4. 真机核对
-
-设备：一台安卓手机、一台 iPhone，分别跑小程序体验版和云打包的 App（不要用 HBuilder 标准基座，它在 iOS 上写死了浅色）。每台设备浅色、深色各一遍，中文、英文各一遍，可以交叉覆盖。
-
-外观：
-
-- 小程序右上角的胶囊按钮和自绘的深蓝色头部（登录页、页签页面）垂直对齐，不挡内容；
-- 自绘的底部页签栏：文字随语言切换，图标的浅色、深色版本正确，角标正常；
-- 深色：小程序和 App 都能跟随系统；App 的 **我的 → 外观** 三个选项立即生效，重启后保持；
-- 安卓：键盘弹起时登录页换成紧凑的头部，输入框不被挡住；
-- iOS：刘海和底部横条处的安全区留白正确（页签栏、底部操作栏、弹层）；
-- 深蓝色的页面（登录、绑定微信、页签页面）切换主题后，状态栏文字仍是白色；
-- App 图标和启动图在安卓、iOS 上清晰、不变形。
-
-功能：
-
-- 登录：账号密码、短信、验证码（按参数 `captcha.mode`）、**记住用户名**；退出后回到登录页；
-- 小程序：静默登录；没绑定时进入绑定页，绑定后再打开直接进入工作台；
-- 小程序绑定在 Wi‑Fi 和移动网络（4G/5G）下各做一次。每次提交前应用先重新静默登录、取一张新的绑定票据，服务端要求提交时的 IP 和取票据时相同。如果提示"绑定已失效，请重新进入小程序后再绑定"，记下当时的网络，多半是这个网络下前后两次请求的 IP 不一样；
-- 审批：待办列表、详情、通过、驳回、退回、转办等操作；发起请假和动态表单；附件上传（小程序从聊天记录选文件，App 选图片）；
-- 换头像：拍照和相册各试一次。小程序第一次调用时弹出微信的隐私授权；iOS 第一次拍照时弹出系统的相机权限提示，文字是 `manifest.json` 里的用途说明。在一台安卓 12 及以下的手机上，换头像和审批附件各从相册选一次图；
-- 切换语言后，各页、页签栏和系统弹窗的语言一致；
-- 实时推送：在电脑端让员工提交请假，主管手机上的待办角标和消息角标在 2 秒左右各加 1（小程序、App 分别试）；切到后台再回来，能重新连接并补上计数；管理员在电脑端强制下线这个会话后，手机回到登录页并给出提示。
-  - 角标要等约 60 秒才变时（轮询兜底），先查 socket 合法域名和反向代理的 WebSocket 转发；
-  - 再查连接是不是因为来源被拒（`forbidden_origin`）：真机的连接可能带 `Origin` 头，它既不是本站、也不在 `CORS_ORIGIN` 里时会被拒绝。在反向代理上临时记录 `/socket.io/` 请求的 `Origin`（nginx 用 `$http_origin`），把看到的那个值原样加进 `CORS_ORIGIN`（逗号分隔，只加这一个，不要放宽），然后重启服务端。注意 `CORS_ORIGIN` 同时也决定哪些网站能凭电脑端的登录 Cookie 换新令牌；
-- 订阅消息（有真实的 AppID、AppSecret 和模板时）：小程序 **我的** 页出现 **新待办微信提醒**，点击后微信弹窗申请订阅；之后给这个用户派一条新待办，微信"服务通知"里收到提醒，点开进入这条审批的详情；
-- App 版本更新（安卓、iOS 各一遍）：开关关闭时没有提示；可选的 wgt 有 **稍后**，**立即更新** 后下载、安装并自动重启，重启后不再提示这个版本；强制的 wgt 没有 **稍后**，下载失败（比如断网）后再次弹出；整包在安卓上打开浏览器下载、在 iOS 上打开 App Store，强制更新时从商店或浏览器返回后再次弹出；`app.update.review_version` 等于当前原生版本时收不到 wgt；
-- 小程序包体积：发布构建打印的主包不超过 2 MB（超过时构建直接失败）。
-
-### 5. 发布记录
-
-每次发布记一条：日期、`versionName` / `versionCode`、小程序上传的版本号、HBuilderX 版本、设备型号和系统版本、微信版本，以及上面每一项的结果和发现的问题。
+**首次发布前换成自己的应用名和标志**：`mobile/src/manifest.json` 的 `name`、`pages.json` 里 `globalStyle` 的 `navigationBarTitleText`（默认标题 `Qiwu`）、`mobile/src/locales/{zh-CN,en-US}/common.json` 的 `app.name`（页面上显示的"栖梧"和 `Qiwu`）、`login.json` 的 `motto` 和 `slogan`（登录页的题字和标语）、`mine.json` 的 `intro`（"关于"页的介绍），以及标志 `mobile/src/static/brand/mark-white.svg`。英文的 `motto` 要保持为空：英文界面不显示题字，单元测试会检查这一点。App 图标和启动图见[用 HBuilderX 打包 App](#用-hbuilderx-打包-app)。
 
 ## 测试与检查
 
@@ -884,22 +720,13 @@ if ($LASTEXITCODE -ne 0) { throw "Mini program upload failed" }
 
 这些命令在仓库根目录执行，macOS 和 Windows 相同。另外，根目录的 `pnpm verify` 会检查 `mobile/src` 的翻译，`pnpm ci:local` 会运行上面的前三项，以及 H5 和小程序的构建。
 
-许可证的例外登记在 `mobile/license-exceptions.json`，只对 `mobile/` 有效：`caniuse-lite`（CC-BY-4.0）、`qrcode-terminal`（许可证写成了不标准的 `Apache 2.0`）、`z-paging` 2.8.8（npm 包里缺少许可证字段，它的仓库是 MIT，升级时要重新核对）。
-
 ### 单元测试
 
 测试文件放在 `mobile/src/__tests__/`，文件名是 `*.spec.ts`。建议以 `mobile-` 开头，和仓库里其他测试文件不重名。它们在 Node 里运行，不加载 uni-app 的编译器；`uni` 对象由 `src/__tests__/uni-stub.ts` 模拟。适合测 `core/` 里的逻辑，比如请求的刷新和重发、计数、动态表单的规则。
 
 ### 端到端测试
 
-`pnpm mobile:e2e` 用 Playwright 在模拟的 Pixel 7 手机上跑 H5。它会自己构建 H5 并启动预览，再启动一个后端，所以要等一会儿才开始跑用例。它用自己的一套库、Redis 库号和端口，可以和电脑端的 Playwright 同时运行：
-
-| | 移动端 e2e | 电脑端 e2e |
-| --- | --- | --- |
-| 数据库 | `qiwu_mobile_e2e` | `qiwu_e2e` |
-| Redis 库号 | 9 | 14 |
-| 后端端口 | 3201 | 3200 |
-| 页面端口 | 4175（H5 预览） | 4173 |
+`pnpm mobile:e2e` 用 Playwright 在模拟的 Pixel 7 手机上跑 H5。它会自己构建 H5 并启动预览，再启动一个后端，所以要等一会儿才开始跑用例。它用自己的一套库、Redis 库号和端口，可以和电脑端的 Playwright 同时运行。移动端用 `qiwu_mobile_e2e` 库、Redis 9 号库、后端端口 3201 和 H5 预览端口 4175，各环境的对照见仓库的[入门指南第 2 节](https://github.com/732124645/qiwu-vue-admin/blob/main/docs/getting-started.md#2-空库账号与隔离)。
 
 运行前要准备：
 
@@ -911,7 +738,7 @@ if ($LASTEXITCODE -ne 0) { throw "Mini program upload failed" }
    GRANT ALL ON qiwu_mobile_e2e.* TO 'qiwu'@'127.0.0.1';
    ```
 
-2. 后端用 `apps/server/.env.local`（数据库和 Redis 的账号）加上已经提交的 `.env.e2e`，再换成上表的库、库号和端口；
+2. 后端用 `apps/server/.env.local`（数据库和 Redis 的账号）加上已经提交的 `.env.e2e`，再换成上面说的库、库号和端口；
 3. 先在仓库根目录构建，测试用的是后端的构建产物：
 
    ```bash
@@ -925,8 +752,6 @@ if ($LASTEXITCODE -ne 0) { throw "Mini program upload failed" }
 ::: tip 端口被占用，或者要在两个工作目录里同时运行
 在 `apps/server/.env.mobile-e2e.local`（不提交到 git）里改这一份的库、库号、端口和上传目录。只能写 `DB_NAME`（必须以 `_e2e` 结尾）、`REDIS_DB`、`PORT`、`STORAGE_LOCAL_ROOT` 和 H5 预览端口 `E2E_H5_PORT`，写了别的键会直接报错。Windows 上用记事本创建：`notepad apps\server\.env.mobile-e2e.local`。新的库同样要先建好并授权。
 :::
-
-实时推送的测试（`mobile/e2e/mobile-push.spec.ts`）经 H5 预览的 `/socket.io` 转发连真实的后端，检查推送后 2 秒内刷新角标、强制下线后 2 秒内回到登录页、切到后台断开、回到前台后重连。
 
 ## 升级 uni-app
 
@@ -944,10 +769,7 @@ pnpm mobile:build:app
 pnpm mobile:e2e
 ```
 
-- `pnpm i` 不能出现 `ERR_PNPM_IGNORED_BUILDS`，需要时修改 `mobile/pnpm-workspace.yaml` 的 `allowBuilds`；
-- `mobile/pnpm-workspace.yaml` 的 `overrides` 把 `vite` 固定在 5.2.8，新版本要求的 vite 不同时，同时改这里；
-- 依赖要发布满一天才能安装（`minimumReleaseAge`），刚发布的版本要等一天；
-- 升级 uni-app 属于改原生层，App 要发整包。
+`pnpm i` 不能出现 `ERR_PNPM_IGNORED_BUILDS`；固定 `vite` 版本等注意事项见仓库的[移动端文档 · 升级 uni-app](https://github.com/732124645/qiwu-vue-admin/blob/main/docs/mobile.md#升级-uni-app)。升级 uni-app 属于改原生层，App 要发整包。
 
 ## 只要电脑端：删除移动端
 
@@ -972,21 +794,9 @@ Remove-Item docs\mobile.md
 
 `README.md` 和 `docs/` 下的几篇文档有指向 `docs/mobile.md` 的链接，删掉后可以顺手去掉这些链接。
 
-**2. 根目录 `package.json`：** 删掉 7 个 `"mobile:*"` 脚本（`mobile:install`、`mobile:verify`、`mobile:test`、`mobile:e2e`、`mobile:build:h5`、`mobile:build:mp-weixin`、`mobile:build:app`）。
+**2. 其余清理（可选）：** 根目录的 `mobile:*` 脚本、lint 和格式化的忽略设置、检查脚本里的 `MOBILE` 常量、代码生成器和架构检查里提到它的几处，在 `mobile/` 不存在时都会自动跳过，留着也没有影响；想清理干净，按仓库的[移动端文档 · 只要 PC](https://github.com/732124645/qiwu-vue-admin/blob/main/docs/mobile.md#只要-pc删除移动端)逐项删。
 
-**3. lint 和格式化的忽略设置：**
-
-- `.oxlintrc.json` 的 `ignorePatterns` 里删掉 `"mobile/**"`；
-- `.prettierignore` 删掉 `mobile/` 这一行和它上面的注释；
-- `eslint.config.mjs` 删掉 `'mobile/**',` 这一行。
-
-**4. 检查脚本（建议留着）：** `scripts/ci-local.mjs`、`scripts/i18n-check.mjs`、`scripts/license-check.mjs`、`scripts/originality-check.mjs` 里各有一个 `const MOBILE = …` 常量，没有 `mobile/` 时用到它的步骤自动跳过。想删的话，要把用到这个常量的代码一起删干净（比如 `ci-local.mjs` 里 6 个移动端步骤：安装、verify、单元测试、H5 构建、小程序构建、端到端测试），只删常量会让脚本报错。
-
-**5. 代码生成器（留着）：** `apps/server/src/modules/platform/codegen/workspace.ts` 的 `export const MOBILE = …` 和 `scripts/gen-check-golden.mjs` 的 `const MOBILE = …` 不用改。没有 `mobile/` 时，生成器不生成移动端页面，**移动端页面** 开关打开也不会多出文件，一致性检查也不比对移动端文件。
-
-**6. 架构检查（留着）：** `scripts/arch/mobile-refs.mjs` 检查主工程有没有引用 `mobile/`，和它的测试 `apps/server/test/arch/arch-mobile-refs.spec.ts` 要删一起删。这个测试文件同时也测"共享包只能导入 zod"的检查，不删也没有影响。
-
-**7. 检查：**
+**3. 检查：**
 
 ```bash
 pnpm i --frozen-lockfile

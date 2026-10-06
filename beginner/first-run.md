@@ -6,8 +6,10 @@ description: '在 macOS 或 Windows 上第一次运行栖梧的 7 个步骤：�
 
 这一页一共 7 步。每一步都写了"你应该看到"的内容，**对上了再做下一步**。
 
+本页是给新手的分步版，完整、权威的步骤见仓库的[入门指南](https://github.com/732124645/qiwu-vue-admin/blob/main/docs/getting-started.md)。
+
 ::: tip Windows 用户
-命令在 **Windows 终端或 VS Code 终端里的 Windows PowerShell 5.1** 中执行，有代码组时选 Windows 一栏；第 3 步的 SQL 在 **MySQL Workbench** 里执行。先按[安装环境（Windows）](/beginner/install-windows)完成“允许运行脚本”，再使用 pnpm。
+命令在 **Windows 终端或 VS Code 终端里的 Windows PowerShell 5.1** 中执行，有代码组时选 Windows 一栏；第 3 步的 SQL 在 **MySQL Workbench** 里执行。先按[安装环境（Windows）](/beginner/install-windows)完成“允许运行脚本”，再使用 pnpm。不想修改执行策略时，照仓库的做法用 `npm.cmd` / `pnpm.cmd`，见仓库的[入门指南 · Windows](https://github.com/732124645/qiwu-vue-admin/blob/main/docs/getting-started.md#windows原生-powershell-51)。
 :::
 
 ## 第 1 步：下载代码
@@ -138,6 +140,8 @@ Mac 提示输入密码时，填刚才的 `qiwu123456`（输入时不显示字符
 cd apps/server
 ```
 
+已经有 `.env` 时先核对内容，不要直接覆盖。
+
 ::: code-group
 
 ```bash [macOS]
@@ -155,10 +159,10 @@ Copy-Item .env.example .env
 然后创建存放密码的文件 `.env.local`。先生成随机密钥 `APP_SECRET`，服务端用它加密保存的第三方密码（两种系统相同）：
 
 ```bash
-node -e "console.log(require('crypto').randomBytes(32).toString('base64url'))"
+node -e "console.log(require('node:crypto').randomBytes(48).toString('base64url'))"
 ```
 
-你应该看到一串 43 个字符的随机字母、数字、`-` 或 `_`。复制这串密钥，接下来要填进文件。
+你应该看到一串 64 个字符的随机字母、数字、`-` 或 `_`。复制这串密钥，接下来要填进文件。
 
 用编辑器新建文件：
 
@@ -179,10 +183,10 @@ Mac 在 VS Code 中新建这个文件；Windows 如果提示文件不存在，�
 ```ini
 DB_USER=qiwu
 DB_PASSWORD=qiwu123456
-REDIS_USERNAME=
-REDIS_PASSWORD=
 APP_SECRET=粘贴刚才生成的密钥
 ```
+
+本机 Redis 没设密码就这样写；建了 Redis ACL 用户（仓库推荐专用用户 `qiwu`）时，再加 `REDIS_USERNAME=qiwu` 和 `REDIS_PASSWORD=它的密码` 两行。
 
 保存为 **UTF-8（不带 BOM）**，文件名必须是 `.env.local`，不能多出 `.txt`；记事本另存为时可把文件类型选为“所有文件”。也可以直接用 VS Code 新建并保存。**不要用 Windows PowerShell 5.1 的 `>`、`Out-File` 或 `Set-Content` 写配置文件**：`>` 和 `Out-File` 默认写成 UTF-16，整个文件都读不出来；`Set-Content` 默认用系统本地编码（中文 Windows 是 GBK），值里有中文等非 ASCII 字符就会乱码；加 `-Encoding UTF8` 又会带 BOM，第一行的变量可能读不出来。
 
@@ -192,7 +196,7 @@ APP_SECRET=粘贴刚才生成的密钥
 cat .env.local
 ```
 
-你应该看到上面的五行，`APP_SECRET` 已经换成随机密钥。
+你应该看到上面的三行，`APP_SECRET` 已经换成随机密钥。Mac 上再执行 `chmod 600 .env.local`，只让自己能读写它。
 
 ::: tip 为什么分成两个文件
 `.env` 放普通配置（端口、数据库名……），`.env.local` 放密码。**密码只能写在 `.env.local` 里**：服务端先读 `.env`，两个文件里都有的变量以 `.env` 为准，所以 `.env` 里哪怕有一行空的 `DB_PASSWORD=`，`.env.local` 里的密码也不会生效。
@@ -213,26 +217,27 @@ pwd
 
 ## 第 5 步：初始化数据库
 
-现在数据库还是空的。下面两条命令会先编译共享代码，然后**创建所有的表，并写入初始数据**（菜单、角色、管理员账号……）：
+现在数据库还是空的。下面三条命令会先编译共享代码，然后**创建所有的表，并写入初始数据**（菜单、角色、管理员账号……）：
 
 ```bash
 pnpm --filter @qiwu/shared build
-pnpm db:reset
+pnpm db:migrate
+pnpm db:seed
 ```
 
-第二条命令会输出很多内容，最后几行应该是：
+最后一条命令会输出不少内容，结尾几行应该是：
 
 ```text
 seed: admin password (shown once, must be changed at first sign-in): Xy3kP9…
 seed: initial password of new users (iam.user.initial_password): …
 seed: password of OA demo users oa.employee, oa.supervisor, oa.deputy, oa.director, oa.hr (shown once, must be changed at first sign-in): …
-db:reset: qiwu_dev dropped, migrated and seeded
+db:seed: qiwu_dev seeded
 ```
 
 ::: danger 把密码记下来！
 `seed: admin password …` 这一行冒号后面的那一串，就是管理员 `admin` 的初始密码，**只显示这一次**。把它复制到记事本里。下面两行是新用户的初始密码和 OA 示例用户的密码，不要和管理员密码弄混。
 
-忘了也没关系：重新执行一次 `pnpm db:reset`，会生成一个新密码。不过这样会清空数据库里的所有数据。
+重新执行 `pnpm db:seed` 不会再显示密码。想固定密码，在第一次 seed 之前，在 `.env.local` 里加一行 `SEED_ADMIN_PASSWORD=你的密码`（不打印密码，首次登录也不要求改密）。实在找不回、库里也没有要保留的数据时，`pnpm db:reset` 会清空整个库并生成新密码，这是最后的办法。
 :::
 
 ## 第 6 步：启动
@@ -284,7 +289,7 @@ pnpm dev
 | 报错 `ECONNREFUSED 127.0.0.1:6379` | Redis 没有启动。Mac：`brew services start redis`；Windows：在"服务"里启动 Memurai |
 | 报错 `EADDRINUSE` 并且提到 `3000` | 3000 端口被占用了，通常是之前启动的项目没有关掉。找到那个终端按 `Ctrl + C`，或者重启电脑 |
 | 浏览器打开是空白页，或者显示"无法访问" | `pnpm dev` 没有在运行，或者还没启动完成。看看终端里有没有报错 |
-| 登录时提示"用户名或密码错误" | 复制密码时多了或者少了字符。重新执行 `pnpm db:reset` 生成新密码 |
+| 登录时提示"用户名或密码错误" | 复制密码时多了或少了字符。先核对复制的密码；找不回时按第 5 步的说明处理（`pnpm db:reset` 会清空所有数据） |
 
 还是解决不了？看[看不懂报错怎么办](/beginner/errors)。
 

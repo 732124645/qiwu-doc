@@ -98,7 +98,7 @@ npm --version
 ## 4. pnpm
 
 ```bash
-npm install -g pnpm@11
+npm install -g pnpm@11.28.3
 ```
 
 检查：
@@ -107,7 +107,7 @@ npm install -g pnpm@11
 pnpm --version
 ```
 
-你应该看到 `11.x.x`。
+你应该看到 `11.28.3`。
 
 ## 5. MySQL
 
@@ -191,7 +191,7 @@ git --version; node --version; pnpm --version; mysql --version; redis-cli ping
 
 - [ ] `git version 2.x`
 - [ ] `v22.x.x`
-- [ ] `11.x.x`
+- [ ] `11.28.3`
 - [ ] `mysql  Ver …`
 - [ ] `PONG`
 

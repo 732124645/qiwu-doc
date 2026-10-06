@@ -62,7 +62,7 @@ description: '后端接口约定速查：路径与资源命名、标准增删改
 }
 ```
 
-`msg` 已按请求语言翻译好，前端直接显示即可。`traceId` 与服务端日志对应，方便排查问题。
+`msg` 已按请求语言翻译好，前端直接显示即可。`traceId` 与服务端日志对应，方便排查问题。设计理由见[仓库设计说明](https://github.com/732124645/qiwu-vue-admin/blob/main/docs/design-notes.md#api-与响应信封)。
 
 ### 例外：OAuth2 接口
 
@@ -77,7 +77,7 @@ description: '后端接口约定速查：路径与资源命名、标准增删改
 - 这三个接口超出限流（429）、被演示模式拒绝（403）或服务器内部错误（500）时，返回的不是 RFC 格式，而是前面[响应格式](#响应格式)里的统一错误信封 `{ code, msg, data: null, traceId }`，`code` 分别是 `A0429`、`A0431` 和 `A0500`；
 - `GET /api/oauth2/userinfo` 和同意页内部调用的 `GET`、`POST /api/oauth2/authorize` 用的是普通的 `{ code, msg, data }` 格式。
 
-字段、错误和限流的完整说明见 [OAuth2 接入指南](/reference/oauth2)。
+完整的错误和限流见仓库的 [OAuth2 文档](https://github.com/732124645/qiwu-vue-admin/blob/main/docs/oauth2.md#4-错误)，接入概览见 [OAuth2 接入指南](/reference/oauth2)。
 
 ## HTTP 状态码
 
@@ -103,9 +103,9 @@ description: '后端接口约定速查：路径与资源命名、标准增删改
 ## 时间与 ID
 
 - 数据库存 UTC 时间，接口返回 ISO-8601 格式（带 `Z`），前端按本地时区显示；
-- 服务端生成的时间按这个顺序确定时区：Excel 按请求头 `X-Timezone` → 参数 `core.default_timezone` → `Asia/Shanghai`；发给用户的站内信、邮件、短信，先用收件人最近一次登录时浏览器的时区，没有时再按参数 `core.default_timezone` → `Asia/Shanghai`；
+- 服务端生成的时间按这个顺序确定时区：Excel 按请求头 `X-Timezone` → 参数 `core.default_timezone` → `Asia/Shanghai`；发给用户的站内信、邮件、短信，先用收件人最近一次登录时浏览器的时区，没有时再按参数 `core.default_timezone` → `Asia/Shanghai`（详见[仓库国际化文档](https://github.com/732124645/qiwu-vue-admin/blob/main/docs/i18n.md#时间与时区)）；
 - 枚举值在接口里一律传字符串编码，显示文本由前端通过字典或翻译转换。
 
 ## 接口文档
 
-`SWAGGER_ENABLED=true` 时，可以访问 `/api/docs`（Swagger UI）和 `/api/docs-json`。后台菜单 **系统工具 → 系统接口** 也能打开它。
+`SWAGGER_ENABLED=true` 时，可以访问 `/api/docs`（Swagger UI）和 `/api/docs-json`。后台菜单 **系统工具 → 系统接口** 也能打开它。生产环境的设置见[仓库部署文档](https://github.com/732124645/qiwu-vue-admin/blob/main/docs/deploy.md#接口文档swagger)。

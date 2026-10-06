@@ -81,14 +81,12 @@ Generated code handles numeric columns as JavaScript numbers, which sets two lim
 - **Decimal columns** (`decimal`, `numeric`): handled as numbers when the total number of digits (integer plus fractional) is at most 15, such as `decimal(12,2)`. With more than 15 digits (such as `decimal(20,2)`), they are automatically handled as text, with a text box in forms and text cells in Excel, so full precision is kept.
 - `float` and `double` are approximate by nature, so exact decimal arithmetic is not guaranteed.
 
-For money and other values that need exact arithmetic, define your own rounding rules, or calculate with decimals in text form.
+For money and other values that need exact arithmetic, define your own rounding rules, or calculate with decimals in text form. For the full precision rules, see the repository's [code generation docs](https://github.com/732124645/qiwu-vue-admin/blob/main/docs/codegen.md#数值精度边界) (Chinese).
 
 ## Modules with zero hand edits
 
 If you save a module's generator config as a seed file (`*.cg.ts`), the module becomes a "zero hand edits" module: the check command `pnpm gen:check-golden` regenerates it and compares the result byte for byte with the code in the repository, and fails if any file is missing, different or extra. The template's built-in zero-hand-edit modules are Positions and the three samples: books, knowledge topics and invoices.
 
-The command first builds the server, then empties and rebuilds the test database, and generates from it. To prevent accidental data loss, it only accepts the database `qiwu_test` together with Redis database 15. So check your test environment settings before running it, and do not run it at the same time as the server tests.
-
-The payoff is **one-step sync after a template upgrade**: run `pnpm gen:check-golden --write` to write the new generator's output into the repository, review the changes, then run `pnpm gen:check-golden` again to confirm there are no differences (for the commands, see [Commands · Code generation](/reference/commands#代码生成) (Chinese)). Before writing, it checks every file it would change: if any of them has uncommitted changes, is a symbolic link, or is an existing file not tracked by Git, it writes nothing at all. It replaces only the generated files of these modules and deletes old files that are no longer generated. A failure midway is not rolled back automatically; instead, it lists the files already changed and the Git commands to restore them.
+The payoff is **one-step sync after a template upgrade**: run `pnpm gen:check-golden --write` to write the new generator's output, review the changes, then run `pnpm gen:check-golden` again to confirm there are no differences (for the commands, see [Commands · Code generation](/reference/commands#代码生成) (Chinese)). The command first builds the server, then empties and rebuilds the isolated test database (`qiwu_test` + Redis database 15), so do not run it at the same time as the server tests. For the checks before writing and how to recover from a failure, see the repository's [code generation docs](https://github.com/732124645/qiwu-vue-admin/blob/main/docs/codegen.md#g0-与检查边界) (Chinese).
 
 Extra logic for these modules goes into new files next to the generated ones; the generated files must not be edited.

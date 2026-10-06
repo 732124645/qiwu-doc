@@ -301,6 +301,8 @@ useIntervalFn(() => {
 | 访问令牌更换（包括在另一个标签页登录了别的会话） | 关闭旧连接，用新令牌连接 | `reconnecting` → `up` |
 | 退出登录 | 关闭连接 | `down` |
 
+完整的重连和兜底规则见仓库的[实时推送文档 · 断线重连与兜底](https://github.com/732124645/qiwu-vue-admin/blob/main/docs/realtime.md#断线重连与兜底)。
+
 ## 移动端（uni-app）
 
 移动端（`mobile/`）也连同一个网关、用同一份推送类型（`@qiwu/shared` 的 `RT`、`REALTIME_EVENT`），规则和上面一样，只是写法不同。代码都在 `mobile/src/core/realtime.ts`。
@@ -453,32 +455,7 @@ const proxy = {
 
 ### 反向代理
 
-生产环境由 nginx 转发 `/socket.io/`。要点：
-
-- 设置 `Upgrade` 和 `Connection` 头，把普通 HTTP 请求"升级"为 WebSocket；
-- 保留浏览器访问的原样地址：`Host`，以及 `X-Forwarded-Host`（`TRUST_PROXY` 信任这个代理时，服务端以它为准），用来和 `Origin` 比较；
-- nginx 负责 HTTPS 时，要传 `X-Forwarded-Proto`。否则服务端以为本站是 `http://…`，和浏览器的 `Origin`（`https://…`）对不上，连接会被 `forbidden_origin` 拒绝。服务端只相信 `TRUST_PROXY` 里登记的代理传来的这个头（默认 `loopback`，也就是本机的 nginx）；
-- WebSocket 连接的读超时要比心跳间隔长，下面用 75 秒。
-
-```nginx
-location ^~ /socket.io/ {
-  proxy_pass http://127.0.0.1:3000;
-  proxy_http_version 1.1;
-  proxy_set_header Upgrade $http_upgrade;
-  proxy_set_header Connection "upgrade";
-  proxy_set_header Host $http_host;
-  proxy_set_header X-Forwarded-Host $http_host;
-  proxy_set_header X-Forwarded-Proto $scheme;
-  proxy_set_header X-Forwarded-For $remote_addr;
-  proxy_read_timeout 75s;
-}
-```
-
-::: tip 非标准端口
-示例里的 `Host` 和 `X-Forwarded-Host` 都用 `$http_host`，也就是浏览器访问的原样地址，带端口号。如果把它们改成 `$host`（不带端口），而网站对外用的又不是 80 或 443 端口（比如 `https://admin.example.com:8443`），浏览器的 `Origin` 带端口，和服务端算出的本站地址对不上，连接会被拒绝；这时要把这个地址写进 `CORS_ORIGIN`。
-:::
-
-完整的 nginx 配置见[部署](/guide/deploy)。
+生产环境由 nginx 把 `/socket.io/` 按 WebSocket 升级转发到后端。`Host` 和 `X-Forwarded-Host` 用 `$http_host`，保留浏览器访问的原样地址，非标准端口也带上；nginx 负责 HTTPS 时要传 `X-Forwarded-Proto`（服务端只相信 `TRUST_PROXY` 里登记的代理，默认 `loopback`，也就是本机的 nginx），否则服务端算出的本站地址和浏览器的 `Origin` 对不上，连接被 `forbidden_origin` 拒绝；读超时要比心跳间隔长。完整配置见仓库的[部署文档 · nginx](https://github.com/732124645/qiwu-vue-admin/blob/main/docs/deploy.md#nginx-反向代理与-csp)，握手和来源规则见[部署文档 · 实时推送](https://github.com/732124645/qiwu-vue-admin/blob/main/docs/deploy.md#实时推送socketio)。
 
 只用 WebSocket 传输，不用 HTTP 长轮询，所以负载均衡**不需要会话粘滞**（同一个用户的请求固定发到同一台服务器）。如果以后打开长轮询，就必须配置会话粘滞。
 
@@ -488,26 +465,8 @@ location ^~ /socket.io/ {
 
 - `toUser` / `toUsers` / `toUserType` / `broadcast` 能送到连在任何实例上的连接。用户、会话、用户类型的房间各有自己的频道，消息只发给有这些连接的实例；
 - `onlineUsers` 通过 `fetchSockets()` 统计所有实例上的不同用户；
-- `SessionRevoker` 结束会话时，断开所有实例上这个会话的连接（`disconnectSockets()`）；如果是强制下线，会先推送 `session:kicked`；
-- 每个实例除了业务用的 Redis 连接，再给适配器开两条（发布、订阅）。启动时要等订阅真正完成，订阅失败就拒绝启动；新连接加入房间后，也要等这些房间的订阅就绪；关闭时一并清理。
+- `SessionRevoker` 结束会话时，断开所有实例上这个会话的连接（`disconnectSockets()`）；如果是强制下线，会先推送 `session:kicked`。
 
-**部署前提：**
+**部署前提：** Redis 7 或更高；同一部署的所有实例共用同一个 MySQL 数据库、同一个 Redis 库号和前缀（`REDIS_DB`、`REDIS_KEY_PREFIX`），`APP_SECRET` 和程序版本相同；不同部署要用不同的库号，否则推送会串到别的环境；用本地磁盘存储时文件放共享存储卷，或改用 S3，见[文件管理 · 本地磁盘](/features/storage#本地磁盘)。跨实例的推送同样可能丢失，照样按"[发出即结束，不保证送达](#发出即结束-不保证送达)"来写。
 
-- Redis **7 或更高**：分片适配器用的是 `SSUBSCRIBE`、`SPUBLISH`、`PUBSUB SHARDNUMSUB` 命令。项目的 Redis 账号能访问 `qw:*` 的键和频道（`~qw:*`、`&qw:*`）就够了，不需要额外的频道规则；它还要能执行限流用的 Lua 脚本（`EVAL`、`TIME` 等普通命令）；
-- 同一个部署的所有实例连同一个 MySQL 数据库、同一个 Redis、同一个 `REDIS_DB` 和 `REDIS_KEY_PREFIX`，并使用相同的 `APP_SECRET`、登录配置、种子数据和程序版本；
-- 发布/订阅的频道不按 Redis 的库号隔离，所以频道名里带上了库号：适配器用 `qw:socket.io:<REDIS_DB>`，定时任务的同步通知用 `qw:job:sync:<REDIS_DB>`（都由 `cache-namespaces.ts` 的 `redisChannel` 生成）。**不同的部署要用不同的库号**，否则一个环境的推送会发给另一个环境里 id 相同的用户；
-- 反向代理把 `/socket.io/` 转发到每一个实例（见上文"[反向代理](#反向代理)"），`TRUST_PROXY` 只登记真正的代理；
-- 用本地磁盘存储时，所有实例要挂同一个共享存储卷（路径相同）；跨多台机器建议用 S3 兼容存储，见[文件管理 · 本地磁盘](/features/storage#本地磁盘)。
-
-**送达边界：** 分片适配器不支持 Socket.IO 的"连接状态恢复"，也不保存消息。Redis 或网络出故障、实例重启时，推送可能丢失，重连后不会补发。所以照样按"[发出即结束，不保证送达](#发出即结束-不保证送达)"来写：可靠的数据先存进数据库，前端在重连后重新读取，并保留轮询兜底。
-
-**其他共享状态：**
-
-- 限流计数存在 Redis 里，所有实例共用一份额度；Redis 出错时请求直接失败，不会放行，见[防重复提交、限流与锁](/core/guards)；
-- 定时任务在所有实例上同一个执行时间只执行一次，见[定时任务 · 部署多个实例时](/features/job#部署多个实例时)；
-- 限流和分布式锁都按单个 Redis 节点设计，不保证能用于 Redis Cluster；Redis 故障切换时锁可能失效，不能代替业务上的防重；
-- 邮件的发送连接每个实例各自缓存，改了邮件账号后，每个实例在下一次发邮件前重新建立。
-
-::: info 验证范围
-模板自带的测试 `apps/server/test/e2e/core-multi-instance.e2e-spec.ts` 在同一台机器上启动两个服务进程，用真实的登录、推送、强制下线和限流（累计第 31 次发送返回 429）验证跨实例行为，还包括一个进程重启后推送照常送达。多台机器、负载均衡、共享存储、S3、Redis 故障切换和生产容量，要在你自己的部署环境里验收。
-:::
+限流、定时任务（见[定时任务 · 部署多个实例时](/features/job#部署多个实例时)）等其他共享状态和验证范围，见仓库的[多实例部署文档](https://github.com/732124645/qiwu-vue-admin/blob/main/docs/scale-out.md)和[实时推送文档 · 多实例部署](https://github.com/732124645/qiwu-vue-admin/blob/main/docs/realtime.md#多实例部署)。

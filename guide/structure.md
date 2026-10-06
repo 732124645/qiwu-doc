@@ -51,7 +51,7 @@ test/                  # e2e 测试
 | `workflow` | `core`、`platform` | 任何项目领域 |
 | 项目领域（`biz`、`demo`、`crm`……） | 以上全部 | — |
 
-`core`、`platform`、`workflow` 是模板代码，**其他顶层目录都是你的项目代码**，一个目录一个领域。以后升级模板时，只会改动模板代码，和你的业务代码不会冲突。详见[模块结构与注册](/core/module)。
+`core`、`platform`、`workflow` 是模板代码，**其他顶层目录都是你的项目代码**，一个目录一个领域。以后升级模板时，只会改动模板代码，和你的业务代码不会冲突。详见[模块结构与注册](/core/module)。设计理由见[仓库设计说明](https://github.com/732124645/qiwu-vue-admin/blob/main/docs/design-notes.md#分层与项目扩展)。
 
 ### 一个模块长什么样
 

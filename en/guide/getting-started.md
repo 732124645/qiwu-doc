@@ -6,6 +6,8 @@ description: 'Run the Qiwu NestJS and Vue 3 admin template locally on macOS or W
 
 Goal: get it running on your machine in 10 minutes.
 
+This page is the tutorial version; its commands follow the repository's [getting started guide](https://github.com/732124645/qiwu-vue-admin/blob/main/docs/getting-started.md) (Chinese), which also covers isolated test databases, the Redis ACL user, the cmd entry point and more.
+
 ::: tip Starting your own project?
 This page gets the template itself running. When you are ready to build your own business system on the template, we recommend initializing it with the new project script that ships with the repository, so the new project uses its own database, Redis database number and secrets. See [Create your own project](#create-your-own-project).
 :::
@@ -15,16 +17,16 @@ This page gets the template itself running. When you are ready to build your own
 | Software | Version | Notes |
 | --- | --- | --- |
 | Node.js | ≥ 22.22.1 | 22 LTS recommended |
-| pnpm | 11 | Install with `npm install -g pnpm@11`; the repository's `packageManager` pins 11.28.3 |
+| pnpm | 11.28.3 | Install with `npm install -g pnpm@11.28.3`, matching the repository's `packageManager` |
 | MySQL | 8.4 or later | Single data source |
-| Redis | 7.0 or later | Must support ACL, `GETDEL`, the `NX`/`XX`/`GT` options of `PEXPIRE`, and the sharded pub/sub used by realtime push (`SSUBSCRIBE`, `SPUBLISH`); on Windows, Memurai 4.x or later is recommended |
+| Redis | 7.0 or later | Sign-in sessions and realtime push use commands that only exist in Redis 7; for the commands the ACL user needs, see [section 2 of the repository's getting started guide](https://github.com/732124645/qiwu-vue-admin/blob/main/docs/getting-started.md#2-空库账号与隔离) (Chinese); on Windows, Memurai 4.x or later is recommended |
 
 ::: tip macOS
 Homebrew is the easiest way: `brew install mysql redis`, then start the services with `brew services start mysql` and `brew services start redis`.
 :::
 
 ::: tip Windows
-Use the built-in Windows PowerShell 5.1 in Windows Terminal or the VS Code terminal; development and all check commands have been verified on Windows 11. First follow [Installing the development tools (Windows)](/beginner/install-windows) (Chinese) to install Git, Node.js, MySQL and Memurai, allow running scripts, and then install pnpm. Start and stop MySQL and Memurai in Services (`services.msc`); use the service names chosen at install time.
+Use the built-in Windows PowerShell 5.1 in Windows Terminal or the VS Code terminal; development and all check commands have been verified on Windows 11. First follow [Installing the development tools (Windows)](/beginner/install-windows) (Chinese) to install Git, Node.js, MySQL and Memurai, allow running scripts, and then install pnpm. Start and stop MySQL and Memurai in Services (`services.msc`); use the service names chosen at install time. If you would rather not change the execution policy, do as the repository does and use `npm.cmd` / `pnpm.cmd`; see [the repository's getting started guide](https://github.com/732124645/qiwu-vue-admin/blob/main/docs/getting-started.md#windows原生-powershell-51) (Chinese).
 :::
 
 ## 1. Get the code
@@ -32,7 +34,6 @@ Use the built-in Windows PowerShell 5.1 in Windows Terminal or the VS Code termi
 ```bash
 git clone https://github.com/732124645/qiwu-vue-admin.git
 cd qiwu-vue-admin
-pnpm i
 ```
 
 ## 2. Prepare the database and Redis
@@ -54,70 +55,77 @@ GRANT ALL ON qiwu_dev.* TO 'qiwu'@'127.0.0.1';
 
 Every Redis key has the `qw:` prefix, so you can share one Redis with other projects. To restrict access, create an ACL user that can only touch `qw:*` keys and `qw:*` channels (keys as `~qw:*`, channels as `&qw:*`), and do not give it admin commands such as `FLUSHDB`, `KEYS` or `CONFIG`.
 
+The repository recommends a dedicated ACL user `qiwu` for the application. Development uses Redis database 13 (the default in `.env.example`). To run tests later you also need separate isolated databases such as `qiwu_test` and `qiwu_e2e`; for the database names, Redis database numbers and ports of each environment, see [section 2 of the repository's getting started guide](https://github.com/732124645/qiwu-vue-admin/blob/main/docs/getting-started.md#2-空库账号与隔离) (Chinese).
+
 ## 3. Configure environment variables
 
-The server configuration is split across two files, and **neither is committed to git**:
-
-```bash
-cd apps/server
-```
+The server configuration is split across two files, and **neither is committed to git**. Run in the repository root:
 
 ::: code-group
 
 ```bash [macOS]
-cp .env.example .env      # dev config: port, database name, Redis database number...
-touch .env.local          # accounts and secrets: database and Redis accounts, APP_SECRET
+cp apps/server/.env.example apps/server/.env    # dev config: port, database name, Redis database number...
+touch apps/server/.env.local                    # accounts and secrets: database and Redis accounts, APP_SECRET
 ```
 
 ```powershell [Windows (PowerShell)]
-Copy-Item .env.example .env
-notepad .env.local
+if (-not (Test-Path apps/server/.env)) { Copy-Item apps/server/.env.example apps/server/.env }
+notepad apps/server/.env.local
 ```
 
 :::
 
-Open `.env.local` in an editor (on Windows, `notepad .env.local` asks whether to create the file; choose "Yes") and save it as **UTF-8 (without BOM)**; on Windows you can also use VS Code. When using Save As in Notepad, choose "All files" and make sure the file name is `.env.local`, not `.env.local.txt`. Do not write these files with `>`, `Out-File` or `Set-Content` in Windows PowerShell 5.1: `>` and `Out-File` write UTF-16 by default, so the whole file cannot be read; `Set-Content` uses the system's local encoding by default (GBK on Chinese Windows), so values with Chinese or other non-ASCII characters get garbled; adding `-Encoding UTF8` writes a BOM, and the variable on the first line may then not be read.
+If you already have a `.env`, check its contents first instead of overwriting it.
 
-Fill in `.env.local`:
+Open `apps/server/.env.local` in an editor (on Windows, `notepad apps/server/.env.local` asks whether to create the file; choose "Yes") and save it as **UTF-8 (without BOM)**; on Windows you can also use VS Code. When using Save As in Notepad, choose "All files" and make sure the file name is `.env.local`, not `.env.local.txt`. Do not write these files with `>`, `Out-File` or `Set-Content` in Windows PowerShell 5.1: `>` and `Out-File` write UTF-16 by default, so the whole file cannot be read; `Set-Content` uses the system's local encoding by default (GBK on Chinese Windows), so values with Chinese or other non-ASCII characters get garbled; adding `-Encoding UTF8` writes a BOM, and the variable on the first line may then not be read.
+
+Fill in `apps/server/.env.local`:
 
 ```ini
 DB_USER=qiwu
-DB_PASSWORD=your-password
-REDIS_USERNAME=           # leave empty if Redis has no ACL user
-REDIS_PASSWORD=
-APP_SECRET=a-random-string-of-at-least-32-characters
+DB_PASSWORD='your-password'
+REDIS_USERNAME=qiwu
+REDIS_PASSWORD='password-of-the-redis-acl-user'
+APP_SECRET='the-secret-generated-below'
+# Optional: when unset, the first seed generates a random admin password
+# SEED_ADMIN_PASSWORD='an-admin-password-that-meets-the-password-rules'
 ```
 
-You can generate `APP_SECRET` with this command (the same on macOS and PowerShell). Paste the 43 characters it prints after `APP_SECRET=` in `.env.local` and save:
+If your local Redis has no password, delete the `REDIS_USERNAME` and `REDIS_PASSWORD` lines; if it has a password but no ACL user, delete only the `REDIS_USERNAME` line.
+
+You can generate `APP_SECRET` with this command (the same on macOS and PowerShell). Paste its output inside the quotes after `APP_SECRET=` and save; on macOS you can also use `openssl rand -base64 48`:
 
 ```bash
-node -e "console.log(require('crypto').randomBytes(32).toString('base64url'))"
+node -e "console.log(require('node:crypto').randomBytes(48).toString('base64url'))"
 ```
+
+On macOS, also run `chmod 600 apps/server/.env.local`.
 
 ::: warning Do not put accounts and secrets in `.env`
 The server reads `.env` first and then `.env.local`. For a variable in both files, **`.env` wins**, even if it is empty (`KEY=`). So write these variables only in `.env.local`; if one appears in `.env`, even with an empty value, the value in `.env.local` is ignored.
 :::
 
-The configuration is validated at startup. If a value is missing or malformed, the service refuses to start and tells you which one is wrong. For what each setting means, see [Environment variables](/reference/env) (Chinese).
+The configuration is validated at startup. If a value is missing or malformed, the service refuses to start and tells you which one is wrong. The full commented list of settings is the repository's [apps/server/.env.example](https://github.com/732124645/qiwu-vue-admin/blob/main/apps/server/.env.example).
 
 ## 4. Initialize the database
 
 ```bash
-cd ../..                               # back to the repository root
+pnpm i                                 # install dependencies
 pnpm --filter @qiwu/shared build       # build the shared package first; the server depends on its output
-pnpm db:reset                          # empty the dev database → run migrations → write seed data
+pnpm db:migrate                        # run migrations to create the tables
+pnpm db:seed                           # write seed data
 ```
 
-When it finishes, the terminal prints the admin password:
+Migrate first, then seed. When it finishes, the terminal prints the admin password:
 
 ```text
 seed: admin password (shown once, must be changed at first sign-in): xxxxxxxx
 ```
 
-**This password is shown only once**, so write it down. The username is `admin`, and you must change the password at first sign-in. To use a fixed password, set `SEED_ADMIN_PASSWORD` in `.env.local`.
+**This password is shown only once**, so write it down. The username is `admin`, and you must change the password at first sign-in. To use a fixed password, set `SEED_ADMIN_PASSWORD` in `.env.local` before the first seed; the password is then not printed and you are not asked to change it at first sign-in. Running seed again does not show the password again.
 
 ::: warning
-`db:reset` drops every table in the database, so use it only on development and test databases. For a database that already has data, use `pnpm db:migrate` (runs only new migrations) and `pnpm db:seed` (adds missing seed data).
+`pnpm db:reset` drops every table and view in the database and rebuilds it. It is not an install or upgrade step, so do not run it on a `qiwu_dev` that is already in use; upgrades also run `pnpm db:migrate` and then `pnpm db:seed`.
 :::
 
 ## 5. Start
@@ -132,36 +140,22 @@ This command starts three processes at once: the shared package watcher, the ser
 
 ![Workbench home page](/screenshots/en-home.webp)
 
+After changing code, run `pnpm verify` for the static checks (lint, architecture, types, translations, originality, licenses). The full check `pnpm ci:local` empties and rebuilds the test databases, so first prepare the isolated test databases as in [section 5 of the repository's getting started guide](https://github.com/732124645/qiwu-vue-admin/blob/main/docs/getting-started.md#5-检查与后续使用) (Chinese).
+
 ## Create your own project
 
-The steps above run the template itself (development database `qiwu_dev`). When you build your own business system on the template, we recommend cloning the template into a new directory and doing the initial setup with the **new project script** that ships with the repository. The new project then has its own database, Redis database number and secrets, and does not get mixed up with the template.
-
-The script uses only built-in Node features and changes only the 4 files below; it does not change package names, table prefixes or business code:
-
-| File | What it writes |
-| --- | --- |
-| `apps/server/.env` | `DB_NAME`, `REDIS_DB` (copied from `.env.example` first if the file does not exist) |
-| `apps/server/.env.local` | `APP_SECRET` and the admin password `SEED_ADMIN_PASSWORD` if missing (randomly generated, not shown in the terminal) |
-| `apps/web/.env.development`, `apps/web/.env.production` | System name `VITE_APP_TITLE` |
+The steps above run the template itself. When you build your own business system, clone the template into a new directory and use the new project script that ships with the repository to give it its own database name, Redis database number, secrets, admin password and system name (the secrets and the password are generated randomly and written to `.env.local`, not shown in the terminal). The script changes only `apps/server/.env`, `.env.local` and the two frontend `.env.*` files; it does not create the database, configure Redis accounts or start the service.
 
 Preview first, then run it for real:
 
 ```bash
-git clone https://github.com/732124645/qiwu-vue-admin.git my-admin
+git clone --origin template https://github.com/732124645/qiwu-vue-admin.git my-admin
 cd my-admin
-node scripts/new-project.mjs --dry-run --name my-admin            # preview only, writes no files
-node scripts/new-project.mjs --name my-admin --redis-db 0 --title "My Admin"
+node scripts/new-project.mjs --dry-run --name my-admin --db-name my_admin_dev --redis-db 0 --title 'My Admin'
+node scripts/new-project.mjs --name my-admin --db-name my_admin_dev --redis-db 0 --title 'My Admin'
 ```
 
-You can also run `node scripts/new-project.mjs` on its own and answer the prompts one by one. Main options:
-
-| Option | Description |
-| --- | --- |
-| `--name` | Project name: starts with a lowercase letter and contains only lowercase letters, digits and `-` |
-| `--db-name` | Database name. Default: the project name with `-` replaced by `_`, plus `_dev` (for example `my_admin_dev`); must end in `_dev` and cannot be `qiwu_dev` |
-| `--redis-db` | Redis database number; 9, 13, 14 and 15 are reserved for template development and tests and cannot be used (`--help` lists them). The script does not check whether the database is free, so make sure no other project uses it |
-| `--title` | System name, shown in the browser tab, the sidebar and the sign-in page; defaults to the project name |
-| `--dry-run` | Preview only, writes no files |
+`--redis-db 0` is only an example; first make sure no other project uses it. 9, 13, 14 and 15 are reserved for the template and the script rejects them. `--db-name` must end in `_dev`. The remote name `template` is for comparing template updates later. For all options and the interactive mode, see [the repository](https://github.com/732124645/qiwu-vue-admin/blob/main/docs/new-project.md#3-交互或-cli-配置) (Chinese).
 
 The script does **not** create the database, configure Redis accounts or start the service. After it runs, you still need to:
 
@@ -180,7 +174,7 @@ The script does **not** create the database, configure Redis accounts or start t
 The username is `admin` and the password is the value of `SEED_ADMIN_PASSWORD` in `.env.local`; signing in with it does not ask you to change the password. You can run the script again with the same options: existing secrets are kept, not replaced.
 
 ::: tip Running alongside the template
-The script does not change ports. If the template is also running on the same computer, set a free `PORT` (for example `3310`) in the new project's `apps/server/.env`, and change `CORS_ORIGIN` to the new frontend address (for example `http://localhost:5190`). Then start it in two terminals: in the first, run `pnpm --filter @qiwu/shared --filter @qiwu/server --parallel dev`; in the second, first set the environment variable `API_PROXY_TARGET` to `http://127.0.0.1:3310`, then run `pnpm --filter @qiwu/web dev --port 5190 --strictPort`. Do not use `pnpm dev --port 5190`: the option is passed to every package and startup fails.
+The new project needs a different server port and `CORS_ORIGIN`, and is started in two terminals; see [the repository](https://github.com/732124645/qiwu-vue-admin/blob/main/docs/new-project.md#与模板同时运行) (Chinese).
 :::
 
 ## Optional: IP geolocation data
@@ -191,7 +185,7 @@ The **Location** column in the sign-in log and online users needs an IP data fil
 node scripts/fetch-ip2region.mjs
 ```
 
-The download is checked against its sha256; restart the server and it takes effect. Without it everything still works; the **Location** column just stays empty.
+The download is checked against its sha256; restart the server and it takes effect. Without it everything still works; the **Location** column just stays empty. For downloading through a proxy and pinning the sha256, see [the repository's deployment guide](https://github.com/732124645/qiwu-vue-admin/blob/main/docs/deploy.md#ip-地理位置数据ip2region) (Chinese).
 
 ## Troubleshooting
 

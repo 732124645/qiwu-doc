@@ -13,7 +13,7 @@ description: '以 CRM 客户表为例，从建菜单分组、写迁移建表、�
 
 ## 开始之前：从模板建新项目
 
-如果 CRM 是一个新项目，先把模板克隆到一个新目录，再用仓库自带的新项目脚本 `scripts/new-project.mjs` 完成初始配置：它给新项目设置自己的数据库名、Redis 库号、密钥和页面标题。可以先加 `--dry-run` 预览，预览时不写任何文件。完整步骤见[快速开始 · 创建自己的项目](/guide/getting-started#创建自己的项目)。
+如果 CRM 是一个新项目，先把模板克隆到一个新目录，再用仓库自带的新项目脚本 `scripts/new-project.mjs` 完成初始配置：它给新项目设置自己的数据库名、Redis 库号、密钥和页面标题。可以先加 `--dry-run` 预览，预览时不写任何文件。完整步骤见[快速开始 · 创建自己的项目](/guide/getting-started#创建自己的项目)。权威步骤见仓库的[从模板创建新项目](https://github.com/732124645/qiwu-vue-admin/blob/main/docs/new-project.md)。
 
 下面的步骤都在这个新项目里进行。
 
@@ -46,6 +46,8 @@ description: '以 CRM 客户表为例，从建菜单分组、写迁移建表、�
 - 平台用到的名字是**保留名**（比如 `iam`、`system`、`auth`、`password`），不能用作领域。保留名的完整列表在 `packages/shared/src/common/reserved-names.ts`，第一段是保留名的表会归入 `biz`；
 - 两个领域有同名的业务（比如 `erp_customer` 和 `crm_customer`）时，类名会自动加上领域前缀（`ErpCustomer`）；
 - `iam_`、`cfg_`、`msg_`、`aud_`、`fs_`、`job_`、`oauth_`、`wf_` 是平台和工作流自己的表前缀，这些表分别归入平台或工作流，项目表不要用；`im_` 前缀和领域名 `im` 留给平台将来的聊天功能，项目也不能使用。
+
+命名规则的完整说明见仓库的[代码生成文档](https://github.com/732124645/qiwu-vue-admin/blob/main/docs/codegen.md#名称父菜单与路径)。
 
 ## ① 在菜单管理中建分组
 
@@ -115,6 +117,8 @@ export class CrmCustomer20261002100000 implements MigrationInterface {
 | 不建外键 | 测试检查 | 迁移测试断言库里没有外键，`pnpm ci:local` 不通过 |
 | 零手改模块（有 `.cg.ts` 配置） | 硬性检查 | 缺 `deleted_at` 或 `alive` 时，`pnpm db:seed` 直接报错 |
 
+建表约定的完整说明见[仓库](https://github.com/732124645/qiwu-vue-admin/blob/main/docs/codegen.md#建表软删除与引用约定new-tables)。
+
 执行迁移：
 
 ```bash
@@ -157,6 +161,8 @@ pnpm gen write crm_customer
 - 只会写到 `apps/*/src`、`packages/shared/src`、`apps/server/test` 下面，打开了[移动端页面](/features/codegen#移动端页面)时还有 `mobile/src`；
 - **从不覆盖已经存在的文件**。如果文件已存在且内容不同，会打印差异（用 Git 计算，没装 Git 时只提示哪个文件不同），并且一个文件都不写；
 - 要么全部写入，要么全部不写。
+
+写入规则的完整说明见[仓库](https://github.com/732124645/qiwu-vue-admin/blob/main/docs/codegen.md#cli-与工作区写入)。
 
 一个模块会生成：实体、服务、控制器、zod 规则和权限常量、菜单和权限种子、e2e 测试、列表页、表单弹框、详情抽屉、中英文翻译。
 
@@ -235,6 +241,8 @@ pnpm db:seed
 - 分组被管理员**删除**了：这个模块的菜单会被跳过，并打印提示，其他种子照常执行；
 - 分组**不存在**（没有写进 `menu-groups.seed.ts`）：种子报错，并提示去这个文件里添加；
 - 生成的页面的**父菜单、图标、排序只在第一次插入时写入**。管理员在菜单管理中移动了页面、换了图标，重新执行种子不会改回去。
+
+种子重放的完整规则见[仓库](https://github.com/732124645/qiwu-vue-admin/blob/main/docs/codegen.md#菜单种子的重放)。
 
 ## ⑦ 给角色授权
 

@@ -249,6 +249,8 @@ export class Book extends BaseEntity {
 
 一组角色合起来一个条件也没有时（比如"本部门"但用户没有部门、"指定部门"但一个部门都没选），这一组加的是 `1=0`。所有的值都是绑定参数，不会拼进 SQL。
 
+五种范围的说明见仓库的[数据权限文档 · 五种范围](https://github.com/732124645/qiwu-vue-admin/blob/main/docs/data-scope.md#五种范围)，规则链和多租户的边界见[超管、系统任务与缓存边界](https://github.com/732124645/qiwu-vue-admin/blob/main/docs/data-scope.md#超管系统任务与缓存边界)。
+
 ::: info 规则链
 `BaseCrudService` 上有一个受保护的 `scopeRules` 字段，默认是 `[deptScopeRule(), tenantRule]`，子类可以替换。`tenantRule` 是为多租户预留的位置，模板没有实现多租户，它**什么都不做**，也不提供任何租户隔离。
 :::

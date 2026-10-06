@@ -1,10 +1,10 @@
 ---
-description: '仓库根目录的 pnpm 命令速查：日常开发、数据库迁移与种子、代码生成及一致性检查、verify 和 ci:local 等检查与测试命令，以及在 Windows 上的验证情况。'
+description: '仓库根目录的 pnpm 命令速查：日常开发、数据库迁移与种子、代码生成及一致性检查、verify 和 ci:local 等检查与测试命令。'
 ---
 
 # 命令
 
-在仓库根目录执行。Windows 上，在自带的 Windows PowerShell 5.1 中执行同样的 `pnpm` 命令即可：安装依赖、启动开发、数据库命令、检查、测试和 `pnpm ci:local` 都已在 Windows 11 上验证过；移动端 App 的打包和发布、新项目脚本的完整演练还没有在 Windows 上验证。环境安装、脚本执行策略和验证范围见[安装环境（Windows）](/beginner/install-windows)。
+在仓库根目录执行。Windows 上在 Windows PowerShell 5.1 里执行同样的命令；没有放开脚本执行策略时，把 `pnpm` 写成 `pnpm.cmd`（见[仓库入门指南](https://github.com/732124645/qiwu-vue-admin/blob/main/docs/getting-started.md#windows原生-powershell-51)）。开发和完整检查（`pnpm ci:local --serial`）已在 Windows 11 上验证，Windows 服务器部署和 App、小程序发布还没有验证。环境安装见[安装环境（Windows）](/beginner/install-windows)。
 
 ## 日常开发
 
@@ -32,20 +32,14 @@ description: '仓库根目录的 pnpm 命令速查：日常开发、数据库迁
 | `pnpm gen write <表...>` | 写入仓库（需要 `NODE_ENV=development` 且 `CODEGEN_WRITE=true`）；已有文件内容不同时只输出差异，整批都不写 |
 | `pnpm gen:check-golden` | 重新生成零手改模块，和仓库代码逐字比较，有差异时以非零状态退出；加 `--write` 把新的生成结果写进仓库 |
 
-### 模板升级后比较生成结果
-
-升级生成器模板后，先用 `--write` 把零手改模块更新成新的生成结果，再运行一次默认检查确认没有差异（macOS 和 Windows 命令相同）：
+模板升级后先 `--write` 同步零手改模块，再不带参数运行一次确认没有差异：
 
 ```bash
 pnpm gen:check-golden --write
 pnpm gen:check-golden
 ```
 
-第二条命令正常结束、没有输出差异，就说明仓库里的生成物和模板一致。然后用 `git diff` 查看具体改了哪些文件。
-
-::: warning 先确认数据和改动
-`gen:check-golden` 会先构建服务端，再**重置**测试数据库（`.env.test` 配置的库，`qiwu_test` + Redis 15 号库；为防止误删，它只接受这一组库和库号），所以执行前要确认测试配置，并且不要和其他测试同时运行。`--write` 只改零手改模块的文件；目标文件有未提交的改动时，它会拒绝写入，所以先提交或保存当前改动。不要手动修改这些生成物，应该改模板或生成配置后再用这条命令同步。
-:::
+这条命令会重置隔离的测试库（`qiwu_test` + Redis 15），目标文件有未提交的改动时拒绝写入，见[仓库代码生成文档](https://github.com/732124645/qiwu-vue-admin/blob/main/docs/codegen.md#g0-与检查边界)。
 
 ## 检查与测试
 
@@ -55,14 +49,12 @@ pnpm gen:check-golden
 | `pnpm --filter @qiwu/server test <文件名>` | 运行服务端的单个测试文件（不要加 `--`） |
 | `pnpm --filter @qiwu/web test <文件名>` | 运行前端单元测试 |
 | `pnpm --filter @qiwu/web e2e <文件>` | 运行 Playwright 端到端测试 |
-| `pnpm ci:local` | 完整检查：锁定依赖安装、共享包构建、verify、构建、前端构建产物扫描、前端开发模式冒烟测试、全部测试和覆盖率、移动端检查和构建、代码生成一致性、Playwright、移动端端到端测试、启动冒烟测试。默认逐步串行执行；Windows 上只能串行，加 `--parallel` 会被拒绝 |
+| `pnpm ci:local` | 完整本地检查：安装、verify、构建、全部测试、Playwright、移动端和冒烟测试；会重置测试库，先按[仓库入门指南第 5 节](https://github.com/732124645/qiwu-vue-admin/blob/main/docs/getting-started.md#5-检查与后续使用)准备；Windows 用 `pnpm ci:local --serial` |
 | `pnpm mobile:<命令>` | 在 `mobile/` 目录运行移动端命令：`verify`、`test`、`e2e`、`build:h5`、`build:mp-weixin`、`build:app` |
 | `pnpm smoke:boot` | 启动构建产物，确认 `/api/health` 正常后退出 |
-| `pnpm smoke:web-dev` | 前端开发模式冒烟测试：用全新的临时依赖缓存启动 Vite 开发服务器（不需要后端），在本机 Edge 中加载 `apps/web/src` 下的全部 `.vue` 模块和源码中按需导入的包，再打开表单设计器，确认它能正常显示；最多 240 秒 |
+| `pnpm smoke:web-dev` | 前端开发模式冒烟测试：启动 Vite 开发服务器，在本机 Edge 中加载全部页面模块，不需要后端。Playwright 测的是构建产物，这条命令专门找只在 `pnpm dev` 下出现的问题 |
 
-::: tip 为什么要有开发模式冒烟测试
-Playwright 测的是构建产物，有些问题只在 `pnpm dev` 下出现，比如某个依赖在开发模式下加载失败、表单设计器的组件没有注册。`pnpm smoke:web-dev` 专门检查这些，`pnpm ci:local` 在构建之后运行它。用别的浏览器时，设置环境变量 `PW_CHANNEL`。
-:::
+提交 PR 前要跑的检查见[贡献指南](https://github.com/732124645/qiwu-vue-admin/blob/main/CONTRIBUTING.md#提交-pr-之前)。
 
 ## 其他
 
@@ -70,4 +62,4 @@ Playwright 测的是构建产物，有些问题只在 `pnpm dev` 下出现，比
 | --- | --- |
 | `node scripts/fetch-ip2region.mjs` | 下载 IP 归属地数据，并校验 sha256 |
 | `pnpm license:check` | 检查所有依赖的许可证 |
-| `node scripts/new-project.mjs` | 新项目初始化脚本：给基于模板的新项目配置数据库名、Redis 库号、密钥和系统名称，用法见[快速开始 · 创建自己的项目](/guide/getting-started#创建自己的项目) |
+| `node scripts/new-project.mjs` | 新项目初始化脚本：给基于模板的新项目配置数据库名、Redis 库号、密钥和系统名称，用法见[快速开始 · 创建自己的项目](/guide/getting-started#创建自己的项目)；权威用法见[仓库](https://github.com/732124645/qiwu-vue-admin/blob/main/docs/new-project.md) |
