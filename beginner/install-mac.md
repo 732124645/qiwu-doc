@@ -111,7 +111,7 @@ pnpm --version
 
 ## 5. MySQL
 
-需要 **MySQL 8.4 及以上**。用 Homebrew 安装：
+推荐安装 **MySQL 8.4**（自动测试使用的版本）。用 Homebrew 安装：
 
 ```bash
 brew install mysql

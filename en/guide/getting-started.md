@@ -18,7 +18,7 @@ This page gets the template itself running. When you are ready to build your own
 | --- | --- | --- |
 | Node.js | ≥ 22.22.1 | 22 LTS recommended |
 | pnpm | 11.28.3 | Install with `npm install -g pnpm@11.28.3`, matching the repository's `packageManager` |
-| MySQL | 8.4 or later | Single data source |
+| MySQL | 8.4 recommended (the version the automated tests use) | Single data source |
 | Redis | 7.0 or later | Sign-in sessions and realtime push use commands that only exist in Redis 7; for the commands the ACL user needs, see [section 2 of the repository's getting started guide](https://github.com/732124645/qiwu-vue-admin/blob/main/docs/getting-started.md#2-空库账号与隔离) (Chinese); on Windows, Memurai 4.x or later is recommended |
 
 ::: tip macOS

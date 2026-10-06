@@ -43,7 +43,7 @@ Source repository: [732124645/qiwu-vue-admin](https://github.com/732124645/qiwu-
 
 | Part | Choice |
 | --- | --- |
-| Backend | NestJS 12 (ESM), TypeORM, MySQL 8.4+, Redis 7+, Socket.IO |
+| Backend | NestJS 12 (ESM), TypeORM, MySQL 8.4, Redis 7+, Socket.IO |
 | Frontend | Vue 3.5, Vite 8, Element Plus, Pinia, vue-i18n |
 | Shared | `@qiwu/shared`: zod validation rules, types, error codes, permission constants |
 | Tooling | pnpm workspace, TypeScript 6, Vitest, Playwright, oxlint + ESLint |

@@ -10,7 +10,7 @@ description: '把栖梧部署到生产服务器的概览：构建、配置、迁
 
 ## 构建
 
-服务器需要 Node.js 22（不低于 22.22.1）、pnpm 11（仓库固定 11.28.3）、MySQL 8.4 及以上、Redis 7.0 及以上。在仓库根目录执行：
+服务器需要 Node.js 22（不低于 22.22.1）、pnpm 11（仓库固定 11.28.3）、MySQL（推荐 8.4）、Redis 7.0 及以上。在仓库根目录执行：
 
 ```bash
 pnpm i --frozen-lockfile

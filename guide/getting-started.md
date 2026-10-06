@@ -18,7 +18,7 @@ description: '在本机 10 分钟跑起栖梧：Node.js、pnpm、MySQL 和 Redis
 | --- | --- | --- |
 | Node.js | ≥ 22.22.1 | 推荐 22 LTS |
 | pnpm | 11.28.3 | 用 `npm install -g pnpm@11.28.3` 安装，和仓库 `packageManager` 一致 |
-| MySQL | 8.4 及以上 | 单数据源 |
+| MySQL | 推荐 8.4（自动测试使用的版本） | 单数据源 |
 | Redis | 7.0 及以上 | 登录会话和实时推送用到 Redis 7 才有的命令；ACL 用户需要的命令见[仓库入门指南第 2 节](https://github.com/732124645/qiwu-vue-admin/blob/main/docs/getting-started.md#2-空库账号与隔离)；Windows 推荐 Memurai 4.x 或以上 |
 
 ::: tip macOS
