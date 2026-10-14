@@ -38,6 +38,17 @@ For the detailed field rules and the list actions, see [System management · OAu
 
 Permissions: `oauth.client.browse` (**Browse**), `oauth.client.view` (**View**), `oauth.client.create` (**Add**), `oauth.client.modify` (**Edit**), `oauth.client.remove` (**Delete**), `oauth.client.reset-secret` (**Reset secret**).
 
+::: info With multi-tenancy on
+With [multi-tenancy](/en/features/multi-tenancy) on, a few things differ:
+
+- **OAuth2 clients** can be used only by platform (default tenant) staff, and registered clients are shared by all tenants;
+- Tokens issued with **Client credentials** belong to the platform and are only for the platform's own integrations; they cannot read other tenants' data. A tenant's apps should connect with the authorization code;
+- The user first signs in to their own tenant (on a domain bound to the tenant, or on the main domain with the tenant code), then opens the consent page;
+- Different tenants can have users with the same username, so third parties should link accounts by `sub` in the user info, not by `username`.
+
+For details, see the repository's [OAuth2 docs · client_credentials](https://github.com/732124645/qiwu-vue-admin/blob/main/docs/oauth2.md#3-client_credentials机器令牌) (Chinese) and [Token isolation and sessions](https://github.com/732124645/qiwu-vue-admin/blob/main/docs/oauth2.md#7-令牌隔离与会话) (Chinese).
+:::
+
 ## Consent page
 
 The third party sends the user's browser to this site's `/sso` page (with the authorization request parameters in the URL), where the user decides whether to authorize:

@@ -1,5 +1,5 @@
 ---
-description: 'Overview of Qiwu admin features by menu: system management, OAuth2 single sign-on, permissions, code generator, form designer, workflow, mobile and security.'
+description: 'Overview of Qiwu admin features by menu: system management, OAuth2 single sign-on, permissions, multi-tenancy, code generator, form designer, workflow, mobile and security.'
 ---
 
 # Features overview
@@ -16,6 +16,7 @@ For the status of each item, see [Introduction · Features at a glance](/en/guid
 | [Sign-in and accounts](/features/login) (Chinese) | Password, SMS and WeChat mini program sign-in, captchas, lockout after failed attempts, password policy, online users |
 | [Single sign-on (OAuth2)](/en/features/oauth) | Let other systems sign users in with their Qiwu accounts: OAuth2 client management, consent page, remembered consent |
 | [Permissions and data scope](/en/features/permission) | Menu and button permissions, five data scopes, privilege escalation guard |
+| [Multi-tenancy](/en/features/multi-tenancy) | One deployment serving many companies: tenants, tenant packages, bound domains, brands, platform staff entering a tenant; off by default |
 | [Monitoring and logs](/features/monitor) (Chinese) | Server, MySQL and Redis monitoring; action log, sign-in log, API access and error logs |
 | [Scheduled tasks](/features/job) (Chinese) | Visual cron editor, misfire policy, retries, timeouts, run log, plus built-in system tasks |
 | [Message center](/features/messaging) (Chinese) | Inbox messages, email, SMS, WeChat subscribe messages, multilingual message templates, send records |

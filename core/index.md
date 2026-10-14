@@ -37,6 +37,7 @@ flowchart LR
 | 我想要…… | 用什么 | 页面 |
 | --- | --- | --- |
 | 控制谁能做什么、能看到哪些数据 | `@RequirePerm`、`@DataScoped` | [权限与数据范围](/core/permission) |
+| 一套系统服务多家公司，数据按租户隔离 | `@TenantColumn`、`withTenant` | [编写租户感知的代码](/core/tenancy) |
 | 把频繁读取的数据暂存起来 | Redis | [缓存](/core/cache) |
 | 防止重复提交、限制调用频率、互斥执行 | `@Idempotent`、`@RateLimit`、`RedisLock` | [防重复提交、限流与锁](/core/guards) |
 | 定时执行一段逻辑 | `@JobHandler` | [定时任务](/core/job) |

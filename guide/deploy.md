@@ -1,5 +1,5 @@
 ---
-description: '把栖梧部署到生产服务器的概览：构建、配置、迁移和启动，nginx、PM2、GitHub Actions 自动部署、S3、OAuth2、演示模式和多实例要点，细节见仓库部署文档。'
+description: '把栖梧部署到生产服务器的概览：构建、配置、迁移和启动，nginx、PM2、GitHub Actions 自动部署、S3、OAuth2、多租户开关、演示模式和多实例要点，细节见仓库部署文档。'
 ---
 
 # 部署
@@ -10,7 +10,7 @@ description: '把栖梧部署到生产服务器的概览：构建、配置、迁
 
 ## 构建
 
-服务器需要 Node.js 22（不低于 22.22.1）、pnpm 11（仓库固定 11.28.3）、MySQL（推荐 8.4）、Redis 7.0 及以上。在仓库根目录执行：
+服务器需要 Node.js 22（不低于 22.22.1）、pnpm 11（仓库固定 11.28.3）、MySQL（推荐 8.4；按代码推定最低 8.0.17，没有测试过）、Redis 7.0 及以上。在仓库根目录执行：
 
 ```bash
 pnpm i --frozen-lockfile
@@ -91,12 +91,26 @@ git push origin v1.2.0
 
 `/sso` 是前端路由，反向代理要把它回退到 `index.html`（上面的路径表已包含）；`TRUST_PROXY` 要设成反向代理的地址，否则授权和令牌接口的按 IP 限流全算在代理一个 IP 上；生产环境的回调地址必须是 `https://`。见[仓库](https://github.com/732124645/qiwu-vue-admin/blob/main/docs/deploy.md#oauth2-与单点登录)和 [OAuth2 接入指南](/reference/oauth2)。
 
+## 打开或关闭多租户
+
+[多租户](/features/multi-tenancy)默认关闭。开关是 `apps/server/.env` 里的 `APP_MULTI_TENANT`（不是秘密），只在启动时读取，改完要重启全部实例才算切换完成。
+
+- **新安装**：可以一开始就设为 `true`，第一次 `pnpm db:migrate` 就会把数据库准备好。
+- **已有数据库**：分两次部署。第一次保持开关关闭，升级到新版本，确认全部实例都正常；第二次把开关改为 `true`，执行 `pnpm db:migrate`，再重启全部实例。如果在同一次部署里既升级又打开开关，生产环境的服务会拒绝启动。打开前，先复核默认租户里哪些角色有平台菜单：打开后，这些角色仍能使用影响全部租户的平台页面。
+- **关闭**：改回 `false` 并重启全部实例后，只有默认租户可用：其他租户的数据保留，但它们的用户无法登录，已登录的会话在下一次请求时结束。关闭前，先在 **系统管理 → 租户管理** 里停用不再服务的租户，否则以后再打开开关时，它们会立刻恢复可用。
+
+::: warning 打开后不能退回旧版本
+打开过开关的数据库，不能再回到 1.1.0 以前的任何版本。旧版本的代码不按租户过滤数据。
+:::
+
+租户可以绑定自己的域名，用户在这个域名上登录时不用填租户编码；DNS、nginx 的 `server_name` 和证书都要加上这些域名，`CORS_ORIGIN` 却只写平台自己的地址，不写租户的域名，见[租户绑定域名](https://github.com/732124645/qiwu-vue-admin/blob/main/docs/deploy.md#租户绑定域名)。完整步骤见仓库的[打开多租户开关](https://github.com/732124645/qiwu-vue-admin/blob/main/docs/deploy.md#打开多租户开关)、[关闭多租户开关](https://github.com/732124645/qiwu-vue-admin/blob/main/docs/deploy.md#关闭多租户开关)和[多租户文档](https://github.com/732124645/qiwu-vue-admin/blob/main/docs/multi-tenancy.md)。
+
 ## 演示模式
 
-公开演示站设 `APP_DEMO_MODE=true`，使用独立的库、Redis 库号和密钥。除登录、退出、标为已读等少数操作外，写操作一律返回 403，超级管理员也一样；OAuth2 授权和令牌接口也被拒绝，要演示单点登录请用非演示安装；日志页面里访客的 IP 和浏览器信息脱敏显示。开关改回 `false` 不会让已公开的密码失效，正式环境请重新安装。放行清单见[仓库安全文档](https://github.com/732124645/qiwu-vue-admin/blob/main/docs/security.md#演示模式的精确豁免)，另见[部署文档](https://github.com/732124645/qiwu-vue-admin/blob/main/docs/deploy.md#演示模式与-oauth-边界)。
+公开演示站设 `APP_DEMO_MODE=true`，使用独立的库、Redis 库号和密钥。除登录、退出、标为已读等少数操作外，写操作一律返回 403，超级管理员也一样；OAuth2 授权和令牌接口也被拒绝，要演示单点登录请用非演示安装；日志页面里访客的 IP 和浏览器信息脱敏显示。同时打开多租户时，还会创建两个示例租户，访客可以进入和退出租户。开关改回 `false` 不会让已公开的密码失效，正式环境请重新安装。放行清单见[仓库安全文档](https://github.com/732124645/qiwu-vue-admin/blob/main/docs/security.md#演示模式的精确豁免)，另见[部署文档](https://github.com/732124645/qiwu-vue-admin/blob/main/docs/deploy.md#演示模式与-oauth-边界)。
 
 <span id="单实例说明"></span>
 
 ## 多实例部署
 
-服务端可以运行多个实例，实时推送和限流经 Redis 共享。前提：Redis 7 及以上；同一部署的所有实例连同一个 MySQL 库和 Redis，`REDIS_DB`、`REDIS_KEY_PREFIX`、`APP_SECRET` 和程序版本都相同，不同部署用不同库号；本地文件放共享目录，跨机器建议用 S3。只用 WebSocket，不需要粘性会话；迁移和种子仍只在发布时执行一次。模板只在同一台机器上用两个进程测试过，完整条件和限制见[仓库](https://github.com/732124645/qiwu-vue-admin/blob/main/docs/scale-out.md#启动前置条件)。
+服务端可以运行多个实例，实时推送和限流经 Redis 共享。前提：Redis 7 及以上；同一部署的所有实例连同一个 MySQL 库和 Redis，`REDIS_DB`、`REDIS_KEY_PREFIX`、`APP_SECRET` 和程序版本都相同，不同部署用不同库号；所有实例的 `APP_MULTI_TENANT` 也要相同，切换时全部重启；本地文件放共享目录，跨机器建议用 S3。只用 WebSocket，不需要粘性会话；迁移和种子仍只在发布时执行一次。模板只在同一台机器上用两个进程测试过，完整条件和限制见[仓库](https://github.com/732124645/qiwu-vue-admin/blob/main/docs/scale-out.md#启动前置条件)。

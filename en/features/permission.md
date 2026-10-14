@@ -1,5 +1,5 @@
 ---
-description: 'How menu and button permissions, five data scopes, multi-role users and the privilege escalation guard work, with an example of a manager viewing approval data.'
+description: 'How menu and button permissions, five data scopes, multi-role users and the privilege escalation guard work, with an example of a manager viewing approval data, plus tenant packages and platform-only pages with multi-tenancy.'
 ---
 
 # Permissions and data scope
@@ -80,7 +80,7 @@ After you change any of the following, **the affected user does not need to sign
 When a user is disabled or deleted, all of their sessions end at once.
 
 ::: tip New modules are not granted automatically
-Pages created with the code generator are visible right away only to the super administrator. Others can use them only after the pages are ticked in Roles; see [Adding a business module](/guide/new-module) (Chinese).
+Pages created with the code generator are visible right away only to the super administrator. Others can use them only after the pages are ticked in Roles; see [Adding a business module](/guide/new-module) (Chinese). With multi-tenancy on, they must also be ticked into the [tenant package](#tenant-packages-and-platform-only-pages) before people in a tenant can use them.
 :::
 
 ## Data scope
@@ -180,7 +180,7 @@ The built-in role **Super administrator** (code `root`) has all permissions, and
 Whether a user is a super administrator **depends only on whether they have this built-in role**. A role you create yourself is never a super administrator, however many menus it has ticked.
 
 ::: info Demo mode applies to everyone
-With demo mode on (environment variable `APP_DEMO_MODE`, see [Environment variables · Features](/reference/env#功能) (Chinese)), everyone, the super administrator included, can only browse: write requests all return 403 with "This action is unavailable in demo mode." Only a few operations work as usual, such as signing in, signing out, unlocking the lock screen, switching the interface language, saving column settings, and marking bulletins and messages as read.
+With demo mode on (environment variable `APP_DEMO_MODE`, see [Environment variables · Features](/reference/env#功能) (Chinese)), everyone, the super administrator included, can only browse: write requests all return 403 with "This action is unavailable in demo mode." Only a few operations work as usual, such as signing in, signing out, unlocking the lock screen, switching the interface language, saving column settings, marking bulletins and messages as read, and entering and leaving tenants.
 :::
 
 ### Protected roles and accounts
@@ -211,6 +211,17 @@ Anyone else who tries gets 403.
 ::: tip Don't use the super administrator for daily work
 The super administrator has no limits at all, so a mistake has the biggest impact. Use it only for the initial setup, and leave daily administration to regular roles, granted only the permissions and data scope they need.
 :::
+
+## Tenant packages and platform-only pages
+
+This section applies only with [multi-tenancy](/en/features/multi-tenancy) on.
+
+- A **tenant package** is the set of menus the platform opens to a tenant. The permissions of a user in a tenant = the permission codes that **both** their role grants and the package hold. The grant tree in **System → Roles** lists only the menus in the package; when the package shrinks, a role's existing grants are kept but have no effect, and they come back automatically when the package grows again;
+- In each tenant, the built-in role **Tenant administrator** (`tenant_admin`) has every permission of the package, with the data scope **All data**. A tenant without a package, or whose package is disabled or deleted, can use nothing. The default tenant (the platform) is not limited by packages;
+- **Platform-only pages** are only for the default tenant. They cannot be put into a package, and people in a tenant never get their permission codes: the pages under **Monitoring** except **Online users**; **Code generator**, **Form builder**, **API docs** and **Element Plus docs** under **System tools**; and **Menus**, **Dictionaries**, **Dictionary entries**, **Parameters**, **App versions**, **Storage configs**, **OAuth2 clients**, **Mail accounts**, **SMS channels**, **Inbox templates**, **Mail templates**, **SMS templates**, **API access log**, **API error log**, **Tenants** and **Tenant packages** under **System**;
+- **API access log**, **API error log** and **Cache keys** hold data of all tenants, so only the platform's super administrator can open them, even if they are ticked in a role;
+- Platform staff need the **Enter tenant** permission (`iam.tenant.enter`) to **enter a tenant**. Inside, they work with their own permissions minus the permission codes of platform-only pages (except the super administrator, who keeps all permissions), not narrowed by the package; their data scope is also computed from their own roles, so give them a role with **All data**, or they see no data in the tenant;
+- **Protected accounts**: the tenant's owner (the administrator created when the tenant was opened) cannot be disabled or deleted, and only the platform's super administrator can change their password, contact details, department and roles, or force them to sign out. For other users holding the **Tenant administrator** role, only the platform's super administrator and tenant administrators can do these things, and only they can disable or delete these users.
 
 ## Developer guide
 

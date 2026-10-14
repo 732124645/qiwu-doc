@@ -25,8 +25,14 @@ For how permissions work (feature permissions, data scope, the privilege escalat
 | Logs | **Action log**, **Sign-in log**, **API access log**, **API error log**. See [Action log (developer guide)](/core/action-log) (Chinese) |
 | Files | **Storage configs**, **Files**. See [File management](/features/storage) (Chinese) |
 | [OAuth2 clients](#oauth2-clients) | Third-party apps that can sign in with accounts of this system. See [Single sign-on (OAuth2)](/en/features/oauth) |
+| Tenants | Open and manage tenants (the companies using this system): package, expiry, bound domains, brand; platform staff enter tenants from here. Shown only with multi-tenancy on. See [Multi-tenancy](/en/features/multi-tenancy) |
+| Tenant packages | Decide which menus a tenant can use. Shown only with multi-tenancy on. See [Multi-tenancy](/en/features/multi-tenancy) |
 
 In addition, [My profile](#my-profile) in the avatar menu at the top right is available to every signed-in user, with no grant needed.
+
+::: info With multi-tenancy on
+**Tenants** and **Tenant packages** can be used only by people in the default tenant (the platform). **Menus**, **Dictionaries**, **Parameters**, **App versions** and **OAuth2 clients** under **System**, the templates, **Mail accounts** and **SMS channels** under **Message center**, **Storage configs**, and **API access log** and **API error log** are **platform-only pages** too: only the platform can use them, and they are not visible in tenants. See [Permissions and data scope · Tenant packages and platform-only pages](/en/features/permission#tenant-packages-and-platform-only-pages).
+:::
 
 ::: tip Who can see these menus
 After initialization, only the super administrator (the `admin` account) can see **System**. The initial data also has two regular roles, **Registered member** and **Staff**. By default they only see **Home** and some pages under **Approvals**, such as **New request** and **My to-dos**. To let someone manage a page, tick the matching menus and actions for their role in [Roles](#roles).
@@ -166,6 +172,8 @@ The **data scope** decides which departments' data a person can see. There are f
 - **Privilege escalation guard**: every grant a non-super-administrator makes on this page (menu permissions, data scope, assigning users, and re-enabling a disabled role) must stay within their own permissions and data scope. Otherwise saving fails with "You cannot grant a role beyond your own permissions or data scope";
 - Only the super administrator can edit or delete the current default sign-up role (the role the parameter `auth.signup.default_role_id` points to, **Registered member** by default), set its menu permissions and data scope, or assign users to it;
 - After a role changes, users with that role get the updated permissions on their next request. They do not need to sign in again.
+
+With [multi-tenancy](/en/features/multi-tenancy) on, every tenant opened gets a built-in role **Tenant administrator** (`tenant_admin`) in that tenant: data scope **All data**, permissions fixed to everything in the tenant package. It cannot be disabled or deleted, and its menu permissions and data scope cannot be changed. Within its own tenant it can, like the super administrator, set roles to **All data** and assign such roles, but it can still only grant permissions it has itself. See [Permissions and data scope · Tenant packages and platform-only pages](/en/features/permission#tenant-packages-and-platform-only-pages).
 
 ## Menus
 
@@ -545,6 +553,8 @@ In **System → Roles → Menu permissions**, these are the actions you can tick
 | Bulletins | `messaging.bulletin` | Browse, View, Add, Edit, Delete; Publish `publish` |
 | App versions | `settings.appVersion` | Browse, View, Add, Edit, Delete |
 | OAuth2 clients | `oauth.client` | Browse, View, Add, Edit, Delete; Reset secret `reset-secret` |
+| Tenants | `iam.tenant` | Browse, View, Add, Edit; Enter tenant `enter`, Reset initial password `reset-password` |
+| Tenant packages | `iam.tenantPackage` | Browse, View, Add, Edit, Delete |
 
 A few points that are easy to miss:
 

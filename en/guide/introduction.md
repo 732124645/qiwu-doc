@@ -11,22 +11,36 @@ Qiwu (栖梧, project name `qiwu-vue-admin`) is a **full-stack Node admin templa
 To learn why I built this project, see [Project story](/en/guide/story).
 
 ::: info Current status
-**v1.0.3** was released on 2026-10-06, open source under the **MIT license**. See the [Changelog](/en/changelog) for changes. The mobile app can already be built and debugged locally; testing on real devices and pre-release checks for the app stores are still in progress. The feature tables below show the status of each item.
+**v1.1.0** was released on 2026-10-14, open source under the **MIT license**. This release adds [multi-tenancy](/en/features/multi-tenancy); see the [Changelog](/en/changelog) for changes. The mobile app can already be built and debugged locally; testing on real devices and pre-release checks for the app stores are still in progress. The feature tables below show the status of each item.
 :::
 
 ## Live demo
 
 No setup needed: open the [live demo](https://demo.qiwuadmin.com) directly.
 
+The demo has [multi-tenancy](/en/features/multi-tenancy) on: one system serves many companies at once, each company is called a **tenant**, and no tenant can see another's data. That is why the sign-in page has an extra **Tenant code** field, which says which company you are signing in to. When you sign in with the platform account (the account of the side that runs the system), leave the tenant code empty:
+
 | Sign-in | Value |
 | --- | --- |
+| Tenant code | Leave empty |
 | Username | `admin` |
 | Password | `admin@123` |
+
+![Sign-in page with the tenant code](/screenshots/en-tenant-login.webp)
+
+To see what a company sees after signing in, sign in to one of the two sample tenants. Each tenant has a **package** that decides which features the tenant can use:
+
+| Sample tenant | Tenant code | Username | Password |
+| --- | --- | --- | --- |
+| Yunshan Technology (sample): brand name 云杉协同, its package holds every feature open to tenants | `yunshan` | `admin` | `KnjUB2fTabw2wnxL` |
+| Qinghe Trading (sample): brand name 青禾办公, its package has no approvals | `qinghe` | `admin` | `KnjUB2fTabw2wnxL` |
+
+After signing in with the platform account, go to **System → Tenants**, click **Enter** on a tenant's row, fill in a reason and click **Enter tenant** to view that tenant as platform staff. While you are inside, a banner stays at the top of the page to remind you that you are working in another tenant; click **Leave tenant** on the banner to return to the platform.
 
 A slider captcha appears when you sign in. Drag the puzzle piece into the gap.
 
 ::: warning Demo mode
-Visitors can browse every feature. Apart from a few actions such as signing in, signing out, switching languages, saving table column settings and marking as read, write operations are rejected with the message "This action is unavailable in demo mode." Visitors' IP and User-Agent (UA) are shown masked. Do not enter real personal information.
+Visitors can browse every feature. Apart from a few actions such as signing in, signing out, switching languages, saving table column settings, marking as read, and entering and leaving tenants, write operations are rejected with the message "This action is unavailable in demo mode." Visitors' IP and User-Agent (UA) are shown masked. Do not enter real personal information.
 :::
 
 Source repository: [732124645/qiwu-vue-admin](https://github.com/732124645/qiwu-vue-admin). To run it on your machine and change the code, see [Getting started](/en/guide/getting-started).
@@ -127,8 +141,8 @@ For details on each feature, see the [Features overview](/en/features/).
 | Server deploy kit (one directory per release, PM2 cluster restarts one process at a time, health checks, automatic switch back to the previous release's code on failure) and GitHub Actions checks and releases | ✅ |
 | New project script (sets up a separate database, Redis database number, secrets and system name for the new project) | ✅ |
 | OAuth2 authorization server / single sign-on (authorization code + PKCE, so other systems can let users sign in with their Qiwu accounts; OAuth2 client management, consent page, remembered consent) | ✅ |
+| [Multi-tenancy](/en/features/multi-tenancy) (one deployment serves many companies, sharing one database with data isolated per tenant; tenants, tenant packages, bound domains, brands, platform staff entering a tenant to investigate problems; off by default) | ✅ |
 | Mobile app (uni-app: WeChat mini program, Android, iOS; sign-in, Workbench, messages, approvals (including dynamic forms), realtime push, WeChat subscribe message reminders and app update checks are done, with light and dark themes; checks on real devices before release are still in progress) | 🚧 |
-| Multi-tenancy | ⏸ (extension points reserved) |
 | Other third-party sign-in (GitHub, DingTalk, WeCom, Feishu (Lark), WeChat QR code, etc.) | ⏸ |
 | Instant messaging (one-to-one chat, group chat, staff directory), offline push for the app | ⏸ |
 

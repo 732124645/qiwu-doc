@@ -1,5 +1,5 @@
 ---
-description: 'Default-on security measures: random tokens instead of JWT, sign-in lockout, OAuth2 PKCE, IDOR and injection defenses, upload checks and vulnerability reports.'
+description: 'Default-on security measures: random tokens instead of JWT, sign-in lockout, OAuth2 PKCE, IDOR defenses, tenant isolation, injection defenses, upload checks and vulnerability reports.'
 ---
 
 # Security baseline
@@ -46,6 +46,10 @@ The authorization code flow requires PKCE with `S256`, and only confidential cli
 - Attachments in process forms are private files. Apart from the uploader, the super administrator and people with the **View** permission of the file list (`storage.object.view`), only people who can view the process instance and can see the attachment field can download them; see [Workflow · Attachments](/en/features/workflow#attachments).
 - Approval data is filtered by field access: only the super administrator and the process managers of that process see all fields. Others do not see fields that were hidden at any step of the process (not on the page, in exports or in filters). Because process managers can see all fields, changing the list of process managers needs the separate permission `wf.model.managers`; people with only `wf.model.modify` cannot add themselves (403). See [Workflow · Field access in approval data](/en/features/workflow#field-access-in-approval-data).
 
+## Tenant isolation
+
+With [multi-tenancy](/en/features/multi-tenancy) on, the ORM (the layer that turns reads and writes of objects in code into SQL) automatically adds the current tenant's condition to every query, write and join on a tenant table, and not even the super administrator can skip it; for hand-written SQL, automated checks require the tenant condition. Accessing another tenant's data returns 404, the same as data that does not exist; calls from people in a tenant to the APIs of [platform-only pages](/en/features/permission#tenant-packages-and-platform-only-pages) are rejected. The tenant of a session comes from the user, and there is no request header that switches tenants. Platform staff need a dedicated permission to enter a tenant, leave it automatically after 2 hours, and are audited throughout. For the tests, see the repository's [security docs](https://github.com/732124645/qiwu-vue-admin/blob/main/docs/security.md#威胁防护与测试入口) (Chinese).
+
 ## Injection and code execution
 
 - Only parameterized SQL is used, and sort fields are checked against an allowlist. A check script forbids concatenating strings into SQL;
@@ -80,7 +84,7 @@ When editing an S3 storage config, if you change any of **Endpoint**, **Bucket**
 - **Duplicate submits**: create-type endpoints guard against duplicate submits on the server; a repeated request within 3 seconds returns 429 (for how to write it, see [Duplicate-submit guards, rate limits and locks](/core/guards) (Chinese));
 - **Sensitive data**: passwords are stored with bcrypt. Secrets of third-party services (such as S3 and SMTP) are encrypted with AES-256-GCM before being stored in the database. OAuth2 client secrets are stored only as SHA-256 digests. Fields such as passwords and tokens in logs are masked automatically;
 - **Production secret check**: if `APP_SECRET` or `SEED_ADMIN_PASSWORD` carries the `not-for-production` marker, the service and the database commands refuse to run in production. Every test password committed to the repository carries this marker, so none of them can slip into production by mistake. The check does not judge strength, so generate production secrets yourself; see the repository's [security docs](https://github.com/732124645/qiwu-vue-admin/blob/main/docs/security.md#生产配置与凭据) (Chinese);
-- **Demo mode**: apart from a few operations such as signing in and out, all write operations return 403, for the super administrator too, and visitor details in the logs are masked. See [Deployment · Demo mode](/guide/deploy#演示模式) (Chinese) and the repository's [list of exemptions](https://github.com/732124645/qiwu-vue-admin/blob/main/docs/security.md#演示模式的精确豁免) (Chinese);
+- **Demo mode**: apart from a few operations such as signing in and out, and entering and leaving tenants, all write operations return 403, for the super administrator too, and visitor details in the logs are masked. See [Deployment · Demo mode](/guide/deploy#演示模式) (Chinese) and the repository's [list of exemptions](https://github.com/732124645/qiwu-vue-admin/blob/main/docs/security.md#演示模式的精确豁免) (Chinese);
 - **Supply chain**: dependency versions are locked; a new version can be installed only once it has been released for 24 hours; the install scripts of dependencies must be approved one by one; dependency licenses are checked automatically.
 
 ## Reporting a vulnerability

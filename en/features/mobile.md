@@ -48,6 +48,22 @@ The mobile app opens on the sign-in page. If you have already signed in on this 
 On the sign-in page, **Privacy** and **Terms** currently open the About page. Before release, point them to the privacy policy and terms of service on your own website. App store and mini program reviews check them.
 :::
 
+### Tenant code
+
+When the server has [multi-tenancy](/en/features/multi-tenancy) on, the mobile app changes as follows:
+
+- The sign-in page gets an extra field below the two tabs, at the top of the form, with the placeholder "Tenant code (blank for the default tenant)". Password and SMS sign-in share it; platform (default tenant) accounts leave it empty. SMS sign-in always remembers the code; password sign-in remembers it only when **Remember username** is ticked;
+- The app and the mini program can find a tenant only by its code. When H5 is deployed on a domain bound to a tenant, the field is not shown;
+- The automatic WeChat sign-in when the mini program opens needs no code; the **Link WeChat** page does;
+- When the tenant's package has no approvals, the **Approvals** tab is hidden, and so are **New request**, the **To-dos** and **In progress** numbers and **Awaiting me** on the Workbench; when the package has no **System**, **Bulletins** on the Workbench is hidden;
+- The top of the Workbench and the **Me** page show the tenant's brand name and logo, or the tenant name when no brand name is set;
+- When the tenant is disabled or has expired, the app shows the real reason: "Your tenant is disabled or has expired. Please contact your administrator.";
+- Entering a tenant is not possible on mobile; platform staff do it on the desktop.
+
+![Mobile sign-in page with the tenant code](/screenshots/en-mobile-tenant-login.webp)
+
+For details, see the repository's [mobile docs · Multi-tenancy](https://github.com/732124645/qiwu-vue-admin/blob/main/docs/mobile.md#多租户租户编码) (Chinese).
+
 ### WeChat mini program sign-in
 
 This is available only in the WeChat mini program and is **off by default**:

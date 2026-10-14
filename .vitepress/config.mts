@@ -33,6 +33,7 @@ const enSidebar = [
       { text: 'System management', link: '/en/features/system' },
       { text: 'Single sign-on (OAuth2)', link: '/en/features/oauth' },
       { text: 'Permissions and data scope', link: '/en/features/permission' },
+      { text: 'Multi-tenancy', link: '/en/features/multi-tenancy' },
       { text: 'Code generator', link: '/en/features/codegen' },
       { text: 'Form designer', link: '/en/features/formkit' },
       { text: 'Workflow', link: '/en/features/workflow' },
@@ -379,6 +380,7 @@ export default defineConfigWithTheme<DefaultTheme.Config & { enPages?: string[] 
           text: '后端功能',
           items: [
             { text: '权限与数据范围', link: '/core/permission' },
+            { text: '编写租户感知的代码', link: '/core/tenancy' },
             { text: '缓存', link: '/core/cache' },
             { text: '防重复提交、限流与锁', link: '/core/guards' },
             { text: '定时任务', link: '/core/job' },
@@ -418,6 +420,7 @@ export default defineConfigWithTheme<DefaultTheme.Config & { enPages?: string[] 
             { text: '登录与账号', link: '/features/login' },
             { text: '单点登录（OAuth2）', link: '/features/oauth' },
             { text: '权限与数据范围', link: '/features/permission' },
+            { text: '多租户', link: '/features/multi-tenancy' },
             { text: '监控与日志', link: '/features/monitor' },
             { text: '定时任务', link: '/features/job' },
             { text: '消息中心', link: '/features/messaging' },

@@ -38,6 +38,17 @@ description: '把栖梧用作 OAuth2 授权服务器：登记客户端与密钥�
 
 权限：`oauth.client.browse`（浏览）、`oauth.client.view`（查看）、`oauth.client.create`（新增）、`oauth.client.modify`（修改）、`oauth.client.remove`（删除）、`oauth.client.reset-secret`（重置密钥）。
 
+::: info 开启多租户时
+[多租户](/features/multi-tenancy)打开后，有几点不同：
+
+- **客户端管理**只有平台（默认租户）的人员能用，登记的客户端所有租户共用；
+- **客户端凭证**签出的令牌属于平台，只用于平台自身的系统集成，读不到其他租户的数据。租户的应用请用授权码接入；
+- 用户先在自己的租户里登录（租户绑定的域名，或者主域名加租户编码），再打开同意页；
+- 不同租户可以有同名用户，第三方要用用户信息里的 `sub` 关联账号，不要用 `username`。
+
+细节见仓库的 [OAuth2 文档 · client_credentials](https://github.com/732124645/qiwu-vue-admin/blob/main/docs/oauth2.md#3-client_credentials机器令牌)和[令牌隔离与会话](https://github.com/732124645/qiwu-vue-admin/blob/main/docs/oauth2.md#7-令牌隔离与会话)。
+:::
+
 ## 授权同意页
 
 第三方把用户的浏览器带到本站的 `/sso` 页面（地址里带着授权请求的参数），用户在这里决定是否授权：
