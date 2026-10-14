@@ -6,6 +6,19 @@ description: 'Qiwu release notes: version 1.2.0 lets hand-written SQL in the cod
 
 This page records the changes in each Qiwu release. For the current features and the status of each one, see [Introduction · Features at a glance](/en/guide/introduction#features-at-a-glance).
 
+## 1.2.1 · 2026-10-14
+
+A patch release with two fixes.
+
+Fixed:
+
+- **Last sign-in time**: the last sign-in time shown after signing in no longer depends on the application and database clocks agreeing; sign-in log rows are now timestamped by the application. Sessions started before the upgrade show the correct time after their next sign-in.
+- Three server tests no longer fail on Windows or on machines whose clock is off the database's.
+
+Upgrade:
+
+- Code only: no database migrations, no env or dependency changes. Upgrade as usual: update to the v1.2.1 code → `pnpm i` → `pnpm -r build` → `pnpm db:migrate` → `pnpm db:seed` → restart, see [Deploy](/guide/deploy) (Chinese).
+
 ## 1.2.0 · 2026-10-14
 
 Hand-written SQL can now apply data scope too. Data scope decides which departments' and which people's data someone can see; see [Permissions and data scope](/en/features/permission#data-scope). Queries built with `scopedQb` (the query builder that applies data scope) have always applied it automatically; SQL written by hand in the code does not go through it, so until now developers had to remember to add it themselves.
