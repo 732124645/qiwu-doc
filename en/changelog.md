@@ -1,10 +1,24 @@
 ---
-description: 'Qiwu release notes: version 1.1.0 adds multi-tenancy (one shared database with data isolated per tenant, tenants, tenant packages, platform staff entering a tenant) with notes on upgrading and turning it on; version 1.0.3 adds GitHub Actions checks, automated releases and a server deploy kit, plus fixes; version 1.0.0 covers permissions, workflow, code generation, the mobile app, deployment and known limitations.'
+description: 'Qiwu release notes: version 1.2.0 lets hand-written SQL in the code apply data scope too, with a new check; version 1.1.0 adds multi-tenancy (one shared database with data isolated per tenant, tenants, tenant packages, platform staff entering a tenant) with notes on upgrading and turning it on; version 1.0.3 adds GitHub Actions checks, automated releases and a server deploy kit, plus fixes; version 1.0.0 covers permissions, workflow, code generation, the mobile app, deployment and known limitations.'
 ---
 
 # Changelog
 
 This page records the changes in each Qiwu release. For the current features and the status of each one, see [Introduction · Features at a glance](/en/guide/introduction#features-at-a-glance).
+
+## 1.2.0 · 2026-10-14
+
+Hand-written SQL can now apply data scope too. Data scope decides which departments' and which people's data someone can see; see [Permissions and data scope](/en/features/permission#data-scope). Queries built with `scopedQb` (the query builder that applies data scope) have always applied it automatically; SQL written by hand in the code does not go through it, so until now developers had to remember to add it themselves.
+
+Added:
+
+- **Data scope for hand-written SQL**: `dataScopeSql(alias, columns)` and `dataScopeSqlFor(entity, alias)` return the same department and owner condition as `scopedQb`, as a parameterized `{ sql, params }` to put straight into hand-written SQL.
+- **A new check**: `pnpm verify` reports hand-written SQL that reads a data-scoped table but neither uses these functions nor carries the marker `qw:no-data-scope <reason>`; QueryBuilder calls that query or join such a table by its name as a string count too. SQL is never rewritten automatically. For how to write it, see [Hand-written SQL: dataScopeSql](/core/permission#手写-sql-datascopesql) (Chinese); for the full description in the repository, see [Data scope · Hand-written SQL](https://github.com/732124645/qiwu-vue-admin/blob/main/docs/data-scope.md#手写-sql) (Chinese).
+
+Upgrade steps:
+
+- This release changes code only: there are no database migrations, and no environment variables or dependencies change, so you can roll back to 1.1.0. Upgrade as usual: update to the v1.2.0 code → `pnpm i` → `pnpm -r build` → `pnpm db:migrate` → `pnpm db:seed` → restart the service. See [Deployment](/guide/deploy) (Chinese).
+- The template's own hand-written SQL is already covered. If your project has its own hand-written SQL that reads data-scoped tables (tables whose entity carries `@DataScoped`), `pnpm verify` reports these queries after the upgrade until they add the condition from `dataScopeSqlFor` / `dataScopeSql` or carry `qw:no-data-scope <reason>`. Add the condition when the result is shown to the current user (lists, dropdown options, exports, statistics on a page); add the marker for system queries such as sign-in or scheduled tasks.
 
 ## 1.1.0 · 2026-10-14
 

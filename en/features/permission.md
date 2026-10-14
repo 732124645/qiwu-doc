@@ -114,6 +114,8 @@ Set it in **System → Roles** with **More → Data scope**. There are five scop
 
 User picker dialogs and department dropdown trees in the admin pages also list only the users and departments within scope by default (the **User** and **Department** components in approval forms are not limited; see [Form designer](/en/features/formkit)).
 
+Queries your project writes by hand in the code (such as statistics for reports) can apply the same data scope too; the development checks report queries that neither apply it nor state why not. For how to write them, see [Developer guide · Hand-written SQL](/core/permission#手写-sql-datascopesql) (Chinese).
+
 **Roles are not limited by data scope**: a role belongs to no department, and who can manage roles depends only on the `iam.role.*` permissions. The risk this brings is covered by the [privilege escalation guard](#privilege-escalation-guard) below.
 
 ### Users with several roles

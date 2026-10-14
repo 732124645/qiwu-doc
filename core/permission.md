@@ -1,5 +1,5 @@
 ---
-description: '服务端功能权限和数据范围的写法：权限点格式、@RequirePerm、在实体上声明数据范围、scopedQb 和 lockScopedIds、范围外一律返回 404 和防越权授予。'
+description: '服务端功能权限和数据范围的写法：权限点格式、@RequirePerm、在实体上声明数据范围、scopedQb 和 lockScopedIds、手写 SQL 用 dataScopeSql 加范围、范围外一律返回 404 和防越权授予。'
 ---
 
 # 在代码中使用权限与数据范围
@@ -252,7 +252,7 @@ export class Book extends BaseEntity {
 五种范围的说明见仓库的[数据权限文档 · 五种范围](https://github.com/732124645/qiwu-vue-admin/blob/main/docs/data-scope.md#五种范围)，规则链和多租户的边界见[超管、系统任务与缓存边界](https://github.com/732124645/qiwu-vue-admin/blob/main/docs/data-scope.md#超管系统任务与缓存边界)。
 
 ::: info 规则链
-`BaseCrudService` 上有一个受保护的 `scopeRules` 字段，默认是 `[deptScopeRule(), tenantRule]`，子类可以替换。`tenantRule` 是为多租户预留的位置，模板没有实现多租户，它**什么都不做**，也不提供任何租户隔离。
+`BaseCrudService` 上有一个受保护的 `scopeRules` 字段，默认是 `defaultScopeRules()`，里面只有部门规则 `deptScopeRule()`，子类可以替换。租户条件不在规则链里，由 ORM 统一加上，见[编写租户感知的代码](/core/tenancy)。
 :::
 
 ### 读：scopedQb
@@ -288,7 +288,7 @@ const found =
 ```
 
 ::: warning 只用 andWhere
-范围条件已经在查询上了，再调用 `.where()` 会**把它替换掉**。原生 SQL 和 `this.repo.find…()` 也不会自动加范围。详见[查询](/core/query)。
+范围条件已经在查询上了，再调用 `.where()` 会**把它替换掉**。原生 SQL 和 `this.repo.find…()` 也不会自动加范围。详见[查询](/core/query)，原生 SQL 见下面的[手写 SQL：dataScopeSql](#手写-sql-datascopesql)。
 :::
 
 ### 改和删：lockScopedIds
@@ -365,6 +365,8 @@ await this.assertWritableScope({ ...row, createdBy: clsGet('principal')?.userId 
 
 它只认 `this.<字段>.<方法>()` 这种调用。通过局部变量、辅助函数，或者把 Repository 直接注入控制器，它是看不出来的。这些情况要靠代码评审和数据范围的 e2e 测试来保证。
 
+另一项检查 `scripts/arch/data-scope-sql.mjs` 管手写 SQL：读带数据范围的表，要么拼入范围条件，要么写明不加范围的理由，见[手写 SQL：dataScopeSql](#手写-sql-datascopesql)。
+
 ### 不是基类实体时：applyScopes
 
 有些数据不是通过 `BaseCrudService` 读写的，比如流程实例表。可以直接调用 `applyScopes`，自己告诉它按哪两列判断：
@@ -382,6 +384,48 @@ export const scopedInstances = <Q extends SelectQueryBuilder<ObjectLiteral>>(qb:
 ```
 
 流程的实例管理、任务管理和审批数据，都通过 `scopedInstances` 查询，按发起部门（`initiator_dept_id`，发起申请时发起人所在的部门，之后不再改变）过滤。
+
+### 手写 SQL：dataScopeSql
+
+用 ORM 写的查询从 `scopedQb` 开始，自动带上数据范围：`BaseCrudService` 的方法和代码生成器生成的代码都是这样。用 `this.txHost.tx.query` 执行的手写 SQL（也叫原生 SQL）不经过 `scopedQb`，**不会**自动加范围。聚合、复杂联表这类 ORM 写不出来的查询，读带 `@DataScoped` 的表、并且结果是给当前用户看的（列表、下拉选项、导出、页面上的统计）时，要自己把同样的部门和本人条件拼进去：
+
+| 函数 | 用法 |
+| --- | --- |
+| `dataScopeSqlFor(实体, alias)` | 用实体上 `@DataScoped` 声明的列，最常用 |
+| `dataScopeSql(alias, columns)` | 自己给出列，`columns` 的写法和 `@DataScoped` 一样：`{ dept, owner }` |
+
+两个函数都返回 `{ sql, params }`：`sql` 是一段用 `?` 占位的条件，`params` 是这些占位符的值。计算和 `scopedQb` 是同一套：超级管理员和 `@SkipDataScope()` 得到 `1=1`，没有登录用户得到 `1=0`。
+
+把 `${scope.sql}` 插进语句，`scope.params` 放在参数数组里对应的位置；条件放在 WHERE 最后、后面没有别的 `?` 时，追加在其他参数后面就行。比如按部门统计图书数量：
+
+```ts
+import { tenantId } from '../../../core/context/tenant.js'
+import { dataScopeSqlFor } from '../../../core/data-scope/data-scope.js'
+import { Book } from './book.entity.js'
+
+const scope = dataScopeSqlFor(Book, 'b')
+const rows = await this.txHost.tx.query<{ dept_id: number; n: number }[]>(
+  // arch-allow: sql-concat the data scope: identifiers from code, values in params; tenant: b.tenant_id = ?
+  `SELECT b.dept_id, COUNT(*) AS n FROM demo_book b
+    WHERE b.tenant_id = ? AND b.deleted_at IS NULL AND ${scope.sql}
+    GROUP BY b.dept_id`,
+  [tenantId(), ...scope.params],
+)
+```
+
+- `${scope.sql}` 是拼进 SQL 的文本，所以要写 `arch-allow: sql-concat` 注释（见[查询 · 条件的写法](/core/query#条件的写法)），并用 `tenant: …` 写明租户条件；
+- 租户条件和 `deleted_at IS NULL` 不在 `scope.sql` 里，照常自己写；
+- 别名和列名只能是代码里写定的名字，否则直接报错；值一律在参数里；
+- 它只按默认的规则链计算：替换了 `scopeRules` 的服务要走 `scopedQb`，或者自己把规则写进 SQL。
+
+结果不是给当前用户看的系统查询不加范围，比如登录、引用检查、种子、定时任务、流程引擎找审批人。这时在这条 SQL 的某一行，或紧挨着它的上一行注释里，写 `qw:no-data-scope <理由>`，理由必须写。
+
+`pnpm verify` 的架构检查 `data-scope-sql` 会报出读带数据范围的表、却既没有插入 `${scope.sql}`、也没有写这个标记的手写 SQL。QueryBuilder 里用表名字符串查询或联表（比如 `qb.from('iam_user', 'u')`）也不经过 `scopedQb`，同样要写标记，或者改用实体走 `scopedQb`。注意：
+
+- `dataScopeSql` / `dataScopeSqlFor` 要在写 SQL 的那个函数里直接调用，包进辅助方法，检查就认不出来；
+- 检查只看代码里的字符串：由几段拼成的 SQL、放在变量里的表名，它都看不到，仍要靠代码评审。
+
+模板不会自动改写 SQL 来加范围：要在子查询、联表、UNION 里各找对位置，改错了就会悄悄多给数据，也难以评审。所以由写 SQL 的人自己拼入。完整规则见仓库的[数据权限 · 手写 SQL](https://github.com/732124645/qiwu-vue-admin/blob/main/docs/data-scope.md#手写-sql)，设计理由见[设计说明 · 数据范围与引用](https://github.com/732124645/qiwu-vue-admin/blob/main/docs/design-notes.md#data-scope)。
 
 ### 按另一个权限点算范围：withCheckedPerm
 

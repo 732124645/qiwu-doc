@@ -1,10 +1,24 @@
 ---
-description: '栖梧各正式版本的更新日志：1.1.0 版新增多租户（共用一个数据库、按租户隔离数据，租户管理、租户套餐、平台人员进入租户），以及升级和打开开关的注意事项；1.0.3 版新增 GitHub Actions 自动检查、自动发布和服务器部署套件，并修复若干问题；1.0.0 版包含的权限、多语言、代码生成、工作流、OAuth2、移动端、安全与部署等功能，以及多租户、OIDC、Docker 等已知限制。'
+description: '栖梧各正式版本的更新日志：1.2.0 版让代码里手写的 SQL 也能加上数据范围，并新增对应的检查；1.1.0 版新增多租户（共用一个数据库、按租户隔离数据，租户管理、租户套餐、平台人员进入租户），以及升级和打开开关的注意事项；1.0.3 版新增 GitHub Actions 自动检查、自动发布和服务器部署套件，并修复若干问题；1.0.0 版包含的权限、多语言、代码生成、工作流、OAuth2、移动端、安全与部署等功能，以及多租户、OIDC、Docker 等已知限制。'
 ---
 
 # 更新日志
 
 这里记录栖梧每个正式版本的变化。现在有哪些功能、各项的完成情况，见[介绍 · 功能一览](/guide/introduction#功能一览)。
+
+## 1.2.0 · 2026-10-14
+
+手写 SQL 也能加上数据范围了。数据范围决定一个人能看到哪些部门、哪些人的数据，见[权限与数据范围](/features/permission#数据范围)。用 `scopedQb`（带数据范围的查询构造器）写的查询一直自动带上数据范围；代码里手写的 SQL 不经过它，以前只能靠开发者自己记得加。
+
+新增：
+
+- **手写 SQL 的数据范围**：`dataScopeSql(alias, columns)` 和 `dataScopeSqlFor(实体, alias)` 返回和 `scopedQb` 同样的部门、本人条件，形式是带参数的 `{ sql, params }`，直接拼进手写 SQL。
+- **新的检查**：`pnpm verify` 会报出读带数据范围的表、却既没用上面的函数、也没写 `qw:no-data-scope <理由>` 标记的手写 SQL，QueryBuilder 里用表名字符串查询或联表的写法也算在内。SQL 不会被自动改写。写法见[手写 SQL：dataScopeSql](/core/permission#手写-sql-datascopesql)，仓库里的完整说明见[数据权限 · 手写 SQL](https://github.com/732124645/qiwu-vue-admin/blob/main/docs/data-scope.md#手写-sql)。
+
+升级步骤：
+
+- 本版只改代码：没有数据库迁移，环境变量和依赖也没有变化，可以回退到 1.1.0。照常升级：更新到 v1.2.0 的代码 → `pnpm i` → `pnpm -r build` → `pnpm db:migrate` → `pnpm db:seed` → 重启服务，详见[部署](/guide/deploy)。
+- 模板自带的手写 SQL 都已经处理好。项目自己写过手写 SQL、并且读带数据范围的表（实体带 `@DataScoped` 的表）时，升级后 `pnpm verify` 会报出这些查询，直到给它们拼入 `dataScopeSqlFor` / `dataScopeSql` 的条件，或写上 `qw:no-data-scope <理由>`。结果是给当前用户看的（列表、下拉选项、导出、页面上的统计）就拼入条件；登录、定时任务这类系统查询就写标记。
 
 ## 1.1.0 · 2026-10-14
 

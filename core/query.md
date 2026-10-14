@@ -174,10 +174,11 @@ qb.andWhere(
 const [{ n }] = await this.txHost.tx.query<{ n: string }[]>(
   `SELECT COUNT(*) AS n
      FROM msg_bulletin b
-    WHERE b.published = 1 AND b.deleted_at IS NULL
+    WHERE b.published = 1 AND b.deleted_at IS NULL AND b.tenant_id = ?
       AND NOT EXISTS (SELECT 1 FROM msg_bulletin_receipt r
-                       WHERE r.bulletin_id = b.id AND r.user_id = ? AND r.deleted_at IS NULL)`,
-  [userId],
+                       WHERE r.bulletin_id = b.id AND r.user_id = ? AND r.deleted_at IS NULL
+                         AND r.tenant_id = ?)`,
+  [tenantId(), userId, tenantId()],
 )
 return Number(n)
 ```
@@ -186,7 +187,8 @@ return Number(n)
 | --- | --- |
 | 参数用 `?` | 按顺序传入数组 |
 | 每张表都加 `deleted_at IS NULL` | 架构检查会逐表确认。确实需要包含已删除数据时（比如显示已删除用户的名字），在那一行或上一行写注释 `qw:include-deleted` |
-| 不会自动加数据范围 | 需要时自己处理 |
+| 每张租户表都加 `tenant_id` 条件 | 联表和子查询里的也要，见[编写租户感知的代码](/core/tenancy) |
+| 不会自动加数据范围 | 读带数据范围的表时用 `dataScopeSql` 拼入，或写明不加范围的理由，见[手写 SQL：dataScopeSql](/core/permission#手写-sql-datascopesql) |
 | 数字结果用 `Number()` 转换 | `COUNT(*)` 等可能返回字符串 |
 | 使用 `this.txHost.tx` | 这样才会加入当前的事务 |
 

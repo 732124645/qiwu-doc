@@ -245,8 +245,9 @@ async list(query: UserQuery) {
 // dept.service.ts（简化）
 protected override async beforeRemove(ids: number[]) {
   const [{ n }] = await this.txHost.tx.query(
-    'SELECT COUNT(*) AS n FROM iam_user WHERE dept_id IN (?) AND deleted_at IS NULL FOR SHARE',
-    [ids],
+    // qw:no-data-scope in-use check: any live user of the depts blocks the delete
+    'SELECT COUNT(*) AS n FROM iam_user WHERE dept_id IN (?) AND tenant_id = ? AND deleted_at IS NULL FOR SHARE',
+    [ids, tenantId()],
   )
   if (Number(n)) throw new BizError(Err.IAM_DEPT_HAS_USERS)
 }
@@ -305,17 +306,18 @@ await replaceLinks(this.txHost.tx, USER_ROLES, userId, roleIds)
 const rows = await this.txHost.tx.query<{ id: number; name: string }[]>(
   `SELECT r.id, r.name
      FROM iam_user_roles ur
-     JOIN iam_role r ON r.id = ur.role_id AND r.deleted_at IS NULL
-    WHERE ur.user_id = ? AND ur.deleted_at IS NULL
+     JOIN iam_role r ON r.id = ur.role_id AND r.tenant_id = ur.tenant_id AND r.deleted_at IS NULL
+    WHERE ur.user_id = ? AND ur.tenant_id = ? AND ur.deleted_at IS NULL
     ORDER BY r.sort_no, r.id`,
-  [userId],
+  [userId, tenantId()],
 )
 return rows.map((r) => ({ id: Number(r.id), name: r.name }))
 ```
 
 - 参数用 `?` 占位，**不能拼接字符串**；
 - 每张表都要自己加上 `deleted_at IS NULL`，架构检查会确认这一点；
-- 原生 SQL **不会**自动加上数据范围条件，需要时自己处理，或者使用 `scopedQb`；
+- 每张租户表（包括联表进来的）都要自己加上 `tenant_id` 条件，见[编写租户感知的代码](/core/tenancy)；
+- 原生 SQL **不会**自动加上数据范围条件：读带数据范围的表时用 `dataScopeSql` 拼入，或写明不加范围的理由，见[手写 SQL：dataScopeSql](/core/permission#手写-sql-datascopesql)；
 - 数字类型的结果，最好用 `Number(...)` 转换一下。
 
 ## 抛出错误
