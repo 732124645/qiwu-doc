@@ -1,10 +1,28 @@
 ---
-description: 'Qiwu release notes: version 1.2.0 lets hand-written SQL in the code apply data scope too, with a new check; version 1.1.0 adds multi-tenancy (one shared database with data isolated per tenant, tenants, tenant packages, platform staff entering a tenant) with notes on upgrading and turning it on; version 1.0.3 adds GitHub Actions checks, automated releases and a server deploy kit, plus fixes; version 1.0.0 covers permissions, workflow, code generation, the mobile app, deployment and known limitations.'
+description: 'Qiwu release notes: version 1.3.0 adds job queues on the existing Redis and a queue monitor page; version 1.2.0 lets hand-written SQL in the code apply data scope too, with a new check; version 1.1.0 adds multi-tenancy (one shared database with data isolated per tenant, tenants, tenant packages, platform staff entering a tenant) with notes on upgrading and turning it on; version 1.0.3 adds GitHub Actions checks, automated releases and a server deploy kit, plus fixes; version 1.0.0 covers permissions, workflow, code generation, the mobile app, deployment and known limitations.'
 ---
 
 # Changelog
 
 This page records the changes in each Qiwu release. For the current features and the status of each one, see [Introduction · Features at a glance](/en/guide/introduction#features-at-a-glance).
+
+## 1.3.0 · 2026-10-14
+
+Adds job queues. A job queue hands slow work (such as building a report) to the background: a request only puts a **job** in the queue and returns, and a **processor** in the background picks it up and runs it. Queues are built on BullMQ and use the application's existing Redis; no separate message broker is needed. For the full description in the repository, see [Job queues](https://github.com/732124645/qiwu-vue-admin/blob/main/docs/queue.md) (Chinese).
+
+Added:
+
+- **Job queues**: a module declares a queue with `registerQueue`, writes a processor extending `TenantJobProcessor`, and adds jobs with `QueueService.add`. Adding a job records the current tenant, and the job runs in that tenant; a job without a tenant fails at once without retries. By default a job is tried up to 3 times, with the wait doubling after each failure; the last 1000 completed and 5000 failed jobs are kept. A job runs at least once, so processors must be safe to run again. Every instance runs the processors and lets running jobs finish when it shuts down.
+- **Queue monitor page**: **Monitoring → Queue monitor**, a platform page; with multi-tenancy on, only the platform root can open it. It shows each queue's job counts by state and whether it is paused, lists jobs by state (secret fields in job data are masked), and can retry failed jobs and remove jobs. Permissions are `monitor.queue.browse` / `retry` / `remove`; retries and removals are action-logged. The template itself registers no queue yet, so the page currently shows "No queue is registered yet". See [Monitoring and logs · Queue monitor](/features/monitor#队列监控) (Chinese).
+
+Upgrade:
+
+- No database migrations and no env changes. The server adds two dependencies, `bullmq` (^6.3.14) and `@nestjs/bullmq` (^12.0.0), which `pnpm i` installs. The new menu is written by the seed, so run `pnpm db:seed`.
+- Check Redis before upgrading:
+  - `maxmemory-policy` must be `noeviction`. Other policies evict keys when memory runs low, and queued jobs are lost silently. Set it in `redis.conf` (the application's account cannot run `CONFIG`); Homebrew installs use `noeviction` by default. If it is different, the application still starts and logs a warning.
+  - The application's Redis ACL user needs the read-only `INFO` command (for example `+info` in the persistent ACL): every queue connection reads the Redis version, and start-up reads the eviction policy.
+  - Each processor uses two more Redis connections per instance; leave room for them.
+- Then upgrade as usual: update to the v1.3.0 code → `pnpm i` → `pnpm -r build` → `pnpm db:migrate` → `pnpm db:seed` → restart, see [Deploy](/guide/deploy) (Chinese).
 
 ## 1.2.1 · 2026-10-14
 

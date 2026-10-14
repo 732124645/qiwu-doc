@@ -53,7 +53,9 @@ GRANT ALL ON qiwu_dev.* TO 'qiwu'@'localhost';
 GRANT ALL ON qiwu_dev.* TO 'qiwu'@'127.0.0.1';
 ```
 
-Every Redis key has the `qw:` prefix, so you can share one Redis with other projects. To restrict access, create an ACL user that can only touch `qw:*` keys and `qw:*` channels (keys as `~qw:*`, channels as `&qw:*`), and do not give it admin commands such as `FLUSHDB`, `KEYS` or `CONFIG`.
+Every Redis key has the `qw:` prefix, so you can share one Redis with other projects. To restrict access, create an ACL user that can only touch `qw:*` keys and `qw:*` channels (keys as `~qw:*`, channels as `&qw:*`), and do not give it admin commands such as `FLUSHDB`, `KEYS` or `CONFIG`; do give it the read-only `INFO` command (`+info`): job queues read the Redis version when they connect, and start-up reads the eviction policy.
+
+Redis `maxmemory-policy` (what happens when memory is full) should be `noeviction`; otherwise queued jobs are deleted when memory runs low. Redis installed with Homebrew uses it by default; on Windows, check it in PowerShell with `memurai-cli config get maxmemory-policy`. If it is different, put `maxmemory-policy noeviction` in the configuration file and restart the service. The application still starts if it is wrong, and only logs a warning. See [Job queues · Redis requirements](https://github.com/732124645/qiwu-vue-admin/blob/main/docs/queue.md#redis-要求) (Chinese) in the repository.
 
 The repository recommends a dedicated ACL user `qiwu` for the application. Development uses Redis database 13 (the default in `.env.example`). To run tests later you also need separate isolated databases such as `qiwu_test` and `qiwu_e2e`; for the database names, Redis database numbers and ports of each environment, see [section 2 of the repository's getting started guide](https://github.com/732124645/qiwu-vue-admin/blob/main/docs/getting-started.md#2-空库账号与隔离) (Chinese).
 

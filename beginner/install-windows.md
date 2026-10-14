@@ -147,6 +147,20 @@ memurai-cli ping
 
 你应该看到 `PONG`；这里的 `.\` 表示运行当前目录里的程序。
 
+再确认内存满时的处理方式（`maxmemory-policy`）。项目的任务队列把排队中的任务存在 Memurai 里，这一项必须是 `noeviction`（内存满时不删数据）。执行：
+
+```powershell
+memurai-cli config get maxmemory-policy
+```
+
+如果上面要用 `.\memurai-cli.exe` 才能运行，这里也一样，在 Memurai 安装目录里执行：
+
+```powershell
+.\memurai-cli.exe config get maxmemory-policy
+```
+
+你应该看到两行：`maxmemory-policy` 和 `noeviction`。如果第二行不是 `noeviction`，用记事本打开 Memurai 安装目录里的配置文件，加一行 `maxmemory-policy noeviction` 并保存，再在“服务”里重启 Memurai 服务（见下面的提示）。
+
 ::: tip 启动或停止数据库和缓存
 按 `Win + R`，输入 `services.msc`，按回车打开“服务”。找到安装时配置的 MySQL 服务和 Memurai 服务，右键选择启动或停止。检查时，它们的状态应为“正在运行”；服务名以实际安装为准。
 :::

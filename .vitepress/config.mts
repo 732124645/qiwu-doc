@@ -384,6 +384,7 @@ export default defineConfigWithTheme<DefaultTheme.Config & { enPages?: string[] 
             { text: '缓存', link: '/core/cache' },
             { text: '防重复提交、限流与锁', link: '/core/guards' },
             { text: '定时任务', link: '/core/job' },
+            { text: '任务队列', link: '/core/queue' },
             { text: '消息通知', link: '/core/notify' },
             { text: '实时推送', link: '/core/realtime' },
             { text: '文件上传', link: '/core/upload' },

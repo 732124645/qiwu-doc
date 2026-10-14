@@ -153,6 +153,21 @@ redis-cli ping
 PONG
 ```
 
+再确认内存满时的处理方式（`maxmemory-policy`）。项目的任务队列把排队中的任务存在 Redis 里，这一项必须是 `noeviction`（内存满时不删数据）：
+
+```bash
+redis-cli config get maxmemory-policy
+```
+
+你应该看到：
+
+```text
+1) "maxmemory-policy"
+2) "noeviction"
+```
+
+Homebrew 安装的 Redis 默认就是这样，不用改。
+
 ## 7. VS Code
 
 1. 打开 VS Code 官网（code.visualstudio.com），下载 Mac 版，拖到"应用程序"文件夹；

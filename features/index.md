@@ -17,7 +17,7 @@ description: '按菜单列出栖梧的功能：系统管理、登录、单点登
 | [单点登录（OAuth2）](/features/oauth) | 让其他系统用这里的账号登录：客户端管理、授权同意页、记住授权 |
 | [权限与数据范围](/features/permission) | 菜单和按钮权限、五种数据范围、防越权授予 |
 | [多租户](/features/multi-tenancy) | 一套部署服务多家公司：租户管理、租户套餐、绑定域名、品牌、平台人员进入租户，默认关闭 |
-| [监控与日志](/features/monitor) | 服务器、MySQL、Redis 监控，操作日志、登录日志、接口访问和错误日志 |
+| [监控与日志](/features/monitor) | 服务器、MySQL、Redis 和任务队列监控，操作日志、登录日志、接口访问和错误日志 |
 | [定时任务](/features/job) | 可视化 Cron、错过策略、重试、超时、执行日志，以及内置的系统任务 |
 | [消息中心](/features/messaging) | 站内信、邮件、短信、微信订阅消息、多语言消息模板、发送记录 |
 | [文件管理](/features/storage) | 本地或 S3 存储、浏览器直传、公开和私有文件 |

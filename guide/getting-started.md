@@ -53,7 +53,9 @@ GRANT ALL ON qiwu_dev.* TO 'qiwu'@'localhost';
 GRANT ALL ON qiwu_dev.* TO 'qiwu'@'127.0.0.1';
 ```
 
-Redis 的所有键都带 `qw:` 前缀，可以和其他项目共用一个 Redis。如果要限制权限，可以建一个只能访问 `qw:*` 键和 `qw:*` 频道的 ACL 用户（键写成 `~qw:*`，频道写成 `&qw:*`），不要给它 `FLUSHDB`、`KEYS`、`CONFIG` 这类管理命令。
+Redis 的所有键都带 `qw:` 前缀，可以和其他项目共用一个 Redis。如果要限制权限，可以建一个只能访问 `qw:*` 键和 `qw:*` 频道的 ACL 用户（键写成 `~qw:*`，频道写成 `&qw:*`），不要给它 `FLUSHDB`、`KEYS`、`CONFIG` 这类管理命令，但要给它只读的 `INFO`（写成 `+info`）：任务队列建立连接时读取 Redis 版本，启动时读取淘汰策略。
+
+Redis 的 `maxmemory-policy`（内存满时怎么处理）要是 `noeviction`，否则内存不足时排队中的任务会被删掉。Homebrew 安装的 Redis 默认就是它；Windows 上可以在 PowerShell 里用 `memurai-cli config get maxmemory-policy` 查看。不是的话，在配置文件里写上 `maxmemory-policy noeviction` 再重启服务。不符合时应用照样能启动，只在日志里记一条警告。见仓库的[任务队列 · Redis 要求](https://github.com/732124645/qiwu-vue-admin/blob/main/docs/queue.md#redis-要求)。
 
 仓库推荐给应用建专用 ACL 用户 `qiwu`。开发用 Redis 13 号库（`.env.example` 的默认值）。以后要跑测试，还要另建 `qiwu_test`、`qiwu_e2e` 等隔离库，各环境的库名、库号和端口见[仓库入门指南第 2 节](https://github.com/732124645/qiwu-vue-admin/blob/main/docs/getting-started.md#2-空库账号与隔离)。
 

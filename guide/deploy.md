@@ -23,6 +23,13 @@ pnpm -r build
 
 普通配置写 `apps/server/.env`（`NODE_ENV=production`、库名、Redis 库号、`TRUST_PROXY`、`CORS_ORIGIN`、`SWAGGER_ENABLED=false` 等），账号和密钥只写 `.env.local` 或进程环境，`.env` 里连空值也不写。不要复制开发或测试环境的密钥，生产环境会拒绝带 `not-for-production` 标记的密钥。Redis 库号先确认空闲，不和开发、测试、演示共用；`.env.local` 设为 `600`。示例见[仓库](https://github.com/732124645/qiwu-vue-admin/blob/main/docs/deploy.md#构建产物与环境)，各项含义见[环境变量](/reference/env)。
 
+Redis 还有两项要求，都来自任务队列（把耗时的工作交给后台执行的功能）：
+
+- `maxmemory-policy`（内存满时怎么处理）必须是 `noeviction`，在 `redis.conf` 里设置；其他策略会在内存不足时删掉键，排队中的任务就丢了。应用启动时检查这一项，不符合时只记警告日志。
+- 应用的 Redis ACL 用户需要只读的 `INFO` 命令（例如在持久 ACL 里加 `+info`）。
+
+见仓库的[任务队列 · Redis 要求](https://github.com/732124645/qiwu-vue-admin/blob/main/docs/queue.md#redis-要求)。
+
 首次部署的数据初始化：
 
 ```bash
@@ -72,7 +79,7 @@ PM2 能在崩溃后自动重启、开机自启。它是 AGPL-3.0 协议，只在
 
 ## GitHub Actions 自动部署
 
-仓库自带两个 GitHub Actions 工作流（写在 `.github/workflows/` 里、由 GitHub 自动执行的一组步骤）和一套 Linux 部署脚本（`scripts/deploy/`），可以选用。推送到 main 或提交合并请求（PR）时运行完整检查（CI）；推送 `vX.Y.Z` 标签后，先确认这个提交的 CI 已经通过，再创建 GitHub Release，并经 SSH 部署到服务器。用在自己的仓库时，两个工作流里的仓库名要一起改。每个版本放在单独的目录里，切换时不停机；健康检查失败时自动切回上一版代码，数据库不回退，所以迁移要兼容上一版本。服务器下载源码时不带凭据，标签所在的仓库必须公开。
+仓库自带两个 GitHub Actions 工作流（写在 `.github/workflows/` 里、由 GitHub 自动执行的一组步骤）和一套 Linux 部署脚本（`scripts/deploy/`），可以选用。推送到 main 或提交合并请求（PR）时运行完整检查（CI），检查拆成多个并行的作业（服务端测试和网页端到端测试各分 3 片同时跑），汇总作业 `gate` 在全部作业成功时才算通过；推送 `vX.Y.Z` 标签后，先确认这个提交的 CI（以 `gate` 为准）已经通过，再创建 GitHub Release，并经 SSH 部署到服务器。用在自己的仓库时，两个工作流里的仓库名要一起改。每个版本放在单独的目录里，切换时不停机；健康检查失败时自动切回上一版代码，数据库不回退，所以迁移要兼容上一版本。服务器下载源码时不带凭据，标签所在的仓库必须公开。
 
 发布一个版本：在 `CHANGELOG.md` 写好 `## [1.2.0]` 一节，推送到 main 并等 CI 通过，再在这个提交上打标签：
 
@@ -113,4 +120,4 @@ git push origin v1.2.0
 
 ## 多实例部署
 
-服务端可以运行多个实例，实时推送和限流经 Redis 共享。前提：Redis 7 及以上；同一部署的所有实例连同一个 MySQL 库和 Redis，`REDIS_DB`、`REDIS_KEY_PREFIX`、`APP_SECRET` 和程序版本都相同，不同部署用不同库号；所有实例的 `APP_MULTI_TENANT` 也要相同，切换时全部重启；本地文件放共享目录，跨机器建议用 S3。只用 WebSocket，不需要粘性会话；迁移和种子仍只在发布时执行一次。模板只在同一台机器上用两个进程测试过，完整条件和限制见[仓库](https://github.com/732124645/qiwu-vue-admin/blob/main/docs/scale-out.md#启动前置条件)。
+服务端可以运行多个实例，实时推送和限流经 Redis 共享。前提：Redis 7 及以上；同一部署的所有实例连同一个 MySQL 库和 Redis，`REDIS_DB`、`REDIS_KEY_PREFIX`、`APP_SECRET` 和程序版本都相同，不同部署用不同库号；所有实例的 `APP_MULTI_TENANT` 也要相同，切换时全部重启；本地文件放共享目录，跨机器建议用 S3。每个实例都运行全部队列的处理器，同一个任务只会被一个实例取走，加实例就加处理能力；任务可能执行不止一次，处理器要能安全地重复执行，见[仓库](https://github.com/732124645/qiwu-vue-admin/blob/main/docs/queue.md#每个实例都运行处理器)。只用 WebSocket，不需要粘性会话；迁移和种子仍只在发布时执行一次。模板只在同一台机器上用两个进程测试过，完整条件和限制见[仓库](https://github.com/732124645/qiwu-vue-admin/blob/main/docs/scale-out.md#启动前置条件)。

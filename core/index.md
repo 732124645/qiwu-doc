@@ -41,6 +41,7 @@ flowchart LR
 | 把频繁读取的数据暂存起来 | Redis | [缓存](/core/cache) |
 | 防止重复提交、限制调用频率、互斥执行 | `@Idempotent`、`@RateLimit`、`RedisLock` | [防重复提交、限流与锁](/core/guards) |
 | 定时执行一段逻辑 | `@JobHandler` | [定时任务](/core/job) |
+| 把耗时工作交给后台执行 | `registerQueue`、`QueueService` | [任务队列](/core/queue) |
 | 发站内信、邮件、短信 | `Notifier` | [消息通知](/core/notify) |
 | 实时推送给浏览器 | `RealtimeService` | [实时推送](/core/realtime) |
 | 上传图片或附件 | `ImageUpload` / `FileUpload` | [文件上传](/core/upload) |

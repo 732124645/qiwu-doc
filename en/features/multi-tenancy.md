@@ -128,14 +128,14 @@ A **tenant package** decides which menus and buttons a tenant can use. Manage pa
 ::: details Platform-only pages
 The following pages are maintained centrally by the platform and shared by all tenants; they cannot be put into a package:
 
-- **Monitoring**: **Server**, **Database monitor**, **Cache monitor**, **Cache keys**, **Scheduled tasks**, **Job log**;
+- **Monitoring**: **Server**, **Database monitor**, **Cache monitor**, **Cache keys**, **Queue monitor**, **Scheduled tasks**, **Job log**;
 - **System tools**: **Code generator**, **Form builder**, **API docs**, **Element Plus docs**;
 - **System**: **Menus**, **Dictionaries**, **Dictionary entries**, **Parameters**, **App versions**, **OAuth2 clients**, **Tenants**, **Tenant packages**;
 - **System → Files**: **Storage configs**;
 - **System → Message center**: **Mail accounts**, **SMS channels**, **Inbox templates**, **Mail templates**, **SMS templates**;
 - **System → Logs**: **API access log**, **API error log**.
 
-With the switch on, **API access log**, **API error log** and **Cache keys** hold data of all tenants, so only the super administrator can see them. Roles in the default tenant with the matching permissions use the other platform pages as usual.
+With the switch on, **API access log**, **API error log**, **Cache keys** and **Queue monitor** hold data of all tenants, so only the super administrator can see them. Roles in the default tenant with the matching permissions use the other platform pages as usual.
 :::
 
 For the detailed rules, see the repository's [Tenant packages](https://github.com/732124645/qiwu-vue-admin/blob/main/docs/multi-tenancy.md#租户套餐) (Chinese).
