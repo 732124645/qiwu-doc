@@ -51,6 +51,7 @@ description: '写给只写过 Vue 的前端开发者的后端入门：后端负�
 5. **[登录是怎么回事](/backend/auth)**：令牌、cookie、为什么令牌不能放在 `localStorage` 里。
 6. **[手把手：加一个自定义操作](/backend/tutorial)**：从后端到前端，完整做一个功能。
 7. **[写测试](/backend/testing)** 和 **[排查问题](/backend/debugging)**
+8. **[断点调试](/backend/breakpoints)**：在浏览器里让前端代码停在某一行，查看变量的值
 
 ## 好消息：大部分代码不需要你写
 

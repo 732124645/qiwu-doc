@@ -315,6 +315,7 @@ export default defineConfigWithTheme<DefaultTheme.Config & { enPages?: string[] 
             { text: '手把手：加一个自定义操作', link: '/backend/tutorial' },
             { text: '写测试', link: '/backend/testing' },
             { text: '排查问题', link: '/backend/debugging' },
+            { text: '断点调试', link: '/backend/breakpoints' },
           ],
         },
       ],

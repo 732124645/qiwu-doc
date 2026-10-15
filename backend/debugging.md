@@ -129,3 +129,5 @@ SELECT * FROM meta_migrations ORDER BY id DESC LIMIT 5;           -- 最近执�
 | i18n | 缺少某种语言的翻译；代码里写了中文 |
 | originality | 使用了参考项目里的标识符 |
 | license | 新依赖的许可证不在白名单里 |
+
+另见：[断点调试](/backend/breakpoints)：让程序停在某一行，直接查看变量的值。
