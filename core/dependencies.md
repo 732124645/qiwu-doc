@@ -110,7 +110,11 @@ allowBuilds:
 
 ## 4. 许可证检查
 
-栖梧以 MIT 许可证发布。用了许可证不兼容的包，整个项目就不能按 MIT 分发，所以每个依赖都要检查：
+::: tip 这是模板自己的规则
+栖梧要以 MIT 许可证开源发布，所以模板仓库对**自己**的依赖做许可证检查。你用栖梧开发自己的项目时，用什么许可证的依赖由你决定：可以修改 `scripts/license-check.mjs` 里允许的许可证，或者把根目录 `package.json` 的 `verify` 脚本里最后的 `&& pnpm license:check` 去掉。只是要自己评估所选依赖的许可证义务，比如 GPL 类许可证对你的项目分发方式的要求。保留 BPMN 设计器时，`bpmn-js` 的 bpmn.io 标志义务照样适用，见仓库的 [THIRD-PARTY-NOTICES.md](https://github.com/732124645/qiwu-vue-admin/blob/main/THIRD-PARTY-NOTICES.md)。
+:::
+
+下面说明模板默认的检查规则。用了许可证不兼容的包，模板就不能按 MIT 分发，所以模板仓库的每个依赖都要检查：
 
 ```bash
 pnpm license:check
@@ -137,7 +141,7 @@ license-check: <包的总数> packages, 1 violation(s)
 
 以 `note` 开头的行只是提示（比如已经登记过的例外），不算失败；最后一行的 `0 violation(s)` 才表示通过。
 
-**遇到失败怎么办：**首选换一个许可证合适的包。确实需要、而且许可证本身没有问题（比如只是写法不规范，`MIT/X11` 实际就是 MIT），可以在根目录的 `license-exceptions.json` 里登记：
+**遇到失败怎么办：**如果你还想保持和模板一样的规则，首选换一个许可证合适的包。确实需要、而且许可证本身没有问题（比如只是写法不规范，`MIT/X11` 实际就是 MIT），可以在根目录的 `license-exceptions.json` 里登记：
 
 | 字段 | 用途 |
 | --- | --- |

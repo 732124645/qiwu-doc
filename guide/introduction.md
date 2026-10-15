@@ -149,6 +149,10 @@ description: '栖梧（Qiwu）是基于 NestJS 和 Vue 3 的 Node 全栈管理�
 
 ![暗色模式下的工作台](/screenshots/zh-home-dark.webp)
 
+## 免责声明
+
+本项目按 MIT 许可"按原样"提供，不提供任何担保。用它做什么由使用者自行决定并承担责任，不得用于违法违规用途。完整内容见[免责声明](/guide/disclaimer)。
+
 ## 参与贡献
 
 栖梧是开源项目，欢迎参与。按你想做的事找入口：

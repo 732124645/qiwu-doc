@@ -147,6 +147,10 @@ For details on each feature, see the [Features overview](/en/features/).
 | Other third-party sign-in (GitHub, DingTalk, WeCom, Feishu (Lark), WeChat QR code, etc.) | ⏸ |
 | Instant messaging (one-to-one chat, group chat, staff directory), offline push for the app | ⏸ |
 
+## Disclaimer
+
+This project is provided "as is" under the MIT license, without any warranty. Users decide what to do with it and bear the responsibility, and it must not be used for anything illegal. See the full [Disclaimer](/en/guide/disclaimer).
+
 ## Contributing
 
 Qiwu is open source and contributions are welcome. Pick the place that fits what you want to do:

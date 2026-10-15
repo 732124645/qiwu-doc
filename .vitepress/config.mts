@@ -24,6 +24,7 @@ const enSidebar = [
       { text: 'Introduction', link: '/en/guide/introduction' },
       { text: 'Project story', link: '/en/guide/story' },
       { text: 'Getting started', link: '/en/guide/getting-started' },
+      { text: 'Disclaimer', link: '/en/guide/disclaimer' },
     ],
   },
   {
@@ -243,7 +244,7 @@ export default defineConfigWithTheme<DefaultTheme.Config & { enPages?: string[] 
         },
         sidebarMenuLabel: 'Menu',
         returnToTopLabel: 'Return to top',
-        footer: { message: 'Released under the MIT License.', copyright: '© 2026 Qiwu' },
+        footer: { message: 'Released under the MIT License · <a href="/en/guide/disclaimer">Disclaimer</a>', copyright: '© 2026 Qiwu' },
       },
     },
   },
@@ -282,6 +283,7 @@ export default defineConfigWithTheme<DefaultTheme.Config & { enPages?: string[] 
             { text: '项目由来', link: '/guide/story' },
             { text: '快速开始', link: '/guide/getting-started' },
             { text: '目录结构', link: '/guide/structure' },
+            { text: '免责声明', link: '/guide/disclaimer' },
           ],
         },
         {
@@ -545,6 +547,6 @@ export default defineConfigWithTheme<DefaultTheme.Config & { enPages?: string[] 
     externalLinkIcon: true,
     sidebarMenuLabel: '菜单',
     returnToTopLabel: '回到顶部',
-    footer: { message: '基于 MIT 协议发布', copyright: '© 2026 栖梧 Qiwu' },
+    footer: { message: '基于 MIT 协议发布 · <a href="/guide/disclaimer">免责声明</a>', copyright: '© 2026 栖梧 Qiwu' },
   },
 })
