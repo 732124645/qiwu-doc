@@ -409,6 +409,10 @@ export default defineConfigWithTheme<DefaultTheme.Config & { enPages?: string[] 
           ],
         },
         {
+          text: '依赖',
+          items: [{ text: '添加依赖和第三方模块', link: '/core/dependencies' }],
+        },
+        {
           text: '移动端',
           items: [{ text: '移动端开发', link: '/core/mobile' }],
         },
