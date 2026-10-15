@@ -111,7 +111,9 @@ allowBuilds:
 ## 4. 许可证检查
 
 ::: tip 这是模板自己的规则
-栖梧要以 MIT 许可证开源发布，所以模板仓库对**自己**的依赖做许可证检查。你用栖梧开发自己的项目时，用什么许可证的依赖由你决定：可以修改 `scripts/license-check.mjs` 里允许的许可证，或者把根目录 `package.json` 的 `verify` 脚本里最后的 `&& pnpm license:check` 去掉。只是要自己评估所选依赖的许可证义务，比如 GPL 类许可证对你的项目分发方式的要求。保留 BPMN 设计器时，`bpmn-js` 的 bpmn.io 标志义务照样适用，见仓库的 [THIRD-PARTY-NOTICES.md](https://github.com/732124645/qiwu-vue-admin/blob/main/THIRD-PARTY-NOTICES.md)。
+栖梧要以 MIT 许可证开源发布，所以模板仓库对**自己**的依赖做许可证检查。你用栖梧开发自己的项目时，用什么许可证的依赖由你决定：可以修改 `scripts/license-check.mjs` 里允许的许可证，或者把根目录 `package.json` 的 `verify` 脚本里最后的 `&& pnpm license:check` 去掉（保留手机端时，`mobile/package.json` 的 `verify` 里也有同样一步）。只是要自己评估所选依赖的许可证义务，比如 GPL 类许可证对你的项目分发方式的要求。
+
+注意：整个去掉检查，也会去掉 `scripts/license-check.mjs` 里的禁用包名单。名单里有的包不只是许可证原因，比如 `wangeditor` 是因为存在未修复的 XSS（跨站脚本）漏洞被禁用。所以更稳妥的做法是只放宽允许的许可证，保留禁用名单。保留 BPMN 设计器时，`bpmn-js` 的 bpmn.io 标志义务照样适用，见仓库的 [THIRD-PARTY-NOTICES.md](https://github.com/732124645/qiwu-vue-admin/blob/main/THIRD-PARTY-NOTICES.md)。
 :::
 
 下面说明模板默认的检查规则。用了许可证不兼容的包，模板就不能按 MIT 分发，所以模板仓库的每个依赖都要检查：
