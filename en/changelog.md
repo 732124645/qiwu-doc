@@ -1,10 +1,23 @@
 ---
-description: 'Qiwu release notes: version 1.3.0 adds job queues on the existing Redis and a queue monitor page; version 1.2.0 lets hand-written SQL in the code apply data scope too, with a new check; version 1.1.0 adds multi-tenancy (one shared database with data isolated per tenant, tenants, tenant packages, platform staff entering a tenant) with notes on upgrading and turning it on; version 1.0.3 adds GitHub Actions checks, automated releases and a server deploy kit, plus fixes; version 1.0.0 covers permissions, workflow, code generation, the mobile app, deployment and known limitations.'
+description: 'Qiwu release notes: version 1.3.1 adds the QW_INSPECT switch for server breakpoint debugging and VS Code debug configurations; version 1.3.0 adds job queues on the existing Redis and a queue monitor page; version 1.2.0 lets hand-written SQL in the code apply data scope too, with a new check; version 1.1.0 adds multi-tenancy (one shared database with data isolated per tenant, tenants, tenant packages, platform staff entering a tenant) with notes on upgrading and turning it on; version 1.0.3 adds GitHub Actions checks, automated releases and a server deploy kit, plus fixes; version 1.0.0 covers permissions, workflow, code generation, the mobile app, deployment and known limitations.'
 ---
 
 # Changelog
 
 This page records the changes in each Qiwu release. For the current features and the status of each one, see [Introduction · Features at a glance](/en/guide/introduction#features-at-a-glance).
+
+## 1.3.1 · 2026-10-15
+
+A patch release that adds a switch for breakpoint debugging of the server during development.
+
+Added:
+
+- **Server breakpoint debugging**: start the dev server with `QW_INSPECT=1 pnpm dev` (PowerShell: `$env:QW_INSPECT=1; pnpm.cmd dev`) and only the server app process opens the Node inspector on `127.0.0.1:9229`, with source maps, so breakpoints go straight into the TypeScript sources; a port number (1024 to 65535) instead of `1` picks another port.
+- **VS Code debug configurations**: the repository now commits `.vscode/launch.json`, with a server attach configuration **Server: attach (pnpm dev with QW_INSPECT=1)** that reattaches after every server restart, and two configurations that open the Vite dev server in Edge or Chrome for front-end debugging. See [Breakpoint debugging](/backend/breakpoints#后端) (Chinese).
+
+Upgrade:
+
+- Developer tooling only: no database migrations, no env or dependency changes; `QW_INSPECT` is set only when needed on a development machine and does not go into `.env`. The changed files are the dev start script `scripts/dev-server.mjs`, the new `.vscode/launch.json` and `.gitignore` (so that `.vscode/launch.json` can be committed); if your project changed these files, take care when merging. Upgrade as usual: update to the v1.3.1 code → `pnpm i` → `pnpm -r build` → `pnpm db:migrate` → `pnpm db:seed` → restart, see [Deploy](/guide/deploy) (Chinese).
 
 ## 1.3.0 · 2026-10-14
 

@@ -11,7 +11,7 @@ description: '栖梧（Qiwu）是基于 NestJS 和 Vue 3 的 Node 全栈管理�
 想知道我为什么做这个项目，见[项目由来](/guide/story)。
 
 ::: info 当前状态
-**v1.3.0** 已于 2026-10-14 正式发布，基于 **MIT 协议**开源。最近几个版本新增了[多租户](/features/multi-tenancy)、手写 SQL 的[数据范围](/core/permission#手写-sql-datascopesql)，以及任务队列（把耗时的工作交给后台执行，直接用已有的 Redis），版本变化见[更新日志](/changelog)。移动端已经可以在本机构建和调试，真机和应用商店发布前的核对仍在进行。下面的功能表标出了每一项的状态。
+**v1.3.1** 已于 2026-10-15 正式发布，基于 **MIT 协议**开源。最近几个版本新增了[多租户](/features/multi-tenancy)、手写 SQL 的[数据范围](/core/permission#手写-sql-datascopesql)、任务队列（把耗时的工作交给后台执行，直接用已有的 Redis），以及后端的[断点调试](/backend/breakpoints)开关，版本变化见[更新日志](/changelog)。移动端已经可以在本机构建和调试，真机和应用商店发布前的核对仍在进行。下面的功能表标出了每一项的状态。
 :::
 
 ## 在线演示

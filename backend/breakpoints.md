@@ -1,5 +1,5 @@
 ---
-description: '断点调试入门：在浏览器开发者工具里给电脑端前端打断点、看变量、单步执行，用 Network 面板拿到 traceId 交给后端查日志，用 Vue DevTools 看组件、Pinia 和路由，以及移动端 H5、小程序和 App 在哪里调试。'
+description: '断点调试入门：在浏览器开发者工具里给电脑端前端打断点、看变量、单步执行，用 Network 面板拿到 traceId 交给后端查日志，用 Vue DevTools 看组件、Pinia 和路由；用 QW_INSPECT 打开后端的调试端口，在 VS Code 或 WebStorm 里给 NestJS 服务端打断点；以及移动端 H5、小程序和 App 在哪里调试。'
 ---
 
 # 断点调试
@@ -117,7 +117,7 @@ function onSubmit() {
 
 Vue DevTools 只在 `pnpm dev` 的开发模式下可用，构建后的正式版本看不到。
 
-也可以在 VS Code 里连接浏览器调试前端，不是必需的，本页不展开。
+也可以在 VS Code 里调试前端：仓库自带两个调试配置 **Web: Edge (Vite dev server)** 和 **Web: Chrome (Vite dev server)**（在 `.vscode/launch.json` 里）。`pnpm dev` 运行时，在 VS Code 的**运行和调试**里选其中一个，它会打开一个可调试的浏览器并访问 `http://localhost:5173`，断点直接打在 VS Code 里 `apps/web/src` 的文件上。这不是必需的，用浏览器自带的开发者工具效果一样。
 
 ## 手机端
 
@@ -133,4 +133,83 @@ Vue DevTools 只在 `pnpm dev` 的开发模式下可用，构建后的正式版�
 
 ## 后端
 
-后端的断点调试（用 VS Code 或 WebStorm 连接到 NestJS 服务端打断点）会在这一页以后的更新里介绍。在那之前，后端的问题请用 traceId 加日志、用 Swagger 直接调接口来排查，方法见[排查问题](/backend/debugging)。
+后端（NestJS 服务端）也能像前端一样打断点：程序停在某一行，在编辑器里看变量、单步执行。做法是让后端进程打开 Node.js 的**调试端口**（inspector：调试器通过这个端口连上正在运行的 Node 进程），再用 VS Code 或 WebStorm **附加**（attach）上去。“附加”的意思是：程序已经在运行，调试器连上去，而不是由调试器重新启动程序。
+
+### 第一步：带调试端口启动开发服务
+
+平时用 `pnpm dev` 启动开发服务。要调试后端时，改成在启动前设置环境变量 `QW_INSPECT=1`：
+
+::: code-group
+
+```bash [macOS]
+QW_INSPECT=1 pnpm dev
+```
+
+```powershell [Windows（PowerShell）]
+$env:QW_INSPECT=1; pnpm.cmd dev
+```
+
+:::
+
+PowerShell 的设置会保留在当前终端里，之后再在这个终端运行 `pnpm dev` 也会带上调试端口。不需要时用 `Remove-Item Env:QW_INSPECT` 清除，或者关闭这个终端。
+
+用 Windows 的 cmd（命令提示符）时，先运行 `set "QW_INSPECT=1"`，再运行 `call pnpm.cmd dev`；用完运行 `set "QW_INSPECT="` 清除。
+
+这样启动后：
+
+- 只有**后端应用进程**打开调试端口，地址是 `127.0.0.1:9229`。`pnpm dev` 里同时运行的 TypeScript 编译（tsc）和前端的 Vite 不受影响；
+- 端口只监听本机（`127.0.0.1`），局域网里的其他电脑连不上；
+- 同时打开了 **source map**（源码映射），所以断点可以直接打在 TypeScript 源文件上，不用去看编译后的 JavaScript。
+
+`QW_INSPECT` 可以取这些值：
+
+| 值 | 效果 |
+| --- | --- |
+| `1` 或 `true` | 打开调试端口 `9229` |
+| 1024 到 65535 之间的端口号，比如 `9230` | 换成这个端口。这时要把 `.vscode/launch.json` 里后端配置的 `port` 改成相同的值 |
+| `0`、`false` 或不设置 | 不打开调试端口，和平时的 `pnpm dev` 一样 |
+| 其他值 | 终端里打印一条警告，然后忽略，不打开调试端口 |
+
+`9229` 被别的程序占用时（比如另一个项目也在调试），就换一个端口号。
+
+::: warning 不要用全局的 NODE_OPTIONS=--inspect
+网上常见的做法是设置 `NODE_OPTIONS=--inspect`。在本项目里不要这样做：`pnpm dev` 会启动好几个 Node 进程（tsc、后端、Vite……），每个进程都会去抢同一个调试端口。用 `QW_INSPECT`，只有后端应用进程打开调试端口。
+:::
+
+### 第二步：在 VS Code 里附加
+
+仓库里提交了 VS Code 的调试配置文件 `.vscode/launch.json`，不用自己写。
+
+1. 用 VS Code 打开仓库根目录；
+2. 确认第一步的 `pnpm dev` 正在运行，终端里后端已经启动；
+3. 点左侧栏的**运行和调试**（Run and Debug，快捷键 `Ctrl + Shift + D`，macOS 是 `Cmd + Shift + D`）；
+4. 在顶部的下拉框里选 **Server: attach (pnpm dev with QW_INSPECT=1)**，点旁边的绿色三角形开始。连上后，VS Code 底部的状态栏会变色；
+5. 打开 `apps/server/src`（后端代码）或 `packages/shared/src`（前后端共用的代码）里的 `.ts` 文件，点行号左边打断点，出现红点就打好了；
+6. 到浏览器的页面上做一次会调用这段代码的操作，比如在列表页点**搜索**，让前端发出请求；
+7. 程序停在断点上。左侧可以看到**变量**（Variables）、**监视**（Watch）和**调用堆栈**（Call Stack），把鼠标停在代码里的变量上也能看到它的值。
+
+控制执行的按钮在编辑器顶部的调试工具栏上，快捷键和浏览器开发者工具差不多：
+
+| 按钮 | 快捷键 | 作用 |
+| --- | --- | --- |
+| 继续 | `F5` | 一直运行到下一个断点 |
+| 单步跳过 | `F10` | 执行当前这一行，停在下一行；遇到函数调用不进去 |
+| 单步进入 | `F11` | 遇到函数调用时，进到函数里面 |
+| 单步跳出 | `Shift + F11` | 执行完当前函数，回到调用它的地方 |
+| 断开 | `Shift + F5` | 断开调试器，后端继续运行 |
+
+::: tip 程序停在断点上时，请求在等待
+后端停在断点上的这段时间，这个请求一直没有返回，页面会一直转圈。停太久，前端可能显示请求超时，这是正常的，按**继续**让程序跑完就好。
+:::
+
+### 改代码后自动重新附加
+
+开发模式下，保存后端的代码文件后，后端会自动重新编译并重启。重启后调试端口不变，VS Code 的这个配置会**自动重新附加**，断点也还在，不用再点一次开始。
+
+要注意的是**启动阶段的代码**，比如模块初始化（`onModuleInit`）和应用启动入口（bootstrap）。后端重启时，这些代码在调试器重新附加之前就已经执行完了，所以第一次附加时断不到。办法是：先附加上，再修改并保存一次后端的文件（比如加一个空行）触发重启，这时调试器已经在等待，就能停在启动阶段的断点上。
+
+### WebStorm
+
+WebStorm（以及其他 JetBrains 编辑器）没有使用 `.vscode/launch.json`。新建一个 **Attach to Node.js/Chrome** 类型的运行配置，主机填 `127.0.0.1`，端口填 `9229`（或你在 `QW_INSPECT` 里写的端口），勾选重新连接（Reconnect automatically），然后以调试方式运行这个配置即可。断点同样打在 TypeScript 源文件上。
+
+仓库里的说明见[快速开始 · 断点调试](https://github.com/732124645/qiwu-vue-admin/blob/main/docs/getting-started.md#断点调试)。断点调试从 1.3.1 版开始提供；更早的版本请用 traceId 加日志、用 Swagger 直接调接口来排查，方法见[排查问题](/backend/debugging)。
