@@ -138,3 +138,5 @@ async importXlsx(file: UploadedFileData | undefined, mode: ImportMode): Promise<
 | `excel.import_max_columns` | 100 列 |
 
 这些参数可以在 **系统管理 → 参数设置** 中修改。另外，包含宏或外部链接的文件会被直接拒绝。
+
+`.xlsx` 文件其实是一个压缩包。导入时先按压缩包的真实目录重建文件，解析前再统计每个部分解压后的真实大小；谎报大小、或者解压后总量超过上限的文件返回 400（“不是有效的 Excel（.xlsx）文件”），不会把服务器内存耗尽。

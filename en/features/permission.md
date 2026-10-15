@@ -161,9 +161,13 @@ These rules apply to everyone except the super administrator. A violation return
 4. **Indirect grants** are checked the same way:
    - When filling in a menu's permission code in **System → Menus**, you can only enter codes you have;
    - Menu changes (changing a permission code, enabling a menu or a group above it, moving a menu out of a disabled group) that give some roles **new** permission codes are checked by rule 1;
-   - Re-enabling a disabled role hands out all its permissions again, so it is checked by rules 1 and 2 (disabling is not checked).
+   - Re-enabling a disabled role hands out all its permissions again, so it is checked by rules 1 and 2 (disabling is not checked);
+   - Moving a department: holders of **Own department and below** roles in the new parent departments can see the moved department from then on, so every permission of those roles must cover it (with everything below it), checked by rule 2.
+5. **Resetting someone else's password or setting their sign-in mobile number** hands you that account, so it is checked like assigning roles: you must be able to assign **every role the user holds now** (disabled ones too), by rule 3. Otherwise you get 403 with "This user holds roles you cannot grant: only an administrator who can grant them may reset the password or change the mobile". So a help-desk role with only **Reset password** cannot reset users with more permissions or a wider data scope.
 
 Only **additions** are checked. Keeping or removing existing grants never gives anyone more, so it is always allowed.
+
+With multi-tenancy on, a tenant's built-in **Tenant administrator** role already holds every permission of the package, so a tenant administrator is checked only on the permission codes it holds and the platform-only ones: permission codes of disabled menus or menus outside the package in a role do not block it.
 
 ## Example: let a department manager view approval data
 
@@ -205,6 +209,7 @@ Also, a role held by users cannot be deleted: "The role is assigned to users. Re
 | Change the sign-up parameters: `auth.signup.enabled` (whether sign-up is open), `auth.signup.default_role_id` (default sign-up role), `auth.signup.default_dept_id` (default sign-up department) | They decide what permissions strangers get after signing up |
 | Change the default sign-up role itself and its menu permissions and data scope, and add or remove its members in **System → Roles** → **More → Assign users** (assigning or removing this role for a user in Users is not limited by this; it is only checked by the [privilege escalation guard](#privilege-escalation-guard)) | Same as above |
 | Change `auth.wx_mp.enabled` (the WeChat mini program sign-in switch) | Decides whether people can sign in with WeChat |
+| Change `audit.retention_days` (days to keep logs) | Audit records such as entering and leaving a tenant cannot be deleted by anyone; only the retention purge removes them, so shortening the retention would delete them |
 | Add, edit, delete and test-send SMS templates whose code starts with `auth.`; edit and delete the SMS channels these templates use | Verification codes for sign-in and password reset are sent through them; changing them could send those codes through someone else's SMS account |
 | Choose **All data** in a role's data scope | See [Privilege escalation guard](#privilege-escalation-guard) |
 

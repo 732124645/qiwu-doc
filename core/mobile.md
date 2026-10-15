@@ -153,6 +153,29 @@ Windows 上用 `$env:` 设置的变量只在当前终端里有效，关掉终端
 `mobile/vite.config.ts` 里 `/socket.io` 写成对象 `{ target, ws: true }`，没有加 `changeOrigin`。加了之后 `Host` 头会被改写，服务端检查来源时会把页面当成外站，拒绝连接（`forbidden_origin`）。
 :::
 
+H5 的开发服务器（`pnpm -C mobile dev:h5`）和预览服务器只对自己的页面开放，配置在 `mobile/vite.config.ts` 里：
+
+- 只提供 `mobile/` 和共享包的源文件，本机的其他文件拿不到；
+- 关闭了 CORS（跨域访问）；别的网站发来的请求一律返回 403；
+- 只接受用 `localhost` 或 IP 地址访问，比如局域网里的手机用电脑的 IP 打开。用别的主机名访问时返回 403，WebSocket 连接（热更新、实时推送）也一样，不通过就直接断开。
+
+用 `*.local` 名称或内网穿透的域名访问时，把这些主机名写进环境变量 `QW_H5_ALLOWED_HOSTS` 再启动：多个用逗号分隔，不带端口，按完整名称匹配，不支持 `*` 通配。只写你自己掌控的名称，列出的名称和 `localhost` 一样受信任：
+
+::: code-group
+
+```bash [macOS]
+QW_H5_ALLOWED_HOSTS=my-mac.local pnpm -C mobile dev:h5
+```
+
+```powershell [Windows（PowerShell）]
+$env:QW_H5_ALLOWED_HOSTS='my-mac.local'
+pnpm -C mobile dev:h5
+```
+
+:::
+
+用完后同样可以用 `Remove-Item Env:QW_H5_ALLOWED_HOSTS` 清除。详见仓库的[移动端文档](https://github.com/732124645/qiwu-vue-admin/blob/main/docs/mobile.md#安装与开发)。
+
 ### 在微信开发者工具里调试小程序
 
 小程序没有转发，要在编译时用环境变量 `VITE_API_BASE` 指定完整的接口地址（以 `/api` 结尾）。不设时请求发往相对路径 `/api`，小程序连不上：

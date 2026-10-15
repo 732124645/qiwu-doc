@@ -43,7 +43,7 @@ After initialization, only the super administrator (the `admin` account) can see
 These pages use the same list and dialogs, and work the same way:
 
 - A search bar at the top, with **Search** and **Reset**;
-- At the top right of the table you can show or hide the search bar, refresh the list, and open **Columns** (change the order of columns and which ones are shown; saved on your account, so they follow you to another browser);
+- At the top right of the table you can show or hide the search bar, refresh the list, and open **Columns** (change the order of columns and which ones are shown; saved on your account, so they follow you to another browser. An account keeps settings for at most 200 lists; beyond that you get 409 with "Column settings are saved for the most lists allowed (200); reset some lists to their defaults first". **Restore defaults** in **Columns** deletes that list's settings and frees a slot);
 - When you first open a page and the data has not loaded yet, the table shows a few gray placeholder rows (a "skeleton screen"). It draws only the columns you show in **Columns**, in the order you set. Later searches, page changes and refreshes keep the existing table and only cover it with a **Loading** overlay;
 - **Delete selected** appears after you tick some rows;
 - The **Edit** button in the list needs both the **Edit** (`modify`) and **View** (`view`) permissions, because the edit dialog first reads the record;
@@ -83,7 +83,7 @@ Rules:
 - People without the **Edit** permission see masked mobile numbers and emails (such as `138****5678`), and the search bar has no **Mobile** field;
 - You cannot disable or delete your own account;
 - The super administrator's account cannot be disabled or deleted, and its **Super administrator** role cannot be removed. Only the super administrator can edit it or reset its password;
-- You change your own mobile number in [My profile](#my-profile) (it needs your password and an SMS code). Changing someone else's mobile number also needs the **Reset password** permission, and afterwards all of that user's sessions end;
+- You change your own mobile number in [My profile](#my-profile) (it needs your password and an SMS code). Changing someone else's mobile number also needs the **Reset password** permission, and afterwards all of that user's sessions end. Like a password reset, setting someone else's mobile number requires that you could assign all of that user's roles; see [Reset password](#reset-password);
 - You can only see and manage users within your **data scope**, and **Department** only offers departments within your scope.
 
 ### Reset password
@@ -93,6 +93,8 @@ In **More → Reset password** you set a new password for the user (it must also
 - All of the user's sessions end at once;
 - The user must change the password again at the next sign-in;
 - The user's WeChat mini program link is removed (see [Security baseline](/en/features/security#authentication-and-sessions)).
+
+Resetting someone's password hands you that account, so besides the **Reset password** permission you must be able to assign **every role the user holds now** (disabled ones too), by the same rules as [Assign roles](#assign-roles). Otherwise you get 403 with "This user holds roles you cannot grant: only an administrator who can grant them may reset the password or change the mobile". So a help-desk role with only **Reset password** cannot reset users with more permissions or a wider data scope. A tenant administrator is judged only on the permission codes it holds (and the platform-only ones), so permission codes of disabled menus or menus outside the package in the user's roles do not block it. See [Privilege escalation guard](/en/features/permission#privilege-escalation-guard).
 
 ### Assign roles
 
@@ -259,6 +261,7 @@ Rules:
 - A department that still has users cannot be deleted;
 - The **Head** is picked from users within your data scope. Workflow approvers such as **Department heads** use the head set here (see [Workflow · Approvers](/en/features/workflow#approvers));
 - You can only see and manage departments within your data scope, and new or moved departments must still be within your scope;
+- Moving a department is also checked by the [privilege escalation guard](/en/features/permission#privilege-escalation-guard): holders of **Own department and below** roles in the new parent departments can see it from then on, so every permission of those roles must fit your scope, otherwise 403;
 - After departments move, the users in them get an updated data scope on their next request.
 
 ## Positions
@@ -357,7 +360,7 @@ Parameters are configuration that administrators can change online, such as how 
 - Keys may only use lowercase letters, digits, underscores and dots, and start with a letter, such as `storage.max_size_mb`. **They cannot be changed after adding**;
 - Values are all text, at most 16383 characters, and may be empty. If a numeric parameter holds something that is not a number or is out of range, the system uses the default value;
 - Parameter values are not written to the action log (whether the parameter is secret or not);
-- The sign-up parameters (`auth.signup.enabled`, `auth.signup.default_role_id`, `auth.signup.default_dept_id`) and the WeChat mini program sign-in switch `auth.wx_mp.enabled` can only be changed by the super administrator. See [Permissions · What only the super administrator can do](/en/features/permission#what-only-the-super-administrator-can-do).
+- The sign-up parameters (`auth.signup.enabled`, `auth.signup.default_role_id`, `auth.signup.default_dept_id`) the WeChat mini program sign-in switch `auth.wx_mp.enabled` and the log retention days `audit.retention_days` can only be changed by the super administrator. See [Permissions · What only the super administrator can do](/en/features/permission#what-only-the-super-administrator-can-do).
 
 ### Parameter flags
 

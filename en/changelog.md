@@ -1,10 +1,36 @@
 ---
-description: 'Qiwu release notes: version 1.3.1 adds the QW_INSPECT switch for server breakpoint debugging and VS Code debug configurations; version 1.3.0 adds job queues on the existing Redis and a queue monitor page; version 1.2.0 lets hand-written SQL in the code apply data scope too, with a new check; version 1.1.0 adds multi-tenancy (one shared database with data isolated per tenant, tenants, tenant packages, platform staff entering a tenant) with notes on upgrading and turning it on; version 1.0.3 adds GitHub Actions checks, automated releases and a server deploy kit, plus fixes; version 1.0.0 covers permissions, workflow, code generation, the mobile app, deployment and known limitations.'
+description: 'Qiwu release notes: version 1.4.0 is a security release (password resets and department moves judged as grants, a sign-in origin check, a sign-in username format check, hardened Excel import and more) with upgrade notes on the reverse proxy and usernames; version 1.3.1 adds the QW_INSPECT switch for server breakpoint debugging and VS Code debug configurations; version 1.3.0 adds job queues on the existing Redis and a queue monitor page; version 1.2.0 lets hand-written SQL in the code apply data scope too, with a new check; version 1.1.0 adds multi-tenancy (one shared database with data isolated per tenant, tenants, tenant packages, platform staff entering a tenant) with notes on upgrading and turning it on; version 1.0.3 adds GitHub Actions checks, automated releases and a server deploy kit, plus fixes; version 1.0.0 covers permissions, workflow, code generation, the mobile app, deployment and known limitations.'
 ---
 
 # Changelog
 
 This page records the changes in each Qiwu release. For the current features and the status of each one, see [Introduction · Features at a glance](/en/guide/introduction#features-at-a-glance).
+
+## 1.4.0 · 2026-10-15
+
+A security release. The template went through a security review, and this release fixes the problems it confirmed, plus one date display bug. Read the upgrade notes below first: two of them may need action before you upgrade. For the full list of defenses in the repository, see the [security docs](https://github.com/732124645/qiwu-vue-admin/blob/main/docs/security.md#威胁防护与测试入口) (Chinese).
+
+Security:
+
+- **Password resets and mobile changes are judged as grants**: resetting someone else's password, or setting their sign-in mobile number, hands you that account. So you must now be able to assign every role the user holds (disabled ones too), by the same rules as assigning roles; otherwise you get 403 with "This user holds roles you cannot grant: only an administrator who can grant them may reset the password or change the mobile". Before, a role with only the reset-password permission (such as a help desk) could reset users with more permissions; now it cannot. A tenant administrator is judged only on the permission codes it holds and the platform-only ones, so permission codes of disabled menus or menus outside the package in the user's roles do not block it. See [Privilege escalation guard](/en/features/permission#privilege-escalation-guard).
+- **Moving a department is judged as a grant**: after a department moves under new parents, people there holding **Own department and below** roles can see it, so the move counts as a grant; beyond your own scope it gets 403 with "You cannot grant a role beyond your own permissions or data scope".
+- **Login CSRF protection**: CSRF (cross-site request forgery) means another site making your browser send requests to this system. Password and SMS sign-in now refuse requests from another site, or with a `null` `Origin`, with 403 (error code `A1007`, "The request origin is not allowed"), so another site can no longer quietly sign its own account into your browser. Requests without an `Origin` header (apps, scripts) and mobile sign-ins are not affected.
+- **Sign-in username format**: the username typed at sign-in must match the stored format (letters, digits and `_ . @ -`; full-width characters are folded to normal width first); other spellings get 400 and can no longer be used to probe whether an account exists.
+- **Parallel password guesses**: of many password attempts sent at once, at most the lock threshold reach the password check; when the password was right but a later step failed, the attempt is not counted as a failure.
+- **Excel import**: the file is rebuilt from its real structure, and the real unpacked size of every part is counted before parsing, so a file that lies about its sizes gets 400 ("The file is not a valid Excel (.xlsx) workbook") instead of exhausting memory.
+- **Other**: dictionary and parameter reads ignore codes that do not match the code format (no cache entry per spelling); each user keeps at most 200 saved list settings, beyond that 409, and **Restore defaults** deletes that list's settings and frees a slot; presigned download links are masked in request logs; the log retention `audit.retention_days` can only be changed by the super administrator; disabled users no longer get WeChat subscribe message reminders.
+- **Mobile H5 dev server**: serves only the app and shared sources, has CORS turned off, and answers only `localhost` and IP addresses; for `*.local` names or tunnel domains, set the environment variable `QW_H5_ALLOWED_HOSTS`. See [Mobile development · Debugging in the browser (H5)](/core/mobile#在浏览器里调试-h5) (Chinese).
+
+Fixed:
+
+- **Date columns**: `DATE` columns (such as a book's publication date) no longer come back a day early when the server process runs in a time zone behind UTC (west of UTC).
+
+Upgrade:
+
+- No database migrations, no dependency changes, and no changes to the server's environment variables. The new `QW_H5_ALLOWED_HOSTS` is only for the mobile H5 dev server and is set only when needed. `mobile/vite.config.ts` changed; if your project changed it, take care when merging.
+- **Reverse proxy**: console password and SMS sign-in now check `Origin`. The reverse proxy must pass the browser's `Host` and scheme (http / https) to the server unchanged, or the console's address must be listed in `CORS_ORIGIN`; otherwise console sign-in answers 403 `A1007`. If you followed the nginx example in [Deploy](/guide/deploy#反向代理-nginx) (Chinese), the token refresh already needed this and nothing changes. See the repository's [deploy docs](https://github.com/732124645/qiwu-vue-admin/blob/main/docs/deploy.md#nginx-反向代理与-csp) (Chinese).
+- **Usernames that do not match the format**: accounts whose username does not match the stored format (letters, digits and `_ . @ -`; full-width characters folded first), such as Chinese login names imported directly with SQL, get 400 at sign-in after the upgrade. Rename these accounts to a matching username before upgrading.
+- Then upgrade as usual: update to the v1.4.0 code → `pnpm i` → `pnpm -r build` → `pnpm db:migrate` → `pnpm db:seed` → restart, see [Deploy](/guide/deploy) (Chinese).
 
 ## 1.3.1 · 2026-10-15
 

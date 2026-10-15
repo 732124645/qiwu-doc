@@ -71,7 +71,7 @@ node --env-file-if-exists=.env.local --env-file-if-exists=.env dist/main.js
 | `/socket.io/` | `http://127.0.0.1:3000` | WebSocket，需要设置 `Upgrade` 和 `Connection` 头 |
 | `/files/` | 本地存储的 `public/` 目录 | 公开文件（头像、公告图片）直链访问 |
 
-`X-Forwarded-For` 用 `$remote_addr` 覆盖，不能追加，否则 IP 黑名单和限流可能被绕过；`Host`、`X-Forwarded-Host`、`X-Forwarded-Proto` 保留浏览器访问的地址和协议，否则刷新登录和 WebSocket 会被拒绝。nginx 下发的 CSP 必须和 `apps/web/csp.ts` 完全一致，`client_max_body_size` 要覆盖上传上限，`/files/` 只能指向上传目录的 `public/`。完整配置见[仓库](https://github.com/732124645/qiwu-vue-admin/blob/main/docs/deploy.md#nginx-反向代理与-csp)。
+`X-Forwarded-For` 用 `$remote_addr` 覆盖，不能追加，否则 IP 黑名单和限流可能被绕过；`Host`、`X-Forwarded-Host`、`X-Forwarded-Proto` 保留浏览器访问的地址和协议，否则密码登录、短信登录、刷新登录和 WebSocket 会被拒绝（控制台登录返回 403 `A1007`）。代理做不到这一点时，把控制台的地址（比如 `https://qiwu.example.com`）加进环境变量 `CORS_ORIGIN`。nginx 下发的 CSP 必须和 `apps/web/csp.ts` 完全一致，`client_max_body_size` 要覆盖上传上限，`/files/` 只能指向上传目录的 `public/`。完整配置见[仓库](https://github.com/732124645/qiwu-vue-admin/blob/main/docs/deploy.md#nginx-反向代理与-csp)。
 
 ## 使用 PM2 守护进程（可选）
 

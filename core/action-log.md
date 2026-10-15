@@ -97,4 +97,4 @@ import { Sensitive } from '../../../../core/redact.js'
 
 ## 保留时间
 
-日志默认保留 **180 天**，由定时任务 `audit.purge` 清理。API 错误日志只清理已处理和已忽略的，待处理的一直保留。保留天数可以在参数 `audit.retention_days` 中修改。
+日志默认保留 **180 天**，由定时任务 `audit.purge` 清理。API 错误日志只清理已处理和已忽略的，待处理的一直保留。保留天数可以在参数 `audit.retention_days` 中修改，只有超级管理员能改。

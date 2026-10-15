@@ -11,7 +11,7 @@ Qiwu (栖梧, project name `qiwu-vue-admin`) is a **full-stack Node admin templa
 To learn why I built this project, see [Project story](/en/guide/story).
 
 ::: info Current status
-**v1.3.1** was released on 2026-10-15, open source under the **MIT license**. Recent releases added [multi-tenancy](/en/features/multi-tenancy), data scope for hand-written SQL, job queues (slow work handed to the background, on the existing Redis) and a switch for server breakpoint debugging; see the [Changelog](/en/changelog) for changes. The mobile app can already be built and debugged locally; testing on real devices and pre-release checks for the app stores are still in progress. The feature tables below show the status of each item.
+**v1.4.0** was released on 2026-10-15, open source under the **MIT license**. Recent releases added [multi-tenancy](/en/features/multi-tenancy), data scope for hand-written SQL, job queues (slow work handed to the background, on the existing Redis), a switch for server breakpoint debugging, and hardening from a security review; see the [Changelog](/en/changelog) for changes. The mobile app can already be built and debugged locally; testing on real devices and pre-release checks for the app stores are still in progress. The feature tables below show the status of each item.
 :::
 
 ## Live demo
