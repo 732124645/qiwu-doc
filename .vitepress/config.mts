@@ -68,7 +68,7 @@ export default defineConfigWithTheme<DefaultTheme.Config & { enPages?: string[] 
   description: 'Node 全栈管理后台模板：NestJS + Vue 3 + Element Plus，MIT 开源',
   cleanUrls: true,
   lastUpdated: true,
-  srcExclude: ['README.md'],
+  srcExclude: ['README.md', 'AGENTS.md', 'CLAUDE.md'],
   markdown: {
     image: { lazyLoading: true },
     codeCopyButtonTitle: '复制代码',
