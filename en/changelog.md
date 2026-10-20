@@ -1,10 +1,29 @@
 ---
-description: 'Qiwu release notes: version 1.4.0 is a security release (password resets and department moves judged as grants, a sign-in origin check, a sign-in username format check, hardened Excel import and more) with upgrade notes on the reverse proxy and usernames; version 1.3.1 adds the QW_INSPECT switch for server breakpoint debugging and VS Code debug configurations; version 1.3.0 adds job queues on the existing Redis and a queue monitor page; version 1.2.0 lets hand-written SQL in the code apply data scope too, with a new check; version 1.1.0 adds multi-tenancy (one shared database with data isolated per tenant, tenants, tenant packages, platform staff entering a tenant) with notes on upgrading and turning it on; version 1.0.3 adds GitHub Actions checks, automated releases and a server deploy kit, plus fixes; version 1.0.0 covers permissions, workflow, code generation, the mobile app, deployment and known limitations.'
+description: 'Qiwu release notes: version 1.5.0 adds a WeChat Official Account management module (off by default, switch APP_WXOA, tables still created by the migrations); version 1.4.0 is a security release (password resets and department moves judged as grants, a sign-in origin check, a sign-in username format check, hardened Excel import and more) with upgrade notes on the reverse proxy and usernames; version 1.3.1 adds the QW_INSPECT switch for server breakpoint debugging and VS Code debug configurations; version 1.3.0 adds job queues on the existing Redis and a queue monitor page; version 1.2.0 lets hand-written SQL in the code apply data scope too, with a new check; version 1.1.0 adds multi-tenancy (one shared database with data isolated per tenant, tenants, tenant packages, platform staff entering a tenant) with notes on upgrading and turning it on; version 1.0.3 adds GitHub Actions checks, automated releases and a server deploy kit, plus fixes; version 1.0.0 covers permissions, workflow, code generation, the mobile app, deployment and known limitations.'
 ---
 
 # Changelog
 
 This page records the changes in each Qiwu release. For the current features and the status of each one, see [Introduction · Features at a glance](/en/guide/introduction#features-at-a-glance).
+
+## 1.5.0 · 2026-10-20
+
+Adds a WeChat Official Account management module, off by default. An **Official Account** is an official account a company or person runs inside WeChat; this module lets you manage one or more of them from the admin console. See [WeChat Official Accounts](/en/features/wxoa); for the full reference in the repository, see the [Official Account docs](https://github.com/732124645/qiwu-vue-admin/blob/main/docs/wxoa.md) (Chinese).
+
+Added:
+
+- **Switch**: set `APP_WXOA=true` in the server environment to load the module, then restart. While off, the module is not loaded at all: every `/api/wxoa/*` route (including the callback that receives WeChat's pushes) returns 404, its scheduled tasks do not run, nothing calls WeChat, and its menus are hidden from the sidebar and the role grant tree.
+- **Access and interaction**: several Official Accounts per tenant with write-only secrets; receiving WeChat pushes (plaintext, compatible and secure encryption modes, with signature and replay checks); message log and conversations with customer service replies; auto replies (including QR-scan replies); custom and conditional menus with a phone preview; fans, tags and blacklist with Excel export; permanent materials; template messages; channel QR codes that tag the fans who follow through them. This group has been verified on a WeChat test account.
+- **Content and operations**: article drafts, publishing and publish records, mass messages (when the result of a send is unknown, it can be resent within WeChat's 24-hour de-duplication window), statistics charts, article comments and subscription notices. By WeChat's rules these need a verified service account; so far they have only been verified against a simulated WeChat API in tests.
+- **Multi-tenancy**: each tenant manages its own Official Accounts; one AppID can be connected to one tenant only (with multi-tenancy on, adding an account first checks its AppSecret with WeChat); scheduled tasks handle each available tenant in turn; platform staff can look up which tenant holds an AppID.
+- **Tests**: server test runs refuse a database and Redis database number pair that is not registered, and hold a run lock per test database, so two checkouts running tests at the same time no longer wipe each other's data.
+
+Upgrade:
+
+- This release has 4 database migrations that create the Official Account tables. **The tables are created whether or not the switch is on**; while it is off they stay empty. `pnpm db:seed` writes the module's menus, dictionaries, parameters and two scheduled tasks as usual (the two tasks are not scheduled while the switch is off).
+- New server environment variable `APP_WXOA`, `false` by default; leave it unset if you don't need the module. For turning it on, see [Deployment · Official Account module](/guide/deploy#公众号模块) (Chinese).
+- One new server dependency, `fast-xml-parser` (5.11.2), parses the XML that WeChat pushes; `pnpm i` installs it.
+- Upgrade as usual: update to the v1.5.0 code → `pnpm i` → `pnpm -r build` → `pnpm db:migrate` → `pnpm db:seed` → restart, see [Deploy](/guide/deploy) (Chinese).
 
 ## 1.4.1 · 2026-10-20
 

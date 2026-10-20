@@ -39,6 +39,7 @@ const enSidebar = [
       { text: 'Form designer', link: '/en/features/formkit' },
       { text: 'Workflow', link: '/en/features/workflow' },
       { text: 'Mobile', link: '/en/features/mobile' },
+      { text: 'WeChat Official Accounts', link: '/en/features/wxoa' },
       { text: 'Internationalization', link: '/en/features/i18n' },
       { text: 'Security baseline', link: '/en/features/security' },
     ],
@@ -449,6 +450,10 @@ export default defineConfigWithTheme<DefaultTheme.Config & { enPages?: string[] 
         {
           text: '移动端',
           items: [{ text: '移动端', link: '/features/mobile' }],
+        },
+        {
+          text: '运营',
+          items: [{ text: '微信公众号', link: '/features/wxoa' }],
         },
         {
           text: '全局能力',

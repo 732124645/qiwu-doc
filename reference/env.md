@@ -33,7 +33,7 @@ description: '服务端 .env、.env.local 的分工和加载顺序，账号密�
 
 ## 功能
 
-`STORAGE_LOCAL_ROOT` 是本地存储根目录（默认 `./data/upload`）；`CODEGEN_WRITE` 决定生成器能否写仓库，只在开发环境生效；`APP_DEMO_MODE` 见[部署 · 演示模式](/guide/deploy#演示模式)；`APP_MULTI_TENANT` 是多租户开关（默认 `false`，只在启动时读取），打开和关闭的步骤见[部署 · 打开或关闭多租户](/guide/deploy#打开或关闭多租户)；`SEED_ADMIN_PASSWORD` 只写 `.env.local`，第一次创建 `admin` 时使用，不设置时 `db:seed` 随机生成并只打印一次。
+`STORAGE_LOCAL_ROOT` 是本地存储根目录（默认 `./data/upload`）；`CODEGEN_WRITE` 决定生成器能否写仓库，只在开发环境生效；`APP_DEMO_MODE` 见[部署 · 演示模式](/guide/deploy#演示模式)；`APP_MULTI_TENANT` 是多租户开关（默认 `false`，只在启动时读取），打开和关闭的步骤见[部署 · 打开或关闭多租户](/guide/deploy#打开或关闭多租户)；`APP_WXOA` 是[微信公众号](/features/wxoa)模块的开关（默认 `false`，只在启动时读取，改完要重启），见[部署 · 公众号模块](/guide/deploy#公众号模块)；`SEED_ADMIN_PASSWORD` 只写 `.env.local`，第一次创建 `admin` 时使用，不设置时 `db:seed` 随机生成并只打印一次。
 
 ## 前端
 

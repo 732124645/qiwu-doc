@@ -112,6 +112,16 @@ git push origin v1.2.0
 
 租户可以绑定自己的域名，用户在这个域名上登录时不用填租户编码；DNS、nginx 的 `server_name` 和证书都要加上这些域名，`CORS_ORIGIN` 却只写平台自己的地址，不写租户的域名，见[租户绑定域名](https://github.com/732124645/qiwu-vue-admin/blob/main/docs/deploy.md#租户绑定域名)。完整步骤见仓库的[打开多租户开关](https://github.com/732124645/qiwu-vue-admin/blob/main/docs/deploy.md#打开多租户开关)、[关闭多租户开关](https://github.com/732124645/qiwu-vue-admin/blob/main/docs/deploy.md#关闭多租户开关)和[多租户文档](https://github.com/732124645/qiwu-vue-admin/blob/main/docs/multi-tenancy.md)。
 
+## 公众号模块
+
+[微信公众号](/features/wxoa)模块默认关闭。开关是 `apps/server/.env` 里的 `APP_WXOA`（不是秘密），只在启动时读取，改完要重启全部实例。关闭时 `/api/wxoa/*`（包括回调地址）返回 404，不访问微信，侧栏里也看不到 **公众号** 分组。数据表不管开关如何都由迁移创建，所以打开时不需要另外迁移。
+
+- 回调地址是 `/api/wxoa/callback/<key>`，必须能从公网访问，并且使用 80 端口（http）或 443 端口（https），这是微信的要求。反向代理按现有的 `/api/` 规则转发即可。
+- 正式号要把服务器的出口 IP 加进公众平台的 IP 白名单，多个实例或经 NAT 出网时每个出口 IP 都要加。
+- `TRUST_PROXY` 要设成实际反向代理的地址，否则回调的失败计数全算在代理一个 IP 上。
+
+见仓库的[公众号模块开关](https://github.com/732124645/qiwu-vue-admin/blob/main/docs/deploy.md#公众号模块开关)、[回调地址](https://github.com/732124645/qiwu-vue-admin/blob/main/docs/wxoa.md#回调地址)和 [IP 白名单](https://github.com/732124645/qiwu-vue-admin/blob/main/docs/wxoa.md#ip-白名单)。
+
 ## 演示模式
 
 公开演示站设 `APP_DEMO_MODE=true`，使用独立的库、Redis 库号和密钥。除登录、退出、标为已读等少数操作外，写操作一律返回 403，超级管理员也一样；OAuth2 授权和令牌接口也被拒绝，要演示单点登录请用非演示安装；日志页面里访客的 IP 和浏览器信息脱敏显示。同时打开多租户时，还会创建两个示例租户，访客可以进入和退出租户。开关改回 `false` 不会让已公开的密码失效，正式环境请重新安装。放行清单见[仓库安全文档](https://github.com/732124645/qiwu-vue-admin/blob/main/docs/security.md#演示模式的精确豁免)，另见[部署文档](https://github.com/732124645/qiwu-vue-admin/blob/main/docs/deploy.md#演示模式与-oauth-边界)。

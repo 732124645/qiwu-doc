@@ -1,5 +1,5 @@
 ---
-description: 'Overview of Qiwu admin features by menu: system management, OAuth2 single sign-on, permissions, multi-tenancy, code generator, form designer, workflow, mobile and security.'
+description: 'Overview of Qiwu admin features by menu: system management, OAuth2 single sign-on, permissions, multi-tenancy, code generator, form designer, workflow, mobile, WeChat Official Accounts and security.'
 ---
 
 # Features overview
@@ -40,6 +40,12 @@ For the status of each item, see [Introduction · Features at a glance](/en/guid
 | Feature | In one sentence |
 | --- | --- |
 | [Mobile app](/en/features/mobile) | The employee phone client (WeChat mini program, Android, iOS): sign-in, Workbench, approvals, messages, new to-do WeChat alerts, app updates |
+
+## Operations
+
+| Feature | In one sentence |
+| --- | --- |
+| [WeChat Official Accounts](/en/features/wxoa) | Manage one or more Official Accounts: messages and conversations, auto replies, custom menus, fans and tags, materials, channel QR codes, plus article publishing, mass messages and statistics; off by default |
 
 ## Cross-cutting capabilities
 
