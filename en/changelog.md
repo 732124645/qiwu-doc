@@ -6,6 +6,19 @@ description: 'Qiwu release notes: version 1.4.0 is a security release (password 
 
 This page records the changes in each Qiwu release. For the current features and the status of each one, see [Introduction · Features at a glance](/en/guide/introduction#features-at-a-glance).
 
+## 1.4.1 · 2026-10-20
+
+UI polish, no functional changes.
+
+Changed:
+
+- **Dialog footers**: the button area is now a full-width light band at the bottom of the dialog with a divider above it; buttons are evenly spaced and wrap on narrow screens.
+- **Table loading**: on first load a table shows its real header row above the placeholder rows; the "loading" text is read out only by screen readers.
+
+Upgrade:
+
+- Front-end styles only: no database migrations, no env or dependency changes. Upgrade as usual: update to the v1.4.1 code → `pnpm i` → `pnpm -r build` → `pnpm db:migrate` → `pnpm db:seed` → restart, see [Deploy](/guide/deploy) (Chinese). Projects that customized dialog styles should check the merge.
+
 ## 1.4.0 · 2026-10-15
 
 A security release. The template went through a security review, and this release fixes the problems it confirmed, plus one date display bug. Read the upgrade notes below first: two of them may need action before you upgrade. For the full list of defenses in the repository, see the [security docs](https://github.com/732124645/qiwu-vue-admin/blob/main/docs/security.md#威胁防护与测试入口) (Chinese).
