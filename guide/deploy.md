@@ -1,5 +1,5 @@
 ---
-description: '把栖梧部署到生产服务器的概览：构建、配置、迁移和启动，nginx、PM2、GitHub Actions 自动部署、S3、OAuth2、多租户开关、演示模式和多实例要点，细节见仓库部署文档。'
+description: '把栖梧部署到生产服务器的概览：构建、配置、迁移和启动，nginx、PM2、GitHub Actions 自动部署、S3、OAuth2、多租户开关、智能体接入开关、演示模式和多实例要点，细节见仓库部署文档。'
 ---
 
 # 部署
@@ -70,6 +70,7 @@ node --env-file-if-exists=.env.local --env-file-if-exists=.env dist/main.js
 | `/api/` | `http://127.0.0.1:3000` | 接口 |
 | `/socket.io/` | `http://127.0.0.1:3000` | WebSocket，需要设置 `Upgrade` 和 `Connection` 头 |
 | `/files/` | 本地存储的 `public/` 目录 | 公开文件（头像、公告图片）直链访问 |
+| `/.well-known/oauth-` 开头的路径 | `http://127.0.0.1:3000` | 只在打开[智能体接入](#智能体接入-mcp)并用 OAuth2 接入时需要，要放在拦截点路径的规则之前 |
 
 `X-Forwarded-For` 用 `$remote_addr` 覆盖，不能追加，否则 IP 黑名单和限流可能被绕过；`Host`、`X-Forwarded-Host`、`X-Forwarded-Proto` 保留浏览器访问的地址和协议，否则密码登录、短信登录、刷新登录和 WebSocket 会被拒绝（控制台登录返回 403 `A1007`）。代理做不到这一点时，把控制台的地址（比如 `https://qiwu.example.com`）加进环境变量 `CORS_ORIGIN`。nginx 下发的 CSP 必须和 `apps/web/csp.ts` 完全一致，`client_max_body_size` 要覆盖上传上限，`/files/` 只能指向上传目录的 `public/`。完整配置见[仓库](https://github.com/732124645/qiwu-vue-admin/blob/main/docs/deploy.md#nginx-反向代理与-csp)。
 
@@ -122,9 +123,21 @@ git push origin v1.2.0
 
 见仓库的[公众号模块开关](https://github.com/732124645/qiwu-vue-admin/blob/main/docs/deploy.md#公众号模块开关)、[回调地址](https://github.com/732124645/qiwu-vue-admin/blob/main/docs/wxoa.md#回调地址)和 [IP 白名单](https://github.com/732124645/qiwu-vue-admin/blob/main/docs/wxoa.md#ip-白名单)。
 
+## 智能体接入（MCP）
+
+[MCP 智能体接入](/features/mcp)默认关闭。开关是 `apps/server/.env` 里的 `APP_MCP`（不是秘密），只在启动时读取，改完要重启全部实例。关闭时 `/api/mcp`、`/.well-known/oauth-*` 和 `/api/mcp/*` 管理接口都返回 404，侧栏里也看不到 **MCP 工具**、**访问令牌** 两页。数据表不管开关如何都由迁移创建，所以打开时不需要另外迁移。
+
+- 智能体调用的 `POST /api/mcp` 走现有的 `/api/` 转发，不用另配。
+- 用 OAuth2 接入的客户端还要读两个发现文档：`/.well-known/oauth-protected-resource`（以及它后面接 `/api/mcp` 的路径）和 `/.well-known/oauth-authorization-server`。很多 nginx 配置用 `location ~ /\.` 拦截以点开头的路径，这时要在它**之前**单独把 `/.well-known/oauth-` 开头的路径转给服务端，仓库的 nginx 示例已经这样写了。只用个人访问令牌时可以不转发。
+- 代理要保留客户端发来的 `Host` 和协议：OAuth2 的资源地址按请求到达的域名计算（`https://<域名>/api/mcp`）。
+- 端点按来源 IP 限流（每分钟 600 次），所以 `TRUST_PROXY` 要设成实际反向代理的地址。
+- 运行中要紧急停止，由超级管理员把参数 `mcp.paused` 改成 `true`，不需要重启。
+
+见仓库的[智能体接入（MCP）](https://github.com/732124645/qiwu-vue-admin/blob/main/docs/deploy.md#智能体接入mcp)和 [nginx 反向代理与 CSP](https://github.com/732124645/qiwu-vue-admin/blob/main/docs/deploy.md#nginx-反向代理与-csp)。
+
 ## 演示模式
 
-公开演示站设 `APP_DEMO_MODE=true`，使用独立的库、Redis 库号和密钥。除登录、退出、标为已读等少数操作外，写操作一律返回 403，超级管理员也一样；OAuth2 授权和令牌接口也被拒绝，要演示单点登录请用非演示安装；日志页面里访客的 IP 和浏览器信息脱敏显示。同时打开多租户时，还会创建两个示例租户，访客可以进入和退出租户。开关改回 `false` 不会让已公开的密码失效，正式环境请重新安装。放行清单见[仓库安全文档](https://github.com/732124645/qiwu-vue-admin/blob/main/docs/security.md#演示模式的精确豁免)，另见[部署文档](https://github.com/732124645/qiwu-vue-admin/blob/main/docs/deploy.md#演示模式与-oauth-边界)。
+公开演示站设 `APP_DEMO_MODE=true`，使用独立的库、Redis 库号和密钥。除登录、退出、标为已读等少数操作外，写操作一律返回 403，超级管理员也一样；OAuth2 授权和令牌接口也被拒绝，要演示单点登录请用非演示安装；智能体调用 `POST /api/mcp` 同样被拒绝；日志页面里访客的 IP 和浏览器信息脱敏显示。同时打开多租户时，还会创建两个示例租户，访客可以进入和退出租户。开关改回 `false` 不会让已公开的密码失效，正式环境请重新安装。放行清单见[仓库安全文档](https://github.com/732124645/qiwu-vue-admin/blob/main/docs/security.md#演示模式的精确豁免)，另见[部署文档](https://github.com/732124645/qiwu-vue-admin/blob/main/docs/deploy.md#演示模式与-oauth-边界)。
 
 <span id="单实例说明"></span>
 

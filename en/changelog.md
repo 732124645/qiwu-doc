@@ -1,10 +1,37 @@
 ---
-description: 'Qiwu release notes: version 1.5.0 adds a WeChat Official Account management module (off by default, switch APP_WXOA, tables still created by the migrations); version 1.4.0 is a security release (password resets and department moves judged as grants, a sign-in origin check, a sign-in username format check, hardened Excel import and more) with upgrade notes on the reverse proxy and usernames; version 1.3.1 adds the QW_INSPECT switch for server breakpoint debugging and VS Code debug configurations; version 1.3.0 adds job queues on the existing Redis and a queue monitor page; version 1.2.0 lets hand-written SQL in the code apply data scope too, with a new check; version 1.1.0 adds multi-tenancy (one shared database with data isolated per tenant, tenants, tenant packages, platform staff entering a tenant) with notes on upgrading and turning it on; version 1.0.3 adds GitHub Actions checks, automated releases and a server deploy kit, plus fixes; version 1.0.0 covers permissions, workflow, code generation, the mobile app, deployment and known limitations.'
+description: 'Qiwu release notes: version 1.6.0 adds MCP agent access (off by default, switch APP_MCP, personal access tokens and OAuth2) and makes merging template releases into projects easier; version 1.5.0 adds a WeChat Official Account management module (off by default, switch APP_WXOA, tables still created by the migrations); version 1.4.0 is a security release (password resets and department moves judged as grants, a sign-in origin check, a sign-in username format check, hardened Excel import and more) with upgrade notes on the reverse proxy and usernames; version 1.3.1 adds the QW_INSPECT switch for server breakpoint debugging and VS Code debug configurations; version 1.3.0 adds job queues on the existing Redis and a queue monitor page; version 1.2.0 lets hand-written SQL in the code apply data scope too, with a new check; version 1.1.0 adds multi-tenancy (one shared database with data isolated per tenant, tenants, tenant packages, platform staff entering a tenant) with notes on upgrading and turning it on; version 1.0.3 adds GitHub Actions checks, automated releases and a server deploy kit, plus fixes; version 1.0.0 covers permissions, workflow, code generation, the mobile app, deployment and known limitations.'
 ---
 
 # Changelog
 
 This page records the changes in each Qiwu release. For the current features and the status of each one, see [Introduction · Features at a glance](/en/guide/introduction#features-at-a-glance).
+
+## 1.6.0 · 2026-10-20
+
+Adds MCP agent access, off by default. **MCP** (Model Context Protocol) is an open standard for how agents (AI assistants) discover and call tools; once it is on, an agent can call the console's tools as a particular user, never with more rights than that user. See [MCP agent access](/en/features/mcp); for the full reference in the repository, see the [agent access docs](https://github.com/732124645/qiwu-vue-admin/blob/main/docs/mcp.md) (Chinese).
+
+Added:
+
+- **Switch**: set `APP_MCP=true` in the server environment to load the module, then restart. While off, `/api/mcp`, its discovery documents and every admin route return 404, and the **MCP tools** and **Access tokens** pages are hidden. While running, the parameter `mcp.paused`, which only the super administrator can change, stops every tool call at once.
+- **Endpoint**: `POST /api/mcp`, tools only (initialize, list tools, call a tool), stateless. A tool is a service method marked `@McpTool`, registered at startup; see [Add MCP tools to a module](/core/mcp) (Chinese).
+- **Two ways in**: personal access tokens (created on the **Access tokens** tab of My profile with the current password, shown once, valid for up to 90 days or without expiry, optionally limited to some tools and with an explicit write permission, revocable at any time; they end for good when the user is disabled, deleted, changes or has the password reset, is signed out by an administrator, or the tenant is disabled); and OAuth2 clients registered in OAuth2 clients with the new scopes `mcp` and `mcp.write`. Both run with the token's own user's permissions, data scope and tenant.
+- **Guardrails**: the emergency stop, a per-token rate limit, a per-tool switch, the token's tool list and write permission, permission codes, argument validation (at most 32 levels deep and 16 KiB), a time limit, masking of secret fields in the output and a 64 KiB answer limit; every call writes one **Agent call** row to the action log, marked as done by an agent on the user's behalf.
+- **Sample tools**: `iam.me.get`, `iam.user.search` (the same data scope as the user list), `cfg.dict.options`, and the write tool `demo.book.create`.
+
+Changed:
+
+- **Fewer conflicts when upgrading the template**: the template's server tests no longer hard-code the template's own structure (the migration list is read from the migrations directory; tables and columns are checked by rules), and a project registers its own platform tables and global unique keys in `apps/server/src/db/project-tables.ts` instead of editing the template's list. A new guide, [Upgrading the template](/guide/upgrade) (Chinese), walks through it.
+- **Faster server tests**: the migration round trip runs in one process, about twice as fast; script timeouts can be set with `QW_TEST_SCRIPT_TIMEOUT_MS`, and a killed script fails at once with its name and time; locally, `QW_TEST_REUSE_DB=1` reuses the test database while migrations, seeds and module switches are unchanged (`pnpm ci:local` and CI always rebuild it), see [Backend testing · Faster tests](/backend/testing#加快测试) (Chinese).
+- **Migration timestamp check**: `pnpm verify` refuses migration files with duplicate or malformed timestamps. Use the real current time, seconds included, for new migrations.
+
+Upgrade:
+
+- This release has 1 database migration that creates the access token and tool switch tables. **They are created whether or not the switch is on**. `pnpm db:seed` writes the **MCP tools** and **Access tokens** menus and the parameter `mcp.paused` (the menus stay hidden while the switch is off).
+- New server environment variable `APP_MCP`, `false` by default; leave it unset if you don't need the module. For turning it on, see [Deploy · Agent access](/guide/deploy#智能体接入-mcp) (Chinese).
+- One new server dependency, `@modelcontextprotocol/sdk` (1.32.1, MIT license), the official MCP package; `pnpm i` installs it.
+- For OAuth2 clients, the reverse proxy must forward `/.well-known/oauth-protected-resource` and `/.well-known/oauth-authorization-server` to the server. Many nginx configurations block paths starting with a dot; let these two through before that rule, see [Deploy · Agent access](/guide/deploy#智能体接入-mcp) (Chinese). Not needed if you only use personal access tokens.
+- For projects built from the template, see [Upgrading the template](/guide/upgrade) (Chinese) for merging the new release.
+- Upgrade as usual: update to the v1.6.0 code → `pnpm i` → `pnpm -r build` → `pnpm db:migrate` → `pnpm db:seed` → restart, see [Deploy](/guide/deploy) (Chinese).
 
 ## 1.5.0 · 2026-10-20
 

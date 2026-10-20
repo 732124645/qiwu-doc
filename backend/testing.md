@@ -1,5 +1,5 @@
 ---
-description: '后端 e2e 测试入门：单元测试与 e2e 测试的区别，用 Vitest 和 supertest 测接口的完整示例，每个接口至少要测的状态码，运行单个测试文件和独立测试库。'
+description: '后端 e2e 测试入门：单元测试与 e2e 测试的区别，用 Vitest 和 supertest 测接口的完整示例，每个接口至少要测的状态码，运行单个测试文件、独立测试库和本地快速模式。'
 ---
 
 # 写测试
@@ -116,6 +116,30 @@ GRANT ALL ON qiwu_test.* TO 'qiwu'@'localhost';
 ```
 
 测试启动时会自动执行迁移。
+
+## 加快测试
+
+默认每次运行测试前，都会删掉测试库里的全部表，再重新执行全部迁移、写入种子。迁移多、数据库慢时，这一步可能要一两分钟，只跑一个测试文件也一样。本地反复调试时可以打开**快速模式**：
+
+::: code-group
+
+```bash [macOS]
+QW_TEST_REUSE_DB=1 pnpm --filter @qiwu/server test crm-customer-extra.e2e
+```
+
+```powershell [Windows（PowerShell）]
+$env:QW_TEST_REUSE_DB = '1'
+pnpm --filter @qiwu/server test crm-customer-extra.e2e
+Remove-Item Env:QW_TEST_REUSE_DB   # 用完清除
+```
+
+:::
+
+- 迁移文件、种子文件和几个模块开关（`APP_MULTI_TENANT`、`APP_WXOA`、`APP_MCP`、`APP_DEMO_MODE`）都没变时，测试会**复用**上次的测试库：不删库，只补跑还没执行的迁移，再重新写入种子；有变化时照常重建；
+- 复用的库里可能留着上次运行写下的数据，或者中断时的半截状态。遇到说不清的失败，去掉这个变量完整跑一次；
+- 快速模式只用于本地调试。`pnpm ci:local` 会去掉这个变量，CI 里也忽略它，完整重建测试库的运行才算检查结果。
+
+迁移相关的测试会运行编译后的数据库脚本，每个脚本默认最多 300 秒。机器慢时可以用 `QW_TEST_SCRIPT_TIMEOUT_MS`（毫秒）放宽，设置方法同上。脚本超时被终止时，那个测试直接失败，并写明是哪个脚本、用了多久。详见仓库入门指南的[服务端测试](https://github.com/732124645/qiwu-vue-admin/blob/main/docs/getting-started.md#服务端测试)。
 
 ## 写测试的几个习惯
 

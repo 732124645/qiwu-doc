@@ -35,6 +35,7 @@ const enSidebar = [
       { text: 'Single sign-on (OAuth2)', link: '/en/features/oauth' },
       { text: 'Permissions and data scope', link: '/en/features/permission' },
       { text: 'Multi-tenancy', link: '/en/features/multi-tenancy' },
+      { text: 'MCP agent access', link: '/en/features/mcp' },
       { text: 'Code generator', link: '/en/features/codegen' },
       { text: 'Form designer', link: '/en/features/formkit' },
       { text: 'Workflow', link: '/en/features/workflow' },
@@ -291,6 +292,7 @@ export default defineConfigWithTheme<DefaultTheme.Config & { enPages?: string[] 
           text: '开发',
           items: [
             { text: '新增业务模块', link: '/guide/new-module' },
+            { text: '升级模板版本', link: '/guide/upgrade' },
             { text: '部署', link: '/guide/deploy' },
           ],
         },
@@ -385,6 +387,7 @@ export default defineConfigWithTheme<DefaultTheme.Config & { enPages?: string[] 
           items: [
             { text: '权限与数据范围', link: '/core/permission' },
             { text: '编写租户感知的代码', link: '/core/tenancy' },
+            { text: '给模块加 MCP 工具', link: '/core/mcp' },
             { text: '缓存', link: '/core/cache' },
             { text: '防重复提交、限流与锁', link: '/core/guards' },
             { text: '定时任务', link: '/core/job' },
@@ -430,6 +433,7 @@ export default defineConfigWithTheme<DefaultTheme.Config & { enPages?: string[] 
             { text: '单点登录（OAuth2）', link: '/features/oauth' },
             { text: '权限与数据范围', link: '/features/permission' },
             { text: '多租户', link: '/features/multi-tenancy' },
+            { text: 'MCP 智能体接入', link: '/features/mcp' },
             { text: '监控与日志', link: '/features/monitor' },
             { text: '定时任务', link: '/features/job' },
             { text: '消息中心', link: '/features/messaging' },

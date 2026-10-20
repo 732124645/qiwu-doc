@@ -23,7 +23,7 @@ Every system that wants to connect must first be registered as a **client**. Add
 - **Client name** and **Logo**: shown on the authorization page, so users know who is asking;
 - **Grant types**: **Authorization code** (the user authorizes), **Refresh token** (when the access token expires, exchange it for a new pair of tokens without the user authorizing again), **Client credentials** (machine clients); pick at least one. Refresh token requires authorization code as well;
 - **Redirect URIs**: the addresses the user returns to in the third party after allowing or denying; up to 10. They must be `https://`; for local debugging you can use `http://localhost` or `http://127.0.0.1`;
-- **Scopes** and **Auto-approved scopes**: there is currently only one scope, `user.read` (read the basic profile). Scopes put in **Auto-approved scopes** are not asked of the user and do not appear on the authorization page;
+- **Scopes** and **Auto-approved scopes**: `user.read` (read the basic profile); the two further scopes `mcp` and `mcp.write` are only for registering agent clients and are unticked by default, see [MCP agent access · OAuth2](/en/features/mcp#oauth2). Scopes put in **Auto-approved scopes** are not asked of the user and do not appear on the authorization page;
 - **Access token lifetime** and **Refresh token lifetime**: set per client; see [Sessions and tokens](#sessions-and-tokens).
 
 ![New OAuth2 client form](/screenshots/en-oauth-form.webp)
@@ -92,7 +92,7 @@ The token a third party gets is an ordinary session in this system, only with li
 - **The authorization code flow requires PKCE**, and only `S256` is accepted. Authorization codes are valid for 300 seconds and can be used only once;
 - **No OIDC**: there is no `id_token`, no discovery endpoint and no public key endpoint (JWKS). User info is read from a dedicated user info endpoint;
 - The password grant (`password`) and the implicit grant (`implicit`) are **not supported**;
-- **The only scope is `user.read`**. User info contains only the user ID, username, name, avatar and interface language, not the mobile number, email, department or roles;
+- **The only scope for reading user info is `user.read`** (`mcp` and `mcp.write` are only for [agent access](/en/features/mcp)). User info contains only the user ID, username, name, avatar and interface language, not the mobile number, email, department or roles;
 - **Rate limits by IP**: per IP per minute, the authorization page allows 120 requests, the token endpoint 600, and the introspection and revocation endpoints 1200 each; beyond that they return 429. The counters are stored in Redis, so multiple service instances share the same quota (see [Deployment · Multi-instance deployment](/guide/deploy#多实例部署) (Chinese));
 - **Not available in demo mode**: with demo mode on (`APP_DEMO_MODE=true`), granting consent, requesting tokens, and introspecting and revoking tokens are all rejected (403). To try single sign-on, use an installation without demo mode.
 

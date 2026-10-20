@@ -11,7 +11,7 @@ Qiwu (栖梧, project name `qiwu-vue-admin`) is a **full-stack Node admin templa
 To learn why I built this project, see [Project story](/en/guide/story).
 
 ::: info Current status
-**v1.5.0** was released on 2026-10-20, open source under the **MIT license**. This release adds a [WeChat Official Account](/en/features/wxoa) management module (off by default). Recent releases also added [multi-tenancy](/en/features/multi-tenancy), data scope for hand-written SQL, job queues (slow work handed to the background, on the existing Redis), a switch for server breakpoint debugging, and hardening from a security review; see the [Changelog](/en/changelog) for changes. The mobile app can already be built and debugged locally; testing on real devices and pre-release checks for the app stores are still in progress. The feature tables below show the status of each item.
+**v1.6.0** was released on 2026-10-20, open source under the **MIT license**. This release adds [MCP agent access](/en/features/mcp) (off by default): agents (AI assistants) can call the console's tools with the user's own permissions, through a personal access token or OAuth2. It also makes merging new template releases into your project easier. Recent releases also added a [WeChat Official Account](/en/features/wxoa) management module, [multi-tenancy](/en/features/multi-tenancy), data scope for hand-written SQL, job queues (slow work handed to the background, on the existing Redis), a switch for server breakpoint debugging, and hardening from a security review; see the [Changelog](/en/changelog) for changes. The mobile app can already be built and debugged locally; testing on real devices and pre-release checks for the app stores are still in progress. The feature tables below show the status of each item.
 :::
 
 ## Live demo
@@ -89,7 +89,7 @@ For details on each feature, see the [Features overview](/en/features/).
 | Departments, positions | ✅ |
 | Dictionaries, parameters | ✅ |
 | Bulletins (rich text, notification bell, read statistics) | ✅ |
-| My profile (profile details, password change, avatar cropping, changing the bound mobile number) | ✅ |
+| My profile (profile details, password change, avatar cropping, changing the bound mobile number, access tokens) | ✅ |
 | App versions (register hot-update resource packages and full packages of the mobile app; the app prompts for updates on launch) | ✅ |
 
 ### Security and auditing
@@ -144,6 +144,7 @@ For details on each feature, see the [Features overview](/en/features/).
 | OAuth2 authorization server / single sign-on (authorization code + PKCE, so other systems can let users sign in with their Qiwu accounts; OAuth2 client management, consent page, remembered consent) | ✅ |
 | [Multi-tenancy](/en/features/multi-tenancy) (one deployment serves many companies, sharing one database with data isolated per tenant; tenants, tenant packages, bound domains, brands, platform staff entering a tenant to investigate problems; off by default) | ✅ |
 | [WeChat Official Accounts](/en/features/wxoa) (several accounts, messages and conversations, auto replies, custom menus, fans and tags, materials, template messages, channel QR codes; article drafts, publishing, mass messages, statistics, comments and subscription notices need a verified service account and have so far only been verified in a simulated environment; off by default) | ✅ |
+| [MCP agent access](/en/features/mcp) (agents call the console's tools with the user's own permissions; personal access tokens or OAuth2, emergency stop, rate limits, per-tool switch, action log; off by default) | ✅ |
 | Mobile app (uni-app: WeChat mini program, Android, iOS; sign-in, Workbench, messages, approvals (including dynamic forms), realtime push, WeChat subscribe message reminders and app update checks are done, with light and dark themes; checks on real devices before release are still in progress) | 🚧 |
 | Other third-party sign-in (GitHub, DingTalk, WeCom, Feishu (Lark), WeChat QR code, etc.) | ⏸ |
 | Instant messaging (one-to-one chat, group chat, staff directory), offline push for the app | ⏸ |

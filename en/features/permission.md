@@ -209,6 +209,7 @@ Also, a role held by users cannot be deleted: "The role is assigned to users. Re
 | Change the sign-up parameters: `auth.signup.enabled` (whether sign-up is open), `auth.signup.default_role_id` (default sign-up role), `auth.signup.default_dept_id` (default sign-up department) | They decide what permissions strangers get after signing up |
 | Change the default sign-up role itself and its menu permissions and data scope, and add or remove its members in **System → Roles** → **More → Assign users** (assigning or removing this role for a user in Users is not limited by this; it is only checked by the [privilege escalation guard](#privilege-escalation-guard)) | Same as above |
 | Change `auth.wx_mp.enabled` (the WeChat mini program sign-in switch) | Decides whether people can sign in with WeChat |
+| Change `mcp.paused` (the agent access emergency stop) | It stops agent calls for every tenant at once |
 | Change `audit.retention_days` (days to keep logs) | Audit records such as entering and leaving a tenant cannot be deleted by anyone; only the retention purge removes them, so shortening the retention would delete them |
 | Add, edit, delete and test-send SMS templates whose code starts with `auth.`; edit and delete the SMS channels these templates use | Verification codes for sign-in and password reset are sent through them; changing them could send those codes through someone else's SMS account |
 | Choose **All data** in a role's data scope | See [Privilege escalation guard](#privilege-escalation-guard) |

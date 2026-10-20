@@ -50,6 +50,7 @@ flowchart LR
 | 下拉框选项由管理员维护 | 字典 | [字典](/core/dict) |
 | 配置值可以在后台修改 | 参数 | [参数设置](/core/param) |
 | 记录谁做了什么 | `@ActionLog` | [操作日志](/core/action-log) |
+| 让智能体（AI 助手）调用模块的功能 | `@McpTool` | [给模块加 MCP 工具](/core/mcp) |
 | 多语言 | 翻译键 | [国际化](/core/i18n) |
 
 ## 前端核心

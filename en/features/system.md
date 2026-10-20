@@ -27,11 +27,13 @@ For how permissions work (feature permissions, data scope, the privilege escalat
 | [OAuth2 clients](#oauth2-clients) | Third-party apps that can sign in with accounts of this system. See [Single sign-on (OAuth2)](/en/features/oauth) |
 | Tenants | Open and manage tenants (the companies using this system): package, expiry, bound domains, brand; platform staff enter tenants from here. Shown only with multi-tenancy on. See [Multi-tenancy](/en/features/multi-tenancy) |
 | Tenant packages | Decide which menus a tenant can use. Shown only with multi-tenancy on. See [Multi-tenancy](/en/features/multi-tenancy) |
+| MCP tools | The tools agents can call; a tool can be switched off as a whole. Shown only with agent access (`APP_MCP`) on. See [MCP agent access](/en/features/mcp) |
+| Access tokens | View and revoke the personal access tokens of the tenant's users. Shown only with agent access on. See [MCP agent access](/en/features/mcp) |
 
 In addition, [My profile](#my-profile) in the avatar menu at the top right is available to every signed-in user, with no grant needed.
 
 ::: info With multi-tenancy on
-**Tenants** and **Tenant packages** can be used only by people in the default tenant (the platform). **Menus**, **Dictionaries**, **Parameters**, **App versions** and **OAuth2 clients** under **System**, the templates, **Mail accounts** and **SMS channels** under **Message center**, **Storage configs**, and **API access log** and **API error log** are **platform-only pages** too: only the platform can use them, and they are not visible in tenants. See [Permissions and data scope · Tenant packages and platform-only pages](/en/features/permission#tenant-packages-and-platform-only-pages).
+**Tenants** and **Tenant packages** can be used only by people in the default tenant (the platform). **Menus**, **Dictionaries**, **Parameters**, **App versions** and **OAuth2 clients** under **System**, the templates, **Mail accounts** and **SMS channels** under **Message center**, **Storage configs**, **API access log** and **API error log**, and **MCP tools** are **platform-only pages** too: only the platform can use them, and they are not visible in tenants. See [Permissions and data scope · Tenant packages and platform-only pages](/en/features/permission#tenant-packages-and-platform-only-pages).
 :::
 
 ::: tip Who can see these menus
@@ -360,7 +362,7 @@ Parameters are configuration that administrators can change online, such as how 
 - Keys may only use lowercase letters, digits, underscores and dots, and start with a letter, such as `storage.max_size_mb`. **They cannot be changed after adding**;
 - Values are all text, at most 16383 characters, and may be empty. If a numeric parameter holds something that is not a number or is out of range, the system uses the default value;
 - Parameter values are not written to the action log (whether the parameter is secret or not);
-- The sign-up parameters (`auth.signup.enabled`, `auth.signup.default_role_id`, `auth.signup.default_dept_id`) the WeChat mini program sign-in switch `auth.wx_mp.enabled` and the log retention days `audit.retention_days` can only be changed by the super administrator. See [Permissions · What only the super administrator can do](/en/features/permission#what-only-the-super-administrator-can-do).
+- The sign-up parameters (`auth.signup.enabled`, `auth.signup.default_role_id`, `auth.signup.default_dept_id`) the WeChat mini program sign-in switch `auth.wx_mp.enabled`, the log retention days `audit.retention_days` and the agent access emergency stop `mcp.paused` can only be changed by the super administrator. See [Permissions · What only the super administrator can do](/en/features/permission#what-only-the-super-administrator-can-do).
 
 ### Parameter flags
 
@@ -386,6 +388,7 @@ These parameters come with initialization (grouped by purpose; see each feature 
 | Remember consent (days) | `oauth.consent_ttl_days` (0 means always ask) | 30 days | [Single sign-on · Remembered consent](/en/features/oauth#remembered-consent) |
 | WeChat subscribe messages (notifications sent through WeChat) | `notify.wx_subscribe.enabled` (switch), `notify.wx_subscribe.templates` (templates configured per notification code) | Off; a template config for new to-do reminders is preset, with an empty template ID | [Message center · WeChat subscribe messages](/features/messaging#微信订阅消息) (Chinese) |
 | App updates | `app.update.enabled` (switch), `app.update.review_version` (native version in store review) | Off, empty | [App versions](#the-two-app-update-parameters) |
+| Agent access emergency stop | `mcp.paused` (`true`: every MCP tool call is refused at once; only the super administrator can change it) | `false` | [MCP agent access](/en/features/mcp#turning-it-on) |
 
 ## App versions
 
@@ -535,6 +538,7 @@ The left side shows your avatar, display name and username, plus your department
 | **Password** | Enter the old password and the new password twice. After the change, your sessions on other devices and browsers all end, and your WeChat mini program link is removed |
 | **Preferences** | Interface language. It is saved on your account; notifications the system sends you and files you export also use this language |
 | **Linked accounts** | View and unlink the WeChat mini program. Shown only when WeChat mini program sign-in is enabled, or when the account still has a link |
+| **Access tokens** | Create and revoke personal access tokens for agents; creating one asks for your current password, and the token is shown only once. Shown only with agent access (`APP_MCP`) on. See [MCP agent access](/en/features/mcp#personal-access-tokens) |
 
 For details on each item (the steps to verify a mobile number, avatar formats, the effects of unlinking), see [Sign-in and accounts · My profile](/features/login#个人中心) (Chinese).
 
@@ -558,6 +562,8 @@ In **System → Roles → Menu permissions**, these are the actions you can tick
 | OAuth2 clients | `oauth.client` | Browse, View, Add, Edit, Delete; Reset secret `reset-secret` |
 | Tenants | `iam.tenant` | Browse, View, Add, Edit; Enter tenant `enter`, Reset initial password `reset-password` |
 | Tenant packages | `iam.tenantPackage` | Browse, View, Add, Edit, Delete |
+| MCP tools | `mcp.tool` | Browse, Edit (switch tools off or on) |
+| Access tokens | `mcp.token` | Browse; Revoke `revoke` |
 
 A few points that are easy to miss:
 

@@ -1,5 +1,5 @@
 ---
-description: 'Overview of Qiwu admin features by menu: system management, OAuth2 single sign-on, permissions, multi-tenancy, code generator, form designer, workflow, mobile, WeChat Official Accounts and security.'
+description: 'Overview of Qiwu admin features by menu: system management, OAuth2 single sign-on, MCP agent access, permissions, multi-tenancy, code generator, form designer, workflow, mobile, WeChat Official Accounts and security.'
 ---
 
 # Features overview
@@ -12,9 +12,10 @@ For the status of each item, see [Introduction · Features at a glance](/en/guid
 
 | Feature | In one sentence |
 | --- | --- |
-| [System management](/en/features/system) | Users, roles, menus, departments, positions, dictionaries, parameters, regions, OAuth2 clients, app versions, my profile |
+| [System management](/en/features/system) | Users, roles, menus, departments, positions, dictionaries, parameters, regions, OAuth2 clients, app versions, my profile (including access tokens) |
 | [Sign-in and accounts](/features/login) (Chinese) | Password, SMS and WeChat mini program sign-in, captchas, lockout after failed attempts, password policy, online users |
 | [Single sign-on (OAuth2)](/en/features/oauth) | Let other systems sign users in with their Qiwu accounts: OAuth2 client management, consent page, remembered consent |
+| [MCP agent access](/en/features/mcp) | Let agents (AI assistants) call the console's tools with the user's own permissions: personal access tokens or OAuth2, guardrails, action log; off by default |
 | [Permissions and data scope](/en/features/permission) | Menu and button permissions, five data scopes, privilege escalation guard |
 | [Multi-tenancy](/en/features/multi-tenancy) | One deployment serving many companies: tenants, tenant packages, bound domains, brands, platform staff entering a tenant; off by default |
 | [Monitoring and logs](/features/monitor) (Chinese) | Server, MySQL, Redis and job queue monitoring; action log, sign-in log, API access and error logs |

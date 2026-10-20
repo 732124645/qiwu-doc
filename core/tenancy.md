@@ -16,7 +16,7 @@ description: '编写租户感知的代码：新表默认是租户表、实体映
 - **ORM 自动加租户条件**：通过 ORM（实体、Repository、QueryBuilder）读、写、计数、子查询和联表时，自动加上当前租户的条件，插入时自动写入当前租户。超级管理员和 `@SkipDataScope()` 也跳不过；
 - **手写 SQL 自己写条件**：原始 SQL 不经过 ORM，每张租户表（包括联表进来的）都要带 `<别名>.tenant_id = ?`，插入时写 `tenant_id`。`pnpm verify` 会把漏写的找出来；
 - **跨租户只走两个函数**：`withTenant(租户 id, fn)` 在指定的租户里运行，`allTenants(fn)` 不带租户条件运行。每处调用都在旁边写注释 `qw:cross-tenant <理由>`，确实要跨租户的手写 SQL 也一样；
-- **平台表和全局唯一键集中登记**：所有租户共用、由平台维护的表（比如字典、参数），登记进 `apps/server/src/core/db/tenant-tables.ts` 的 `PLATFORM_TABLES`；必须在所有租户里都唯一的键，登记进同一个文件的 `GLOBAL_UNIQUE`。平台表做成的页面，还要把它的路由名加进 `packages/shared/src/common/tenancy.ts` 的 `PLATFORM_ONLY_ROUTES`，否则租户可能拿到一个打开就报 403 的页面。
+- **平台表和全局唯一键集中登记**：所有租户共用、由平台维护的表（模板里的字典、参数就是这种表），项目自己的这类表登记进 `apps/server/src/db/project-tables.ts` 的 `PROJECT_PLATFORM_TABLES`；必须在所有租户里都唯一的键，登记进同一个文件的 `PROJECT_GLOBAL_UNIQUE`，并写明占用的值怎样释放。模板自己的表在 `apps/server/src/core/db/tenant-tables.ts`，两边合并成 `PLATFORM_TABLES` 和 `GLOBAL_UNIQUE`；项目不改这个模板文件，[升级模板](/guide/upgrade)时也就不会在这里冲突。平台表做成的页面，还要把它的路由名加进 `packages/shared/src/common/tenancy.ts` 的 `PLATFORM_ONLY_ROUTES`，否则租户可能拿到一个打开就报 403 的页面。
 
 ::: warning 忘了加 tenant_id 会怎样
 没有 `tenant_id` 的项目表会被所有租户共享：任何租户都能读写它的全部行。代码生成器导入这样的表时只给提示，不会拦下。
