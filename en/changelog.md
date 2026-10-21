@@ -1,10 +1,30 @@
 ---
-description: 'Qiwu release notes: version 1.6.0 adds MCP agent access (off by default, switch APP_MCP, personal access tokens and OAuth2) and makes merging template releases into projects easier; version 1.5.0 adds a WeChat Official Account management module (off by default, switch APP_WXOA, tables still created by the migrations); version 1.4.0 is a security release (password resets and department moves judged as grants, a sign-in origin check, a sign-in username format check, hardened Excel import and more) with upgrade notes on the reverse proxy and usernames; version 1.3.1 adds the QW_INSPECT switch for server breakpoint debugging and VS Code debug configurations; version 1.3.0 adds job queues on the existing Redis and a queue monitor page; version 1.2.0 lets hand-written SQL in the code apply data scope too, with a new check; version 1.1.0 adds multi-tenancy (one shared database with data isolated per tenant, tenants, tenant packages, platform staff entering a tenant) with notes on upgrading and turning it on; version 1.0.3 adds GitHub Actions checks, automated releases and a server deploy kit, plus fixes; version 1.0.0 covers permissions, workflow, code generation, the mobile app, deployment and known limitations.'
+description: 'Qiwu release notes: version 1.7.0 lets AI coding tools understand the template''s conventions (one set of development rules, a project rules file, ten task recipes, a project map, check failures that say how to fix them), with no runtime change; version 1.6.0 adds MCP agent access (off by default, switch APP_MCP, personal access tokens and OAuth2) and makes merging template releases into projects easier; version 1.5.0 adds a WeChat Official Account management module (off by default, switch APP_WXOA, tables still created by the migrations); version 1.4.0 is a security release (password resets and department moves judged as grants, a sign-in origin check, a sign-in username format check, hardened Excel import and more) with upgrade notes on the reverse proxy and usernames; version 1.3.1 adds the QW_INSPECT switch for server breakpoint debugging and VS Code debug configurations; version 1.3.0 adds job queues on the existing Redis and a queue monitor page; version 1.2.0 lets hand-written SQL in the code apply data scope too, with a new check; version 1.1.0 adds multi-tenancy (one shared database with data isolated per tenant, tenants, tenant packages, platform staff entering a tenant) with notes on upgrading and turning it on; version 1.0.3 adds GitHub Actions checks, automated releases and a server deploy kit, plus fixes; version 1.0.0 covers permissions, workflow, code generation, the mobile app, deployment and known limitations.'
 ---
 
 # Changelog
 
 This page records the changes in each Qiwu release. For the current features and the status of each one, see [Introduction · Features at a glance](/en/guide/introduction#features-at-a-glance).
+
+## 1.7.0 · 2026-10-21
+
+Lets AI coding tools understand the template's development conventions; no runtime change. See [Developing with AI](/en/guide/ai); for the full reference in the repository, see the [AI development docs](https://github.com/732124645/qiwu-vue-admin/blob/main/docs/ai.md) (Chinese).
+
+Added:
+
+- **Development rules**: `AGENTS.md` at the repository root sets out the conventions for building on the template: layout and layering, naming, API, i18n, multi-tenancy and data scope, security defaults, the CRUD kit, migrations and seeds, generator first, tests and the definition of done, commands, and what each check failure means. The entry files of the common AI coding tools all point to it; for which tool reads which file, see [Developing with AI](/en/guide/ai#files-in-the-repository). A project keeps its own rules in `docs/project-rules.md`; the template does not ship that file, so template upgrades never conflict with it.
+- **Task recipes**: ten step-by-step recipes in `docs/ai/recipes/`, each with its done checks: a new business module (generator first), tables and migrations, permissions and menus, dicts and system parameters, data scope, hand-written SQL and tenants, queue and scheduled jobs, MCP tools, i18n strings and API tests; each recipe has a matching skill (`qiwu-*`).
+- **Project map**: `pnpm ai:map` parses the source statically and writes `docs/ai/project-map.md`, listing modules and feature switches, tables, every API route with its permission, permission codes, menus, dicts, system parameters, queues, scheduled jobs and MCP tools. `pnpm verify` fails when the map is stale.
+
+Changed:
+
+- **Check failures say how to fix them**: when the architecture checks, `i18n:check`, `originality:check` or `license:check` fail, the error ends with a `fix:` line (what to change) and a `see:` line (a link to the doc that explains the rule). A new architecture check, `ai-docs`, makes sure the scripts, paths, links and anchors named in the AI docs exist.
+
+Upgrade notes:
+
+- No database migrations, no environment variable or dependency changes, and no change to the server or web runtime code; nothing to redeploy.
+- After merging, `pnpm verify` checks the project map: if your project has its own modules, tables or endpoints, it reports the map as stale; run `pnpm ai:map` to regenerate it and commit the result. Do this after every merge of a new template release; see [Upgrading the template](/guide/upgrade#合并后的检查) (Chinese).
+- To have AI tools follow your project's own conventions, create `docs/project-rules.md`; see [Developing with AI](/en/guide/ai#adding-your-project-s-own-rules).
 
 ## 1.6.1 · 2026-10-21
 

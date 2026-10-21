@@ -87,6 +87,7 @@ git merge v1.6.0
 ```bash
 pnpm i
 pnpm --filter @qiwu/shared build
+pnpm ai:map
 pnpm verify
 pnpm --filter @qiwu/server build
 pnpm --filter @qiwu/server test
@@ -106,6 +107,7 @@ pnpm ci:local --serial
 
 :::
 
+- 合并后运行 `pnpm ai:map` 重新生成[项目地图](/guide/ai#项目地图) `docs/ai/project-map.md` 并提交：模板和项目两边的改动都会让它过期，`pnpm verify` 会检查它；这个文件有冲突时也不要手工解决，直接重新生成；
 - 本地反复调试服务端测试时，可以用快速模式 `QW_TEST_REUSE_DB=1`（见[后端测试 · 加快测试](/backend/testing#加快测试)），但升级是否成功，以完整重建测试库的那次运行为准；
 - 开发库用 `pnpm db:migrate` 和 `pnpm db:seed` 升级，**不要**对已有的库执行 `pnpm db:reset`（它会清空数据）；
 - 生产环境先备份数据库，再按[部署](/guide/deploy)的步骤执行迁移和种子。

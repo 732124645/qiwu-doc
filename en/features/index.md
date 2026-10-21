@@ -29,6 +29,7 @@ For the status of each item, see [Introduction · Features at a glance](/en/guid
 | --- | --- |
 | [Code generator](/en/features/codegen) | Create a table and generate frontend and backend code, menus, permissions and tests, optionally mobile pages too |
 | [Form designer](/en/features/formkit) | Design forms by drag and drop, export to JSON and Vue code |
+| [Developing with AI](/en/guide/ai) | Guide: shared development rules, task recipes and a project map so AI coding tools follow the template's conventions |
 
 ## Approvals
 

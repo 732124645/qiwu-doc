@@ -11,7 +11,7 @@ Qiwu (栖梧, project name `qiwu-vue-admin`) is a **full-stack Node admin templa
 To learn why I built this project, see [Project story](/en/guide/story).
 
 ::: info Current status
-**v1.6.1** was released on 2026-10-21, open source under the **MIT license**. Version 1.6.0 added [MCP agent access](/en/features/mcp) (off by default): agents (AI assistants) can call the console's tools with the user's own permissions, through a personal access token or OAuth2. It also makes merging new template releases into your project easier. Recent releases also added a [WeChat Official Account](/en/features/wxoa) management module, [multi-tenancy](/en/features/multi-tenancy), data scope for hand-written SQL, job queues (slow work handed to the background, on the existing Redis), a switch for server breakpoint debugging, and hardening from a security review; see the [Changelog](/en/changelog) for changes. The mobile app can already be built and debugged locally; testing on real devices and pre-release checks for the app stores are still in progress. The feature tables below show the status of each item.
+**v1.7.0** was released on 2026-10-21, open source under the **MIT license**. Version 1.7.0 lets AI coding tools understand the template's conventions: one set of development rules read by every AI coding tool, with task recipes, a project map and check failures that say how to fix them; see [Developing with AI](/en/guide/ai). The earlier version 1.6.0 added [MCP agent access](/en/features/mcp) (off by default): agents (AI assistants) can call the console's tools with the user's own permissions, through a personal access token or OAuth2. It also makes merging new template releases into your project easier. Recent releases also added a [WeChat Official Account](/en/features/wxoa) management module, [multi-tenancy](/en/features/multi-tenancy), data scope for hand-written SQL, job queues (slow work handed to the background, on the existing Redis), a switch for server breakpoint debugging, and hardening from a security review; see the [Changelog](/en/changelog) for changes. The mobile app can already be built and debugged locally; testing on real devices and pre-release checks for the app stores are still in progress. The feature tables below show the status of each item.
 :::
 
 ## Live demo
@@ -109,6 +109,7 @@ For details on each feature, see the [Features overview](/en/features/).
 | Feature | Status |
 | --- | --- |
 | Code generation (single table / tree / master-detail, from the web UI or the command line, optionally with mobile pages) | ✅ |
+| [Developing with AI](/en/guide/ai) (one set of development rules read by every AI coding tool, a project rules file, ten task recipes, a generated project map, check failures that say how to fix them) | ✅ |
 | Scheduled tasks (visual cron editor, misfire policy, retries, timeouts, run log) | ✅ |
 | File storage (local / S3-compatible, direct browser upload, authenticated download of private files) | ✅ |
 | Inbox messages, email, SMS (Alibaba Cloud / Tencent Cloud) | ✅ |

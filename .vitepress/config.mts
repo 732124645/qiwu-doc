@@ -24,6 +24,7 @@ const enSidebar = [
       { text: 'Introduction', link: '/en/guide/introduction' },
       { text: 'Project story', link: '/en/guide/story' },
       { text: 'Getting started', link: '/en/guide/getting-started' },
+      { text: 'Developing with AI', link: '/en/guide/ai' },
       { text: 'Disclaimer', link: '/en/guide/disclaimer' },
     ],
   },
@@ -293,6 +294,7 @@ export default defineConfigWithTheme<DefaultTheme.Config & { enPages?: string[] 
           items: [
             { text: '新增业务模块', link: '/guide/new-module' },
             { text: '升级模板版本', link: '/guide/upgrade' },
+            { text: '用 AI 开发', link: '/guide/ai' },
             { text: '部署', link: '/guide/deploy' },
           ],
         },
