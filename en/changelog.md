@@ -6,6 +6,19 @@ description: 'Qiwu release notes: version 1.6.0 adds MCP agent access (off by de
 
 This page records the changes in each Qiwu release. For the current features and the status of each one, see [Introduction · Features at a glance](/en/guide/introduction#features-at-a-glance).
 
+## 1.6.1 · 2026-10-21
+
+Improves the admin when the server cannot be reached.
+
+Changes:
+
+- **Waits on the requested page while the API is unreachable**: when the API does not answer while the page loads (a refresh or a new tab during a restart, a deploy or a stopped server), the address stays on the requested page and a "connecting" screen waits until the server is back, then opens the page by itself. It no longer gives up after about 20 seconds for a separate 503 page with retry and sign-in buttons (the `/503` route is removed). Failures during this load no longer show error toasts. If the API answers with its own server error for about 20 seconds, it still goes to the sign-in page.
+- **README**: a feature overview, screenshots and links to the related guides.
+
+Upgrade notes:
+
+- No database migrations, and no environment variable or dependency changes. Only the front end changed; rebuild it.
+
 ## 1.6.0 · 2026-10-20
 
 Adds MCP agent access, off by default. **MCP** (Model Context Protocol) is an open standard for how agents (AI assistants) discover and call tools; once it is on, an agent can call the console's tools as a particular user, never with more rights than that user. See [MCP agent access](/en/features/mcp); for the full reference in the repository, see the [agent access docs](https://github.com/732124645/qiwu-vue-admin/blob/main/docs/mcp.md) (Chinese).
