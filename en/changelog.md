@@ -23,7 +23,7 @@ Added:
 Changed:
 
 - The assistant's reminders no longer carry the conversation title; in inbox templates installed earlier, the conversation number now shows where the title used to be.
-- The action log no longer records the text of memories and chat messages.
+- Memories and chat message text are masked as `***` in the action and API logs, with no original text kept.
 
 Upgrade notes:
 

@@ -186,7 +186,7 @@ Each person has a memory store of their own. The **My memories** button at the t
 - **Saving**: when you explicitly say "remember …", the agent stops and shows you what it would save; **it is saved only after you confirm**, and an administrator cannot make this step automatic;
 - **Background distilling** (optional): once the super administrator turns on the parameter `agent.memory.extract`, the system periodically distills memories from idle conversations, **reading only the messages you sent**, never the agent's answers, tool results, web pages or attachments;
 - **Masking**: common forms of passwords, keys, tokens, ID card numbers, bank card numbers and mobile numbers are masked before saving;
-- **Use**: in conversations with memory on (the **Use memory** switch at the top turns it off per conversation), the agent takes the entries most relevant to the question into account; temporary conversations neither read nor write memory. Memories and message text are not written to the action log.
+- **Use**: in conversations with memory on (the **Use memory** switch at the top turns it off per conversation), the agent takes the entries most relevant to the question into account; temporary conversations neither read nor write memory. Memories and message text are masked as `***` in the action log, with no original text kept.
 
 ::: warning Masking is not a silver bullet
 The masking rules only know common forms: they can mask too much (a ticket number that looks like a mobile number) or miss things (landline numbers, a passphrase with no hint word that does not look like a key). Don't ask the agent to remember anything sensitive; you can review and delete memories in **My memories** at any time.
@@ -277,7 +277,7 @@ See the repository's [automations](https://github.com/732124645/qiwu-vue-admin/b
 - **Outside content is untrusted**: web pages, search results and external MCP output are passed to the model as data only. Even if a page talks the model into changing data, the change stops at the approval card, which lists the sources;
 - **Outbound requests go to public addresses only**: page reading and external MCP connect only to public addresses and recheck every redirect. The model's API address is not checked this way (so a local or internal Ollama works) and only the super administrator can set it;
 - **Encrypted keys**: credentials of models, search providers and external MCP servers are encrypted with a key derived from `APP_SECRET` and are write-only; enter them again after changing `APP_SECRET`;
-- **Audit**: every tool call (refused ones too) writes a row to **System → Logs → Action log**, marked as coming from the chat page; changed data records the requester as modifier as usual. Memories and message text are not written to the action log.
+- **Audit**: every tool call (refused ones too) writes a row to **System → Logs → Action log**, marked as coming from the chat page; changed data records the requester as modifier as usual. Memories and message text are masked as `***` in the action and API logs, with no original text kept.
 
 See the repository's [security model](https://github.com/732124645/qiwu-vue-admin/blob/main/docs/agent.md#安全模型) section (Chinese).
 
