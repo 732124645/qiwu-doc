@@ -173,9 +173,12 @@ const columns: QwColumn[] = [
 | `selection` | `false` | 是否显示勾选列 |
 | `selectable` | | `(row) => boolean`，哪些行可以勾选 |
 | `filtered` | `false` | 有查询条件时，空结果会显示"清除条件"按钮 |
-| `actions-width` | 140 | 操作列宽度 |
+| `actions-width` | 自动 | 操作列宽度。不传时按每行实际渲染出的操作按钮测量（取最宽的一行，首次绘制先按文字估算）；传了就以它为准 |
+| `actions-visible` | 页面设置的值（默认 2） | 操作列直接显示几个按钮，其余收进“更多”下拉菜单 |
 
 插槽：`#cell-<prop>`（自定义某一列）、`#actions`（操作列，固定在右侧）、`#empty`。其他 `el-table` 的属性和事件都会透传。
+
+操作列的按钮：`#actions` 里直接写的 `el-button` 只显示前几个（用户在 **页面设置** 的“表格行内操作按钮数”里选，默认 2；单个表格用 `actions-visible` 覆盖），其余收进悬停（或键盘 Enter / 空格）展开的“更多”菜单；`type="danger"` 的按钮总排在最后；`v-perm` 不通过的按钮不占位。包在别的组件里的按钮（比如 `el-popconfirm` 的 `#reference`）、图标按钮和页面自己的下拉菜单原样留在行内，不计数；页面自己已经有“更多”下拉时传 `:actions-visible="Infinity"`，避免出现两个“更多”。见仓库设计说明的 [CRUD 页面与对话框](https://github.com/732124645/qiwu-vue-admin/blob/main/docs/design-notes.md#crud-kit)。
 
 ### TableToolbar
 

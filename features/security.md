@@ -86,6 +86,7 @@ description: '默认开启的安全措施：随机令牌会话、登录限流与
 - **重复提交**：新增类接口在服务端做了防重复提交，3 秒内的重复请求返回 429（写法见[防重复提交、限流与锁](/core/guards)）；
 - **敏感数据**：密码使用 bcrypt 存储；第三方服务的密钥（比如 S3、SMTP）用 AES-256-GCM 加密后存入数据库；OAuth2 客户端密钥只存 SHA-256 摘要；日志中的密码、令牌等字段自动脱敏；
 - **生产环境的密钥检查**：`APP_SECRET` 或 `SEED_ADMIN_PASSWORD` 含 `not-for-production` 标记时，生产环境的服务和数据库命令拒绝运行。仓库里提交的测试密码都带着这个标记，所以不会被误带到生产环境；它不判断强度，生产密钥要自己生成，见仓库的[安全文档](https://github.com/732124645/qiwu-vue-admin/blob/main/docs/security.md#生产配置与凭据)；
+- **智能助手**：[智能助手](/features/agent)按发起人本人的权限、数据范围和租户调用工具，写入从不在无人确认时执行，联网读取和外部 MCP 只连公网地址，模型等服务的密钥加密存库、只写不读，见仓库的[后台智能体（智能助手）](https://github.com/732124645/qiwu-vue-admin/blob/main/docs/security.md#后台智能体智能助手)；
 - **演示模式**：除登录、退出、进入和退出租户等少数操作外，写操作一律返回 403（超级管理员也一样），日志里的访客信息打码，见[部署 · 演示模式](/guide/deploy#演示模式)和仓库的[放行清单](https://github.com/732124645/qiwu-vue-admin/blob/main/docs/security.md#演示模式的精确豁免)；
 - **供应链**：锁定依赖版本；新版本发布满 24 小时才允许安装；依赖的安装脚本需要逐个审核；依赖许可证自动检查；
 - **依赖许可与原创性检查**：`pnpm verify` 检查生产依赖的许可（只接受允许列表里的宽松许可，禁用包一律失败）、Web 用到的包必须登记为生产依赖、TypeScript、Vite、Vue、Element Plus 和 Vitest 在整个仓库只用一个版本，并拒绝其他后台项目的标识和冒号分隔的权限串；用模板开发的项目可以自行调整允许列表，见仓库的[依赖许可与原创性检查](https://github.com/732124645/qiwu-vue-admin/blob/main/docs/security.md#依赖许可与原创性检查)。

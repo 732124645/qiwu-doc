@@ -138,6 +138,8 @@ The following pages are maintained centrally by the platform and shared by all t
 With the switch on, **API access log**, **API error log**, **Cache keys** and **Queue monitor** hold data of all tenants, so only the super administrator can see them. Roles in the default tenant with the matching permissions use the other platform pages as usual.
 :::
 
+With the [assistant](/en/features/agent) on, tick the **Agent** menu group into a package before the tenant's roles can be granted it; conversations, skills and usage are kept per tenant, while models, search providers and external MCP servers are configured once by the platform and **Agent settings** is a platform-only page; see the repository's [in-app agent section](https://github.com/732124645/qiwu-vue-admin/blob/main/docs/multi-tenancy.md#后台智能体智能助手) (Chinese).
+
 For the detailed rules, see the repository's [Tenant packages](https://github.com/732124645/qiwu-vue-admin/blob/main/docs/multi-tenancy.md#租户套餐) (Chinese).
 
 ## Platform staff entering a tenant

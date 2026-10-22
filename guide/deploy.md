@@ -135,6 +135,18 @@ git push origin v1.2.0
 
 见仓库的[智能体接入（MCP）](https://github.com/732124645/qiwu-vue-admin/blob/main/docs/deploy.md#智能体接入mcp)和 [nginx 反向代理与 CSP](https://github.com/732124645/qiwu-vue-admin/blob/main/docs/deploy.md#nginx-反向代理与-csp)。
 
+## 智能助手
+
+[智能助手](/features/agent)默认关闭。开关是 `apps/server/.env` 里的 `APP_AGENT`（不是秘密），只在启动时读取，改完要重启全部实例。关闭时 `/api/agent/*` 返回 404，不注册它的队列处理器，侧栏、角色授权树和租户套餐里也看不到 **智能体** 分组。数据表不管开关如何都由迁移创建，所以打开时不需要另外迁移。
+
+- 不需要新的服务：对话在现有的 Redis 任务队列里执行（Redis 的要求见上文[生产环境变量](#生产环境变量)），进度经现有的 Socket.IO 推送。
+- 出口防火墙要放行服务端访问所配置的模型服务（如 `api.deepseek.com`、`dashscope.aliyuncs.com`、`api.moonshot.cn`、`open.bigmodel.cn`、`api.openai.com`，或内网的 Ollama）、搜索服务（`api.bochaai.com`、`api.tavily.com`）、要读的公网网页和外部 MCP 服务器。联网读取和外部 MCP 直接连接，不经 HTTP 代理。
+- 模型、搜索和外部 MCP 的密钥在后台的 **智能体 → 智能体设置** 页填写，用 `APP_SECRET` 派生的密钥加密存库，不写进任何 env 文件；更换 `APP_SECRET` 后要重新填写。
+- 运行中要紧急停止，由超级管理员把参数 `agent.paused` 改成 `true`，不需要重启；用量和并发由 `agent.limit.*` 参数限制。
+- `ALLOW_PRIVATE_ENDPOINTS=true` 会同时放开联网读取和外部 MCP 的内网地址检查，生产环境保持 `false`。
+
+见仓库的[后台智能体（智能助手）](https://github.com/732124645/qiwu-vue-admin/blob/main/docs/deploy.md#后台智能体智能助手)。
+
 ## 演示模式
 
 公开演示站设 `APP_DEMO_MODE=true`，使用独立的库、Redis 库号和密钥。除登录、退出、标为已读等少数操作外，写操作一律返回 403，超级管理员也一样；OAuth2 授权和令牌接口也被拒绝，要演示单点登录请用非演示安装；智能体调用 `POST /api/mcp` 同样被拒绝；日志页面里访客的 IP 和浏览器信息脱敏显示。同时打开多租户时，还会创建两个示例租户，访客可以进入和退出租户。开关改回 `false` 不会让已公开的密码失效，正式环境请重新安装。放行清单见[仓库安全文档](https://github.com/732124645/qiwu-vue-admin/blob/main/docs/security.md#演示模式的精确豁免)，另见[部署文档](https://github.com/732124645/qiwu-vue-admin/blob/main/docs/deploy.md#演示模式与-oauth-边界)。

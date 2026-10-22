@@ -27,13 +27,13 @@ description: '服务端 .env、.env.local 的分工和加载顺序，账号密�
 
 ## 安全
 
-`APP_SECRET` 必填、只写 `.env.local`、至少 32 个字符，多实例时相同；它还用来派生加密第三方密钥的密钥，更换后已加密的第三方密钥无法解密。`ACCESS_TTL_SEC`、`REFRESH_TTL_SEC` 是令牌有效期（秒）；`ALLOW_PRIVATE_ENDPOINTS` 决定能否连接内网的 S3、SMTP，保持 `false`，自建 S3 或 SMTP 的非标准端口用 `OUTBOUND_S3_PORTS`、`OUTBOUND_SMTP_PORTS` 登记；`WX_MP_APPID`、`WX_MP_SECRET` 只写 `.env.local`。
+`APP_SECRET` 必填、只写 `.env.local`、至少 32 个字符，多实例时相同；它还用来派生加密第三方密钥的密钥，更换后已加密的第三方密钥无法解密。`ACCESS_TTL_SEC`、`REFRESH_TTL_SEC` 是令牌有效期（秒）；`ALLOW_PRIVATE_ENDPOINTS` 决定能否连接内网的 S3、SMTP（也同时放开智能助手联网读取和外部 MCP 的内网地址检查），保持 `false`，自建 S3 或 SMTP 的非标准端口用 `OUTBOUND_S3_PORTS`、`OUTBOUND_SMTP_PORTS` 登记；`WX_MP_APPID`、`WX_MP_SECRET` 只写 `.env.local`。
 
 `WX_MP_APPID`、`WX_MP_SECRET` 和参数 `auth.wx_mp.enabled` 都配置好之后，才能用微信小程序登录，见[登录与账号 · 微信小程序登录](/features/login#微信小程序登录)。生产环境的密钥要求见[仓库安全文档](https://github.com/732124645/qiwu-vue-admin/blob/main/docs/security.md#生产配置与凭据)。
 
 ## 功能
 
-`STORAGE_LOCAL_ROOT` 是本地存储根目录（默认 `./data/upload`）；`CODEGEN_WRITE` 决定生成器能否写仓库，只在开发环境生效；`APP_DEMO_MODE` 见[部署 · 演示模式](/guide/deploy#演示模式)；`APP_MULTI_TENANT` 是多租户开关（默认 `false`，只在启动时读取），打开和关闭的步骤见[部署 · 打开或关闭多租户](/guide/deploy#打开或关闭多租户)；`APP_WXOA` 是[微信公众号](/features/wxoa)模块的开关（默认 `false`，只在启动时读取，改完要重启），见[部署 · 公众号模块](/guide/deploy#公众号模块)；`APP_MCP` 是 [MCP 智能体接入](/features/mcp)的开关（默认 `false`，只在启动时读取，改完要重启），见[部署 · 智能体接入](/guide/deploy#智能体接入-mcp)；`SEED_ADMIN_PASSWORD` 只写 `.env.local`，第一次创建 `admin` 时使用，不设置时 `db:seed` 随机生成并只打印一次。
+`STORAGE_LOCAL_ROOT` 是本地存储根目录（默认 `./data/upload`）；`CODEGEN_WRITE` 决定生成器能否写仓库，只在开发环境生效；`APP_DEMO_MODE` 见[部署 · 演示模式](/guide/deploy#演示模式)；`APP_MULTI_TENANT` 是多租户开关（默认 `false`，只在启动时读取），打开和关闭的步骤见[部署 · 打开或关闭多租户](/guide/deploy#打开或关闭多租户)；`APP_WXOA` 是[微信公众号](/features/wxoa)模块的开关（默认 `false`，只在启动时读取，改完要重启），见[部署 · 公众号模块](/guide/deploy#公众号模块)；`APP_MCP` 是 [MCP 智能体接入](/features/mcp)的开关（默认 `false`，只在启动时读取，改完要重启），见[部署 · 智能体接入](/guide/deploy#智能体接入-mcp)；`APP_AGENT` 是[智能助手](/features/agent)的开关（默认 `false`，只在启动时读取，改完要重启），模型和搜索服务的密钥不放在环境变量里，而是在后台页面填写，见[部署 · 智能助手](/guide/deploy#智能助手)；`SEED_ADMIN_PASSWORD` 只写 `.env.local`，第一次创建 `admin` 时使用，不设置时 `db:seed` 随机生成并只打印一次。
 
 ## 前端
 
