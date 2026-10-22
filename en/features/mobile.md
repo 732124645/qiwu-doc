@@ -15,7 +15,7 @@ The mobile app is **optional**: all its code lives in the `mobile/` directory at
 ::: info Current status
 Done: sign-in, Workbench, approvals (including dynamic forms), messages, the Me page, Chinese and English, light and dark themes, realtime push, new to-do WeChat alerts, app update checks, and mobile pages produced by the code generator.
 
-Automated tests: unit tests, 45 end-to-end tests that run against the H5 pages, and build and package size checks for the mini program.
+Automated tests: unit tests, end-to-end tests against H5 pages, app and mini program builds, and mini program package-size checks, including office approval and native clocking automation. Real app and mini program location permissions and on-site clocking have not yet been accepted.
 
 Still in progress: item-by-item checks on real devices, sending WeChat subscribe messages with a real AppID and real templates, app store listings, and the mini program release. Building the app and uploading the mini program on Windows have not been verified either. Before going live, work through the [Mobile development · Release checklist](/core/mobile#发布清单) (Chinese) item by item.
 :::
@@ -138,7 +138,7 @@ A few rules:
 **Workbench → New request** lists the processes you may start, grouped by the "Process category" dictionary.
 
 - **Processes with a dynamic form**: with a bound form, you fill it in on a form page and then start the process; without one, you start it in a **bottom sheet** (a panel that slides up from the bottom of the screen). If the process has steps set to **Picked by the initiator**, pick at least one person (approver or CC recipient) for each of those steps.
-- **Processes with a business form**: you can start and view them on the phone only if they have their own mobile page. The template has a mobile page only for **leave**. For other business-form processes, starting shows "Start this process on a computer", and the form in their details shows "View it on a computer", but you can still approve or reject them.
+- **Processes with a business form**: you can start and view them on the phone only if they have their own mobile page. The template supports mobile submission and editing after return for **leave**, plus complete read-only details and task handling for **travel, expenses and seal use**. Those three types are created and edited on desktop. For other business processes without a mobile page, starting shows "Start this process on a computer", and the form in their details shows "View it on a computer", business decisions such as approval or rejection are blocked; use desktop to handle the request.
 
 For the difference between dynamic and business forms, see [Workflow · Two kinds of forms](/en/features/workflow#two-kinds-of-forms). To build mobile pages for other business forms, see [Mobile development · Starting and viewing a process on the phone](/core/mobile#让流程在手机上发起和查看) (Chinese).
 
@@ -165,11 +165,15 @@ For which components are read-only and which validation rules the phone does not
 
 - Files are uploaded to the server one at a time. The size limit follows this field's setting in the form, or the parameter `storage.max_size_mb` when the field sets none. The phone checks the number and size of the files first, before anything is uploaded.
 - How you pick files depends on the platform: the WeChat mini program picks from WeChat chat history, the app can only pick images (take a photo or choose from the album), and H5 uses the browser's file picker.
-- Uploaded attachments show only their file name and size. They cannot be opened or downloaded on the phone; view them on desktop.
+- Uploaded attachments show their name and size and open through an authenticated same-origin interface, limited to 20 MiB. Preview formats depend on the device. Failure to load decision information or attachments blocks a business decision with an explanation; see [Office requests](/en/features/oa).
 
 ### Picking people and departments
 
 Picking people for transfers, delegation, adding signers, copying to others and starting a process always opens a people picker in a bottom sheet. It lists all enabled users, you can search by name, and with multiple selection the confirm button shows how many people are selected. Picking a department also uses a bottom sheet, and you can pick a department at any level.
+
+## Native clocking
+
+The Workbench **Clock** entry supports personal clock-in/out, today’s state and record queries. `none` mode requests no location; `site` mode requests one foreground location on tap and does not fall back on failure. An uncertain result queries the original request before any retry. Clocking belongs to OA and does not depend on approvals or DingTalk. See [Attendance](/en/features/attendance) for policies, access, privacy and real-device acceptance limits.
 
 ## Messages
 

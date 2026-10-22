@@ -107,6 +107,12 @@ There is also a **plan mode**: the agent stays read-only and lists its steps fir
 
 See the repository's [tool policies](https://github.com/732124645/qiwu-vue-admin/blob/main/docs/agent.md#工具策略) and [chat page](https://github.com/732124645/qiwu-vue-admin/blob/main/docs/agent.md#对话页) sections (Chinese).
 
+## Office requests
+
+The assistant can query your own to-dos and requests you started or participated in, read the published form and user-choice information, and help prepare leave, travel, expense, seal and general requests. Administrator status does not expand personal queries to arbitrary employees.
+
+**Every request requires your own click on its individual confirmation card**, showing contents, time or money, lines, real attachment names, process version and chosen approvers. Conversation trust, automatic review, automation pre-approval, bulk approval and direct MCP / PAT cannot replace it. Changed facts require confirmation again. The assistant cannot approve for you, apply for someone else, clock for you or operate DingTalk. See [Office requests](/en/features/oa).
+
 ## Automatic review
 
 Automatic review lets a class of low-impact writes skip waiting for a click: another model (the review model) looks at each one first. Three things must all be true:

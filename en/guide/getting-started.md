@@ -189,6 +189,17 @@ node scripts/fetch-ip2region.mjs
 
 The download is checked against its sha256; restart the server and it takes effect. Without it everything still works; the **Location** column just stays empty. For downloading through a proxy and pinning the sha256, see [the repository's deployment guide](https://github.com/732124645/qiwu-vue-admin/blob/main/docs/deploy.md#ip-地理位置数据ip2region) (Chinese).
 
+## Try office requests and attendance
+
+After migration and seeding, check office models, requester scope and approvers in process management, then grant staff permissions. With multi-tenancy enabled, tenant packages also need the relevant OA and workflow capabilities.
+
+1. Submit [leave, travel, expenses, seal use or general requests](/en/features/oa), then check to-dos, handled tasks, my requests and CC in the approval center.
+2. Read complete details and attachments and handle tasks on mobile. Create/edit travel, expenses and seal requests on desktop; leave and dynamic forms can start on mobile.
+3. Configure time zone, location mode and sites in [Attendance](/en/features/attendance); staff clock in/out on mobile. The initial no-location mode needs no DingTalk.
+4. With the assistant enabled, query and prepare requests; each request requires your own individual confirmation click.
+
+Leave preserves its existing sample configuration. Only the four new office models default to explicit protected-administrator handling and rejection when nobody is available. Adapt processes to your organization before use. App / mini program builds and H5 automation do not replace real-device location permission and on-site acceptance checks.
+
 ## Troubleshooting
 
 **`APP_SECRET` error at startup**

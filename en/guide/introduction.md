@@ -125,7 +125,8 @@ For details on each feature, see the [Features overview](/en/features/).
 | --- | --- |
 | Process engine (all-must-approve / any-one / sequential, parallel and conditional branches, send back, transfer, add signers, withdraw, overdue reminders) | ✅ |
 | Approval center (to-dos, handled tasks, my requests, CC to me, reminders, printing) | ✅ |
-| Leave request sample (a business form connected to a process) | ✅ |
+| [Office requests](/en/features/oa) (leave, travel, expenses, seal use, general forms; approval center, private attachments, notices, mobile handling, personal confirmation per assistant request) | ✅ |
+| [Attendance](/en/features/attendance) (native clock-in/out, policies and sites, personal/department queries, approved leave/travel links; device permission and on-site acceptance pending) | ✅ |
 | Process designer (tree style, similar to DingTalk approvals; checks before publishing and points to the faulty node) | ✅ |
 | BPMN designer (standard diagram notation, converted to a tree process on publish; import and export of `.bpmn`, read-only diagram on the instance detail) | ✅ |
 | Automatic timeout handling (approve automatically, reject automatically or hand to the manager when overdue) | ✅ |

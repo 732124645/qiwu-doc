@@ -45,7 +45,7 @@ The authorization code flow requires PKCE with `S256`, and only confidential cli
 
 - Every endpoint that reads, edits or deletes by id first checks whether the record is within the current user's data scope; out-of-scope records return 404;
 - Privilege escalation guard: you cannot give others more permissions than you have. See [Permissions and data scope](/en/features/permission). Resetting someone else's password or setting their sign-in mobile number requires that you could assign all of that user's roles, and moving a department is checked as a grant too; see [Privilege escalation guard](/en/features/permission#privilege-escalation-guard);
-- Attachments in process forms are private files. Apart from the uploader, the super administrator and people with the **View** permission of the file list (`storage.object.view`), only people who can view the process instance and can see the attachment field can download them; see [Workflow · Attachments](/en/features/workflow#attachments).
+- Attachments in process forms are private files. Only people who can view the process instance and can see the attachment field can download them; see [Workflow · Attachments](/en/features/workflow#attachments).
 - Approval data is filtered by field access: only the super administrator and the process managers of that process see all fields. Others do not see fields that were hidden at any step of the process (not on the page, in exports or in filters). Because process managers can see all fields, changing the list of process managers needs the separate permission `wf.model.managers`; people with only `wf.model.modify` cannot add themselves (403). See [Workflow · Field access in approval data](/en/features/workflow#field-access-in-approval-data).
 
 ## Tenant isolation

@@ -41,6 +41,8 @@ const enSidebar = [
       { text: 'Code generator', link: '/en/features/codegen' },
       { text: 'Form designer', link: '/en/features/formkit' },
       { text: 'Workflow', link: '/en/features/workflow' },
+      { text: 'Office requests', link: '/en/features/oa' },
+      { text: 'Attendance', link: '/en/features/attendance' },
       { text: 'Mobile', link: '/en/features/mobile' },
       { text: 'WeChat Official Accounts', link: '/en/features/wxoa' },
       { text: 'Internationalization', link: '/en/features/i18n' },
@@ -453,7 +455,11 @@ export default defineConfigWithTheme<DefaultTheme.Config & { enPages?: string[] 
         },
         {
           text: '审批',
-          items: [{ text: '工作流', link: '/features/workflow' }],
+          items: [
+            { text: '工作流', link: '/features/workflow' },
+            { text: 'OA 办公', link: '/features/oa' },
+            { text: '打卡考勤', link: '/features/attendance' },
+          ],
         },
         {
           text: '移动端',

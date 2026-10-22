@@ -141,7 +141,7 @@ const url = URL.createObjectURL(await storageApi.blob(fileId))
 
 ## 谁可以下载私有文件
 
-默认按这个顺序判断：上传者本人 → 超级管理员 → 拥有 `storage.object.view` 权限的人 → 业务模块注册的检查器。
+普通私有文件默认按这个顺序判断：上传者本人 → 超级管理员 → 拥有 `storage.object.view` 权限的人 → 业务模块注册的检查器。`oa.attachment` 和 `wf.attachment` 是例外：必须通过业务记录及字段权限检查，前述身份都不能绕过；元信息、内容下载、全局列表和删除入口遵守同一业务边界，见 [OA 办公](/features/oa)。
 
 业务模块可以为自己的标签注册一个检查器，比如"审批人可以下载申请人上传的附件"：
 

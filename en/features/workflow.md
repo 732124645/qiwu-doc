@@ -236,7 +236,7 @@ An approver can be **User in a form field** (the person picked in a user field) 
 
 Attachment fields upload **private files**, which are bound to the process instance when it starts. Attachments added while editing during approval or when resubmitting are bound too. Only files you uploaded yourself and that are not used anywhere yet can be attached.
 
-Who can download an attachment: anyone who can view this process instance and can see the attachment field (no download when the field is hidden from them). The uploader, the super administrator, and anyone with the **View** permission of **System → Files → Files** (`storage.object.view`) can always download it; once a file is removed from the form, only they can.
+Who can download an attachment: anyone who can view this process instance and can see the attachment field (no download when the field is hidden from them). Being the uploader, root or a global file administrator cannot bypass business and field access. Removed files and hidden fields gain no access from an old binding. Global file lists and exports exclude these private business attachments, and bound files cannot be deleted through the global file interface.
 
 ### Server-side validation
 
@@ -256,9 +256,9 @@ The mobile app can also fill in and view dynamic forms. Field access, which fiel
 - **Approve and resubmit**: only **Editable** fields are submitted. Before submitting, the phone checks them against the server's rules (required, type, options, range, length, date format and so on).
 - **Calculated values** (days, detail totals) are for display only; the server's recalculated result is what counts.
 - **Detail tables**: each row is a card. You can **Add item** and delete a row, and the total shows below.
-- **Attachments**: can be uploaded. Existing attachments show only their file names and cannot be opened or downloaded on the phone.
+- **Attachments**: can be uploaded and opened through an authenticated same-origin interface, limited to 20 MiB. Preview formats depend on the device. A loading failure blocks a business decision; see [Office requests](/en/features/oa).
 
-Some components cannot be filled in on a phone. Those fields are read-only and show "Fill this in on a computer": pickers for several dates, dates picked by week or by several years or months, dates whose value format uses anything other than year, month, day, hour, minute, second and time zone, multi-select cascaders, and the designer's own **Upload** component (use the **Attachments** component for attachments; see [Form designer](/en/features/formkit)). When a whole form cannot be shown on a phone, the start page says "This form can't be shown on a phone; start it on a computer", and the form section of the approval details says "View it on a computer", but you can still approve or reject.
+Some components cannot be filled in on a phone. Those fields are read-only and show "Fill this in on a computer": pickers for several dates, dates picked by week or by several years or months, dates whose value format uses anything other than year, month, day, hour, minute, second and time zone, multi-select cascaders, and the designer's own **Upload** component (use the **Attachments** component for attachments; see [Form designer](/en/features/formkit)). When a whole form cannot be shown on a phone, the start page says "This form can't be shown on a phone; start it on a computer", and the form section of the approval details says "View it on a computer", business decisions such as approval or rejection are blocked; use desktop to handle the request.
 
 ### Fields usable in branch conditions
 
@@ -268,7 +268,7 @@ Numbers (InputNumber, Rate, Slider, **Days (calculated)**, detail totals), dates
 - The server does not validate these yet: number step and precision, half stars in Rate, whether cascader values are among the options, the minimum number of checkbox selections, and the dates inside a range.
 - Rate and regular Slider values are treated as numbers and can be compared (the value of a range slider is a pair of numbers and never matches any condition). Month, year and week dates are treated as text: they support only equals, does not equal, is one of and contains, and cannot be compared by date.
 - When a detail table is hidden but its total field is visible, the total is not shown.
-- Mobile: a few components are read-only (showing "Fill this in on a computer"), and attachments cannot be opened or downloaded; see [Dynamic forms on mobile](#dynamic-forms-on-mobile). Extra validation rules set on fields (regular expressions, email and so on, except required) are checked only by desktop forms; neither the phone nor the server checks them.
+- Mobile: a few components are read-only (showing "Fill this in on a computer"), and attachment preview formats depend on the device; see [Dynamic forms on mobile](#dynamic-forms-on-mobile). Extra validation rules set on fields (regular expressions, email and so on, except required) are checked only by desktop forms; neither the phone nor the server checks them.
 :::
 
 ## Approval data
@@ -304,7 +304,7 @@ Field access is computed per field, and visible fields can indirectly reveal hid
 
 - Only the initiator, the assignees, the CC recipients and admins with permission can view a process instance; everyone else gets 404.
 - You can only handle tasks assigned to you.
-- Form field access (editable, read-only, hidden) is enforced by the server. Hidden fields in approval details are never sent to the frontend, and the [Approval data](#approval-data) page is filtered by field access too (except for process managers; appointing process managers needs a separate permission). Attachments can only be downloaded by people who can see their field (except the uploader, the super administrator and people with **View** on the file list).
+- Form field access (editable, read-only, hidden) is enforced by the server. Hidden fields in approval details are never sent to the frontend, and the [Approval data](#approval-data) page is filtered by field access too (except for process managers; appointing process managers needs a separate permission). Attachments can only be downloaded by people who can see their field (uploader status, root and file-management permissions cannot bypass this check).
 - The schema of a dynamic form passes a security allowlist check on save and cannot contain functions, scripts or event settings; see [Form designer · Security](/en/features/formkit#security).
 - BPMN diagrams are treated as data only: scripts, expressions, listeners, other tools' extensions and DOCTYPE are always rejected, and the size is capped. The server runs only the tree it derives from the diagram itself; see [Checks on publish](#checks-on-publish).
 - In demo mode (`APP_DEMO_MODE=true`, see [Environment variables](/reference/env) (Chinese)), starting, approving, designing, publishing and other write operations are rejected; only marking CCs as read still works.

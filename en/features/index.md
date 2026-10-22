@@ -37,6 +37,8 @@ For the status of each item, see [Introduction · Features at a glance](/en/guid
 | Feature | In one sentence |
 | --- | --- |
 | [Workflow](/en/features/workflow) | Draw processes in the tree or BPMN designer, no-code approvals, dynamic forms, automatic timeout handling, approval data |
+| [Office requests](/en/features/oa) | Leave, travel, expenses, seal use and general forms; shared approval center, private files and notices; personal confirmation per assistant request |
+| [Attendance](/en/features/attendance) | Native mobile clock-in/out, policies and sites, personal and department queries, approved leave/travel links; no DingTalk required |
 
 ## Mobile
 
