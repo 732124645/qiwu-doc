@@ -112,10 +112,12 @@ See the repository's [Sample tools](https://github.com/732124645/qiwu-vue-admin/
 
 With the switch on, **System** gets two more pages:
 
-- **System → MCP tools**: lists every registered tool (name, title, kind, permission, description), with the MCP endpoint address at the top. You can **switch off** a tool as a whole, for every tenant and token. With multi-tenancy on this is a **platform-only page**, usable only by the default tenant (the platform);
+- **System → MCP tools**: lists every registered tool (readable name and tool identifier, kind, permission, purpose description), with the MCP endpoint address at the top. You can **switch off** a tool as a whole, for every tenant and token. With multi-tenancy on this is a **platform-only page**, usable only by the default tenant (the platform);
 - **System → Access tokens**: the access tokens of every user in the tenant (filter by user, name and state), which you can revoke. The token itself is never shown, only its last 4 characters.
 
 The buttons of both pages are granted in **System → Roles → Menu permissions**: MCP tools has browse and modify, Access tokens has browse and revoke. The **Access tokens** tab in My profile is available to every signed-in user without a grant.
+
+Since v1.9.1, registered tool names and purpose descriptions, and known permission names, follow the page language. Identifiers remain available for reference, and the personal access token selector uses readable tool names too. Unknown tools and permissions keep their original text. The display does not change the identifiers, arguments or permission checks used by `tools/list` and `tools/call`.
 
 ## Configuring a client
 

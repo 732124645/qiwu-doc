@@ -81,6 +81,8 @@ See the repository's [external MCP servers](https://github.com/732124645/qiwu-vu
 
 ## Tool policies and approval modes
 
+Since v1.9.1, registered tools have names and purpose descriptions in the page language, together with readable names for known permissions. Tool identifiers remain available for reference; unknown tools and permissions keep their original text. This changes only the display: protocol names and arguments stay the same.
+
 The **Tool policies** tab lists every tool of this system with an approval policy, applied to all tenants:
 
 | Policy | Meaning |
@@ -175,7 +177,8 @@ A **profile** is a named set of settings: model and reasoning effort, approval m
 - Profiles are **personal** or **tenant-wide** (changing tenant-wide ones needs the skill modify permission); other people's personal profiles stay invisible; each scope can have one default;
 - When you start a conversation you pick a profile at the top (your own default is preselected, else the tenant-wide default), or **No profile**;
 - **A tenant-wide profile's approval mode can only be read only or ask**: trust this conversation and auto review agree to writes on your behalf, so only you can choose them, in a personal profile or in the conversation;
-- With a tool list, the agent can use only the listed tools (read-only built-in tools always stay); the extra instructions go into every request as background.
+- Since v1.9.1, select from your available system tools or enter other tool identifiers, such as built-in or external MCP tools. An empty selection leaves tools unrestricted. If the tool list cannot be loaded, the page warns you and preserves existing selections;
+- With a tool list, the agent can use only the listed tools (read-only built-in tools always stay); the extra instructions go into every request as background. Selecting or entering a tool does not grant permissions or bypass its approval policy.
 
 See the repository's [profiles](https://github.com/732124645/qiwu-vue-admin/blob/main/docs/agent.md#配置方案) section (Chinese).
 
