@@ -16,7 +16,7 @@ For the status of each item, see [Introduction · Features at a glance](/en/guid
 | [Sign-in and accounts](/features/login) (Chinese) | Password, SMS and WeChat mini program sign-in, captchas, lockout after failed attempts, password policy, online users |
 | [Single sign-on (OAuth2)](/en/features/oauth) | Let other systems sign users in with their Qiwu accounts: OAuth2 client management, consent page, remembered consent |
 | [MCP agent access](/en/features/mcp) | Let agents (AI assistants) call the console's tools with the user's own permissions: personal access tokens or OAuth2, guardrails, action log; off by default |
-| [Assistant](/en/features/agent) | A chat page in the console: a model / agent uses the console's tools to look up data, search the web and change data for you, with every change confirmed by a person first; skills and batch runs; off by default |
+| [Assistant](/en/features/agent) | A chat page in the console: a model / agent uses the console's tools to look up data, search the web and change data for you, with every change confirmed by a person first; skills, batch runs, automations, memory and deep research; off by default |
 | [Permissions and data scope](/en/features/permission) | Menu and button permissions, five data scopes, privilege escalation guard |
 | [Multi-tenancy](/en/features/multi-tenancy) | One deployment serving many companies: tenants, tenant packages, bound domains, brands, platform staff entering a tenant; off by default |
 | [Monitoring and logs](/features/monitor) (Chinese) | Server, MySQL, Redis and job queue monitoring; action log, sign-in log, API access and error logs |
