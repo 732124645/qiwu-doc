@@ -6,14 +6,16 @@ description: 'Qiwu release notes and upgrade steps for office requests, native a
 
 This page records the changes in each Qiwu release. For the current features and the status of each one, see [Introduction · Features at a glance](/en/guide/introduction#features-at-a-glance).
 
-## Unreleased · Office and native attendance
+## 1.10.0 · 2026-10-23
+
+Office requests and native attendance. See the [v1.10.0 release notes](https://github.com/732124645/qiwu-vue-admin/releases/tag/v1.10.0) and [public release commit](https://github.com/732124645/qiwu-vue-admin/commit/35ce0e9e12c8b6e51bb956ef05bd5ff03be909ac).
 
 - [Office requests](/en/features/oa): leave, travel, expenses, seal use and general forms, using the existing workflow lists for my requests, to-dos, handled tasks and CC. Requests, attachments, expense lines and process status save and update in shared transactions. Expense approval is not payment; seal approval does not mean a document has been stamped.
 - Mobile shows complete requests and private attachments for handling; existing leave and dynamic-form submission remains. Create/edit travel, expenses and seal requests on desktop. Business file metadata and downloads enforce record and field access; global file-management status cannot bypass it.
 - [Native attendance](/en/features/attendance): mobile clock-in/out, tenant time zone and location policies, office sites, personal and department records and daily summaries, approved leave/travel links and retention cleanup. No DingTalk required. No shift scheduling, corrections, lateness/early-departure judgments or payroll settlement.
 - [Assistant](/en/features/agent#office-requests): query your own to-dos and requests you participated in, and prepare the five request types. Every request needs your own individual confirmation click; conversation trust, automatic review, automations and bulk approval cannot replace it. No delegated approval or clocking tools.
 
-Upgrade preparation:
+Upgrade steps:
 
 - New database migrations cover office business records, leave attachments and attendance. Back up the database, uploads and secrets; update the code → `pnpm i` → `pnpm -r build` → `pnpm db:migrate` → `pnpm db:seed` → restart. See [Upgrading](/guide/upgrade) (Chinese). Native office and attendance require no new DingTalk configuration.
 - Initialization preserves administrator edits. The four new travel, expense, seal and general models default to explicit handling by the protected administrator role and reject when no approver exists. **Leave retains its original sample settings**, including no-approver auto-approval and self-approval skipping. Review processes, role permissions and tenant packages before real use.
