@@ -1,10 +1,10 @@
 ---
-description: 'Office requests for leave, travel, expenses, seal use and general forms, using the existing workflow, private attachments, mobile handling and personal confirmation in the assistant.'
+description: 'Office requests for leave, travel, expenses, seal use and general forms, using the existing workflow, private attachments, basic mobile handling, with current-public and historical capability boundaries.'
 ---
 
 # Office requests
 
-The **Office** entry brings together leave, travel, expense claims, seal use and general requests. My requests, to-dos, handled tasks and CC use the existing [approval center](/en/features/workflow), with the same processes and status. Native office features and [attendance](/en/features/attendance) work without DingTalk.
+The **Office** entry brings together leave, travel, expense claims, seal use and general requests. My requests, to-dos, handled tasks and CC use the existing [approval center](/en/features/workflow), with the same processes and status. Basic office requests need no DingTalk. Since v1.11.0, the public composition contains these requests, the existing approval center, required files/notices and basic mobile handling. Complete collaboration, meetings, knowledge, supplies, native attendance and office assistant application tools do not ship in that composition.
 
 ## Five request types
 
@@ -51,16 +51,16 @@ Attachments open through an authenticated same-origin interface, limited to 20 M
 
 ## Ask the assistant
 
-With the [assistant](/en/features/agent) enabled, query your own to-dos and requests you started or participated in, fetch published form and user-choice information, and fill in the five request types.
+::: info v1.10.0 historical capability
+Office assistant application tools were publicly released in [v1.10.0](https://github.com/732124645/qiwu-vue-admin/tree/v1.10.0), but do not ship in the v1.11.0 public composition. The individual personal-confirmation rules and their source remain available in the old tag. The current general [assistant](/en/features/agent) does not imply these tools are included.
+:::
 
-**Each request requires your own click on its individual confirmation card**, showing the content, time or money, lines, real attachment names, process version and chosen approvers. Conversation trust, automatic review, automation pre-approval and bulk approval cannot replace it; direct MCP or a personal access token cannot bypass it. Changed content, attachments or references require confirmation again at submission.
-
-The assistant cannot approve for you, apply for another person, clock in for you or operate DingTalk.
+In the current public version, fill requests on the Office pages and handle them in the existing approval center.
 
 ## Scope and acceptance checks
 
 Meeting rooms, collaborative tasks, supplies and assets, vehicles, full HR, contracts and official documents, payments and electronic signatures are not included. A general approval form does not implement those business systems.
 
-H5 automation and app / mini program builds have passed. Real app and mini program location permissions and on-site clocking have not yet been accepted. Before rollout, verify sign-in, file previews, complete decision information, handling, return and resubmit, tenant isolation, concurrent actions, SMTP and storage in your environment. DingTalk remains a separate optional integration, not implemented or enabled.
+Automated checks and builds for basic mobile approvals do not replace acceptance on real devices. Before rollout, verify sign-in, file previews, complete decision information, handling, return and resubmit, tenant isolation, concurrent actions, SMTP and storage in your environment. DingTalk remains a separate optional integration, not implemented or enabled.
 
 For integration, see the repository's [office documentation](https://github.com/732124645/qiwu-vue-admin/blob/main/docs/oa.md) (Chinese) and [Workflow](/en/features/workflow).

@@ -1,8 +1,12 @@
 ---
-description: 'Native mobile clock-in and clock-out, tenant policies and office sites, personal and department queries, and approved leave and travel links; no DingTalk required.'
+description: 'v1.10.0 historical version: native mobile clock-in and clock-out, tenant policies and office sites, personal and department queries, and approved leave and travel links; no DingTalk required.'
 ---
 
 # Attendance
+
+::: warning v1.10.0 historical reference
+Native attendance was publicly released in [v1.10.0](https://github.com/732124645/qiwu-vue-admin/tree/v1.10.0). The v1.11.0 public composition does not contain its source, pages or seeds. The following describes that historical version, not current installation steps. Existing tags and history remain available, including the stated real-device location and on-site acceptance limits. See [Office requests](/en/features/oa) for the current public scope.
+:::
 
 Employees use **Clock** on mobile to clock in, clock out and view their records. Administrators configure policies, office sites and queries under Office. Native attendance uses the independent OA capability, works with approvals disabled and needs no DingTalk account or clocking hardware. Sign-in, tenant-package and permission checks still apply.
 
@@ -50,4 +54,4 @@ H5 is for development and automated tests. Mini programs need allowed API domain
 
 DingTalk clocking-hardware synchronization is a separate optional integration, not implemented or enabled. The assistant has no tool to clock for you.
 
-See the repository's [native attendance documentation](https://github.com/732124645/qiwu-vue-admin/blob/main/docs/attendance.md) (Chinese) for interfaces, cleanup and time rules.
+See the repository's [native attendance documentation](https://github.com/732124645/qiwu-vue-admin/blob/v1.10.0/docs/attendance.md) (Chinese) for interfaces, cleanup and time rules.

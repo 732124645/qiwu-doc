@@ -136,7 +136,9 @@ seed: admin password (shown once, must be changed at first sign-in): xxxxxxxx
 pnpm dev
 ```
 
-This command starts three processes at once: the shared package watcher, the server (port 3000) and the Vite frontend (port 5173). Open `http://localhost:5173` and sign in with `admin` and the password from the previous step.
+This starts the backend development runner and Vite. The runner coordinates shared watching and incremental backend compilation: it reloads only after a complete shared build, and summarizes actual files, compile/ready time and the previous comparison. A compile error keeps the previous working service running. Default ports are 3000 for the backend and 5173 for Vite. Open `http://localhost:5173` and sign in with `admin` and the password from the previous step.
+
+Vite updates ordinary frontend components locally. Web/server/shared locale updates retain the current page. Backend code changes still restart that backend process once; they do not imply a full frontend page reload. Errors and warnings remain visible.
 
 ![Sign-in page](/screenshots/en-login.webp)
 
@@ -191,14 +193,15 @@ The download is checked against its sha256; restart the server and it takes effe
 
 ## Try office requests and attendance
 
-After migration and seeding, check office models, requester scope and approvers in process management, then grant staff permissions. With multi-tenancy enabled, tenant packages also need the relevant OA and workflow capabilities.
+The v1.11.0 public composition provides basic office requests and approvals. After migration and seeding, review models, requester scope and approvers before granting staff access. Tenant packages also need the relevant capabilities.
 
-1. Submit [leave, travel, expenses, seal use or general requests](/en/features/oa), then check to-dos, handled tasks, my requests and CC in the approval center.
-2. Read complete details and attachments and handle tasks on mobile. Create/edit travel, expenses and seal requests on desktop; leave and dynamic forms can start on mobile.
-3. Configure time zone, location mode and sites in [Attendance](/en/features/attendance); staff clock in/out on mobile. The initial no-location mode needs no DingTalk.
-4. With the assistant enabled, query and prepare requests; each request requires your own individual confirmation click.
+1. Submit [leave, travel, expenses, seal or general requests](/en/features/oa), then view and handle them in the approval center.
+2. Mobile shows complete details, attachments and decisions. Create/edit travel, expenses and seal requests on desktop; leave and dynamic forms can start on mobile.
+3. The floating [Assistant](/en/features/agent) button opens general chat and project tools; configure model credit rates before calling a model.
 
-Leave preserves its existing sample configuration. Only the four new office models default to explicit protected-administrator handling and rejection when nobody is available. Adapt processes to your organization before use. App / mini program builds and H5 automation do not replace real-device location permission and on-site acceptance checks.
+Leave preserves its existing sample settings; the other four office models default to explicit protected-administrator handling and rejection when nobody is available. Review them for your own organization.
+
+Native clocking and office assistant application tools were publicly released in v1.10.0 but do not ship in the v1.11.0 composition. The [attendance page](/en/features/attendance) is a historical reference, not a current installation step.
 
 ## Troubleshooting
 

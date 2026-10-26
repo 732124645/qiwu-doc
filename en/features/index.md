@@ -16,7 +16,7 @@ For the status of each item, see [Introduction · Features at a glance](/en/guid
 | [Sign-in and accounts](/features/login) (Chinese) | Password, SMS and WeChat mini program sign-in, captchas, lockout after failed attempts, password policy, online users |
 | [Single sign-on (OAuth2)](/en/features/oauth) | Let other systems sign users in with their Qiwu accounts: OAuth2 client management, consent page, remembered consent |
 | [MCP agent access](/en/features/mcp) | Let agents (AI assistants) call the console's tools with the user's own permissions: personal access tokens or OAuth2, guardrails, action log; off by default |
-| [Assistant](/en/features/agent) | A chat page in the console: a model / agent uses the console's tools to look up data, search the web and change data for you, with human confirmation before changes by default; skills, batch runs, automations, memory and deep research; off by default |
+| [Assistant](/en/features/agent) | Floating chat: credit rates, actual usage and a work panel; models / agents use the console's tools to look up data, search the web and change data for you, with human confirmation before changes by default; skills, batch runs, automations, memory and deep research; off by default |
 | [Permissions and data scope](/en/features/permission) | Menu and button permissions, five data scopes, privilege escalation guard |
 | [Multi-tenancy](/en/features/multi-tenancy) | One deployment serving many companies: tenants, tenant packages, bound domains, brands, platform staff entering a tenant; off by default |
 | [Monitoring and logs](/features/monitor) (Chinese) | Server, MySQL, Redis and job queue monitoring; action log, sign-in log, API access and error logs |
@@ -37,8 +37,8 @@ For the status of each item, see [Introduction · Features at a glance](/en/guid
 | Feature | In one sentence |
 | --- | --- |
 | [Workflow](/en/features/workflow) | Draw processes in the tree or BPMN designer, no-code approvals, dynamic forms, automatic timeout handling, approval data |
-| [Office requests](/en/features/oa) | Leave, travel, expenses, seal use and general forms; shared approval center, private files and notices; personal confirmation per assistant request |
-| [Attendance](/en/features/attendance) | Native mobile clock-in/out, policies and sites, personal and department queries, approved leave/travel links; no DingTalk required |
+| [Office requests](/en/features/oa) | Leave, travel, expenses, seal use and general forms; shared approval center, private files/notices and basic mobile handling |
+| [Attendance (historical)](/en/features/attendance) | Publicly released in v1.10.0; not included in the current v1.11.0 public composition |
 
 ## Mobile
 

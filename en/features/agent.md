@@ -4,7 +4,7 @@ description: 'The in-app assistant: staff ask a model / agent in plain language 
 
 # Assistant
 
-The **assistant** is a chat page in the admin console. Staff state what they need in plain language, and the model / agent does it **with the console's own tools, as that user**: looking up data, summarizing, changing data as asked; when it needs outside information, it searches the web and reads pages. In the default **Ask** mode, it first lists which record, each field's current → proposed value and the sources it relied on, and **runs the change only after a person confirms it**. Users can authorize some writes without repeated confirmation under the rules for [approval modes](#tool-policies-and-approval-modes), [automatic review](#automatic-review) and [automations](#automations).
+The **assistant** opens beside the current business page from the floating button on the right. Staff state what they need in plain language, and the model / agent does it **with the console's own tools, as that user**: looking up data, summarizing, changing data as asked; when it needs outside information, it searches the web and reads pages. In the default **Ask** mode, it first lists which record, each field's current → proposed value and the sources it relied on, and **runs the change only after a person confirms it**. Users can authorize some writes without repeated confirmation under the rules for [approval modes](#tool-policies-and-approval-modes), [automatic review](#automatic-review) and [automations](#automations).
 
 You can also tick several records in a list and have the agent run the same skill on each of them (for example 补齐客户信息, "fill in customer details"); the results go to a batch review page where you confirm them one by one or all at once. A skill or a prompt can also become an **automation** that runs in the background on a schedule, after a business action or on demand, with its results in your inbox.
 
@@ -18,7 +18,7 @@ The assistant is off by default; projects that don't need it can skip this page.
 
 | Switch | Where | Effect |
 | --- | --- | --- |
-| `APP_AGENT` | Server environment variable, `false` by default | Read only at startup; restart **every** server instance after changing it. While off, the module is not loaded: every `/api/agent/*` route returns 404, the **Agent** menu group is hidden from the sidebar, the role grant tree and tenant packages, and the button in the lower-right corner does not appear |
+| `APP_AGENT` | Server environment variable, `false` by default | Read only at startup; restart **every** server instance after changing it. While off, the module is not loaded: every `/api/agent/*` route returns 404, the **Agent** menu group is hidden from the sidebar, the role grant tree and tenant packages, and the floating button on the right does not appear |
 | `agent.paused` | **System → Parameters**, `false` by default, **only the super administrator (root) can change it** | Emergency stop: set to `true`, new turns and tool calls are refused and running turns stop within half a second; set back to `false` to resume. No restart needed; it takes effect on all instances together |
 
 `APP_AGENT` and `APP_MCP` are independent: with only the assistant on, `/api/mcp` still does not exist. The tables are always created by the migrations and the menus and sample data always written by the seeds, so turning it on needs no extra migration. For deployment notes (outbound firewall, keys) see [Deploy · Assistant](/guide/deploy#智能助手) (Chinese).
@@ -30,33 +30,39 @@ First steps after turning it on:
 3. In **System → Roles**, grant **Assistant** to the business roles; the skills, batch run, usage and automations pages are granted separately;
 4. With [multi-tenancy](/en/features/multi-tenancy) on, tick the **Agent** menu group into the tenant package first; only then can the tenant's roles be granted it.
 
-The **Agent** menu group comes right after Home and has five pages:
+Since v1.11.0, chat opens from the floating button, without a sidebar menu item. Settings, skills, usage and automations remain in **Agent**. The hidden conversation routes remain available for grants, notices, sharing and existing links:
 
 | Page | Content |
 | --- | --- |
-| **Agent → Assistant** | The chat page. The batch review page sits under it and is not shown in the menu |
+| **Floating Assistant button** | Chat beside the current page; conversation and batch-review routes remain hidden from the sidebar |
 | **Agent → Skills** | Personal and tenant-wide skills, prompt templates, tenant instructions |
 | **Agent → Agent settings** | Models, web search, external MCP, tool policies, platform skills, instructions and limits, plus a **Diagnostics** tab for the super administrator only. With multi-tenancy on it is a platform-only page, and only the super administrator can change it |
-| **Agent → Agent usage** | Calls and tokens summed by day, user or model |
+| **Agent → Agent usage** | Credits and actual usage by day, user or model, with paginated per-call rate snapshots |
 | **Agent → Automations** | Skills and prompts run in the background on a schedule, after a business event or by hand, with their run history; see [Automations](#automations) below |
 
 See the repository's [Enabling](https://github.com/732124645/qiwu-vue-admin/blob/main/docs/agent.md#启用) section (Chinese).
 
 ## Models
 
-Models connect through an **OpenAI-compatible API** (Chat Completions), so common hosted model services and a local Ollama all work. On the **Models** tab of **Agent → Agent settings**, each provider has a name, an API address, a key and the models it offers, and can be made the default. For each model you can also mark whether it supports reasoning effort (low, medium or high in the chat), whether it can read images, how large its context window is, and whether it is an **Image** model used to generate images.
+Models connect through an **OpenAI-compatible Chat Completions API**. On **Agent → Agent settings → Models**, enter the provider name, base URL, key and model list; one provider can be the default. Choose a model that supports **function calling**. Leave the key empty for a local service that needs none.
 
-| Service | Notes |
+Since v1.11.0, every model also needs explicit credit rates, measured as **credits per million tokens**, without a currency or exchange rate:
+
+| Rate | What is charged |
 | --- | --- |
-| DeepSeek, Qwen (Alibaba Cloud Model Studio), Kimi (Moonshot AI), Zhipu, OpenAI | Enter the vendor's API address and a key from its console |
-| Ollama | Runs on the same machine or the internal network; leave the key empty |
+| Ordinary input | Input outside any separately priced cache portion |
+| Output | The provider's reported output total, including its reasoning portion |
+| Cache read | Replaces the rate for that input portion; it is not added to the input total again |
+| Cache write | Replaces the rate for that input portion; it is not added to the input total again |
 
-- The agent relies on the model's **tool calling** (function calling); pick a model that supports it;
-- Keys are **write-only**: encrypted in the database, and the page shows only **Stored**. Changing the API address requires entering the key again; the old key is never sent to a new address;
-- Each conversation can pick one of the configured models; without a choice it uses the first model of the default provider;
-- When a model service fails, the page shows only that the call failed and a short reason, never the service's raw reply.
+- A blank cache rate inherits ordinary input. Explicit `0` means free for that category. Rates have up to six decimal places; exact integer arithmetic rounds once after adding up a call.
+- Old models without rates show **Pricing required** and are refused **before a request is sent**, rather than treated as free. Configure rates after upgrading, then set budgets.
+- Reasoning is part of output, and cache is part of input. Their detail counters must not be added to the totals a second time.
+- Model capability and default thinking behavior are separate: provider default, explicitly off, or a supported effort. The standard protocol sends supported reasoning parameters; vLLM mode presents only on/off, without inventing low/medium/high levels. Removing a capability declaration is not an instruction to turn thinking off upstream.
+- Keys are encrypted and **write-only**. Changing a base URL requires the key again, so the old key is never sent to the new address.
+- A conversation can select its configured provider and model. Errors show only a short reason, without the provider's response body or key.
 
-API addresses and sample model names for each vendor are in the repository's [model setup](https://github.com/732124645/qiwu-vue-admin/blob/main/docs/agent.md#配置模型) section (Chinese).
+For base URLs, context windows, image capability and settings, see the repository's [model configuration](https://github.com/732124645/qiwu-vue-admin/blob/main/docs/agent.md#配置模型) section (Chinese).
 
 ## Web search
 
@@ -74,7 +80,7 @@ On the **External MCP** tab you can connect MCP servers outside this system (Str
 
 - Authentication can be none, a header token, or OAuth client credentials; credentials are encrypted and write-only;
 - Only public addresses are allowed by default; pointing at an internal address must be allowed explicitly by the super administrator;
-- **Sync** lists the server's tools. New tools start **disabled**; an administrator enables them one by one and sets each one's approval policy. A server calling a tool read-only is not trusted: only tools an administrator explicitly sets to run directly skip confirmation;
+- **Sync** lists the server's tools. New tools start **disabled**; an administrator enables them one by one and sets each one's approval policy. an external server calling a tool “read only” is not trusted; only a tool the super administrator explicitly sets to run directly needs no confirmation. An unknown hint still requires checking the named server and tool before trusting it; this is a manual trust decision, not proof that the system verified it as read-only;
 - When a server asks the user for more information during a call, the chat page shows a form card.
 
 See the repository's [external MCP servers](https://github.com/732124645/qiwu-vue-admin/blob/main/docs/agent.md#外部-mcp-服务器) section (Chinese).
@@ -92,7 +98,7 @@ The **Tool policies** tab lists every tool of this system with an approval polic
 | Auto review (`review`) | Write tools only: in a conversation in auto review mode the review model judges first, otherwise it behaves like **Ask**; see [Automatic review](#automatic-review) below |
 | Deny (`deny`) | The agent does not see the tool |
 
-A write tool can only be **Ask**, **Auto review** or **Deny**, never **Run automatically**. A tool switched off as a whole on the MCP tools page cannot be used by the agent either.
+System write tools can only be ask, auto review or deny, never auto. Direct execution of external tools depends on the super administrator’s explicit trust described above. Tools declared to require personal confirmation every time keep that requirement. A tool switched off as a whole on the MCP tools page cannot be used by the agent either.
 
 Each conversation can also switch its **approval mode**:
 
@@ -105,13 +111,15 @@ The approval card shows the tool, the record, each field's current → proposed 
 
 There is also a **plan mode**: the agent stays read-only and lists its steps first; you confirm, then switch back to run them.
 
-See the repository's [tool policies](https://github.com/732124645/qiwu-vue-admin/blob/main/docs/agent.md#工具策略) and [chat page](https://github.com/732124645/qiwu-vue-admin/blob/main/docs/agent.md#对话页) sections (Chinese).
+See the repository's [tool policies](https://github.com/732124645/qiwu-vue-admin/blob/main/docs/agent.md#工具策略) and [chat panel](https://github.com/732124645/qiwu-vue-admin/blob/main/docs/agent.md#聊天面板) sections (Chinese).
 
 ## Office requests
 
-The assistant can query your own to-dos and requests you started or participated in, read the published form and user-choice information, and help prepare leave, travel, expense, seal and general requests. Administrator status does not expand personal queries to arbitrary employees.
+::: info Version scope
+Office assistant application tools were publicly released in [v1.10.0](https://github.com/732124645/qiwu-vue-admin/tree/v1.10.0). The v1.11.0 public composition keeps basic requests and the existing approvals but does not include those application tools. This historical entry acknowledges what was already published.
+:::
 
-**Every request requires your own click on its individual confirmation card**, showing contents, time or money, lines, real attachment names, process version and chosen approvers. Conversation trust, automatic review, automation pre-approval, bulk approval and direct MCP / PAT cannot replace it. Changed facts require confirmation again. The assistant cannot approve for you, apply for someone else, clock for you or operate DingTalk. See [Office requests](/en/features/oa).
+In v1.10.0, every prepared request required the owner's individual confirmation click; conversation trust, automatic review, automation pre-approval, bulk approval and direct MCP / PAT could not replace it. Use [Office requests](/en/features/oa) and the approval center directly in the current public distribution.
 
 ## Automatic review
 
@@ -121,7 +129,7 @@ Automatic review lets a class of low-impact writes skip waiting for a click: ano
 2. An administrator sets a write tool to **Auto review** on **Tool policies** (or in an external MCP server's tool list);
 3. The requester switches the conversation's approval mode to **Auto review**.
 
-From then on, that tool's writes go to the review model first, with three outcomes: **approve** (runs at once; the card says **Approved by automatic review** with the reason), **reject** (does not run, and the agent is told not to retry) or **hand over** (waits for you as usual, with the review's note on the card). A review model error or timeout, an answer in the wrong format, content too long to pass without truncation, 10 reviews already in the turn, an exhausted token budget and similar cases all go to a person; nothing is ever approved by default. The review model sees only what you said in the conversation, the tool, its arguments, the change preview and the source links, never any tool output or page text.
+From then on, that tool's writes go to the review model first, with three outcomes: **approve** (runs at once; the card says **Approved by automatic review** with the reason), **reject** (does not run, and the agent is told not to retry) or **hand over** (waits for you as usual, with the review's note on the card). A review model error or timeout, an answer in the wrong format, content too long to pass without truncation, 10 reviews already in the turn, an exhausted credit budget and similar cases all go to a person; nothing is ever approved by default. The review model sees only what you said in the conversation, the tool, its arguments, the change preview and the source links, never any tool output or page text.
 
 ::: warning Limitations
 The review model can be wrong too, or be misled by crafted arguments, business data or context; it can only compare against what you said in the conversation, does not understand business rules, and does not replace permissions or data scope (the tool still runs with the requester's own permissions). Turn it on only for low-impact, reversible writes (editing a note, adding a tag); keep deletes, bulk changes, anything sent outside and anything involving money on **Ask**. Every approval is recorded on the approval card and in the action log for later checks.
@@ -135,19 +143,26 @@ When the agent is unsure (for example, it finds several companies with similar n
 
 ## The chat page
 
-**Agent → Assistant** works much like a desktop chat app:
+Since v1.11.0, the **Assistant** button on the right opens chat beside the current business page. The desktop panel can be minimized or expanded; on phones it fills the width. The business URL, filters and page state remain. Independent conversation URLs still serve notices, sharing and existing links.
 
-- **Conversation list**: create, search (titles and full message text), rename, pin, archive and delete, filtered by all, running, unread or pinned; temporary conversations stay out of the list and are deleted when you leave;
-- **Answers** stream in, with collapsible tool calls; supported models show a reasoning summary; cited pages are listed at the end, followed by a few suggested follow-ups;
-- **Fork, resend and revert**: fork a new conversation from any message, or edit and resend the last one; **revert** removes the last turn, but **changes it already made are not rolled back**;
-- **Share and export**: a read-only link that only people in the same tenant can open; export as Markdown;
-- **Sending while a turn runs**: **Add to this turn** to change direction, or **Queue for next turn**; you can press **Stop** at any time;
-- **Attachments**: files already uploaded to file storage; text files, the first sheet of an xlsx and images (for models that read images) are passed to the model;
-- **Slash commands**: type `/` to start a conversation, compact the context, switch the model, the approval mode or plan mode, pick a skill, insert a prompt template, see usage and more;
-- **Reminders**: an inbox message when a turn waits for your confirmation or answer, or when a long turn finishes, with optional mail (see [Notifications, shortcuts and new windows](#notifications-shortcuts-and-new-windows) below). Reminders carry only generic text and a link to the conversation, never its title;
-- **Corner button**: the **Assistant** button in the lower-right corner of every page opens the chat with the current page; on a list page the agent also knows which rows you ticked.
+- **Conversations and drafts**: open history when needed to create, search, rename, pin, archive or delete. Minimize and reopen without losing the conversation or draft. A new page's context applies only to a new conversation, without silently replacing an existing draft's source. Identity, tenant or permission changes clear the panel state.
+- **Minimize and stop**: plain Esc in the composer minimizes the panel while work continues. Use **Stop** or a shortcut with a modifier to stop a turn. Keys consumed by a candidate menu or approval card do not also close the host. The independent page retains its original stop shortcut.
+- **Reading answers**: streamed answers, collapsible calls and reasoning summaries; tables, nested lists, task lists, code copy/wrap, Markdown source switching, exact source download and expanded reading. HTML is shown as text; external Markdown images are not loaded automatically.
+- **Work panel**: current tasks, sources and report/chart/image outputs open on demand. Wide containers show it beside chat; narrow containers use a drawer. Switching conversations clears old previews immediately; approval remains on its original confirmation card.
+- **Subtasks**: grouped by actual status, with active/finished counts, individual states and summaries. Open a read-only process view beside the parent; phones provide a return control, without changing the main conversation. Shared snapshots do not fetch private child conversations.
+- **Fork, resend and revert**: fork from a message or edit and resend the last one. Revert removes the last turn; **changes it already made are not rolled back**. Stop active work first and personally reconcile unknown results before forking, reverting or deleting; these actions cannot clear unresolved risks.
+- **Sharing and export**: same-tenant read-only links and Markdown export do not expand the viewer's business permissions.
+- **Sending during a turn**: add to the current turn or queue the next one; attachments still enforce current file access.
+- **Commands and notices**: `/` offers new conversation, compaction, model, approvals, skills and status commands. Waiting for confirmation or clarification and completion of a long turn still produce inbox notices, with optional mail.
 
-See the repository's [chat page](https://github.com/732124645/qiwu-vue-admin/blob/main/docs/agent.md#对话页) section (Chinese).
+See the repository's [chat panel](https://github.com/732124645/qiwu-vue-admin/blob/main/docs/agent.md#聊天面板) section (Chinese).
+
+### Disconnections, refreshes and deployments
+
+- **An uncertain send**: the same send uses the same UUID, with a durable server receipt. After a lost acknowledgement, the client only queries receipt status; it does not automatically resend. An explicit retry reuses the original identifier. Browser session storage keeps only identifiers isolated by user and tenant, never message bodies. A full refresh does not guarantee retention of an unsent plaintext draft; reconcile the previous send before entering a new message.
+- **Recovering answers**: streamed text is saved to the database in batches about every 200 milliseconds before it is broadcast, with a revision and UTF-16 position. Reconnecting can fill in the prefix already displayed. After a server restart, recovery resumes the task, **not the original model token connection**; the current step may be interrupted and need regeneration. Queue and lease timing affect the wait, with no fixed recovery time.
+- **Unknown effects pause work**: an unknown result from a write or paid image call pauses subsequent writes and image generation. Read-only queries remain available, and their model calls are still metered. Conversation trust, automatic review and automations cannot bypass this pause. Personally check the business outcome and any charge, then acknowledge the current risk revision. This permits only later operations; old turns and queued messages are not replayed automatically. An automation with an unknown result is disabled and its pre-approval revoked; configure it again separately.
+- **Reconcile before continuing**: a local write timeout or missing trustworthy output also counts as unknown. The pause cannot be cleared while the original work has not actually settled. Check remote non-idempotent operations in the external system; exactly-once effects cannot be guaranteed for arbitrary external services.
 
 ## Skills
 
@@ -205,15 +220,29 @@ See the repository's [memory](https://github.com/732124645/qiwu-vue-admin/blob/m
 
 ## Limits, emergency stop and usage
 
-The super administrator limits cost with system parameters: steps, time and tokens per turn, tokens per user and per tenant per day, concurrent turns per user, steps and time for deep research, and automations per user and runs per automation per day. When a limit is hit, the turn stops and says which limit it reached. The emergency stop `agent.paused` is described above.
+Since v1.11.0, spending budgets use **credits**. Tokens remain actual usage counters and context observations:
 
-Usage is recorded by user, tenant, model and date: **Agent → Agent usage** sums the current tenant's calls and input / output tokens by day, user or model; `/status` in the chat shows this conversation's context use and the usage and limits for this turn and today.
+| System parameter | Default | Scope |
+| --- | --- | --- |
+| `agent.limit.turn_credits` | `0` | Credits per turn |
+| `agent.limit.user_daily_credits` | `0` | Credits per user per UTC day |
+| `agent.limit.tenant_daily_credits` | `0` | Credits per tenant per UTC day |
 
-Parameters and defaults are in the repository's [limits, pausing and usage](https://github.com/732124645/qiwu-vue-admin/blob/main/docs/agent.md#限额暂停与用量) section (Chinese).
+For these three budgets, `0` means **unlimited**. Step, time, concurrency, research and automation limits remain independent; zero does not disable those safeguards. The emergency stop `agent.paused` is described above.
+
+Each model call checks spending already recorded before starting. Once a budget is reached, no next call begins; **an in-flight or parallel call can cross the threshold**. This is an observed-spending budget, not a prepaid wallet or a guaranteed hard spending cap.
+
+**Agent → Agent usage** groups credits and actual usage by day, user or model, with paginated per-call details: provider, exact model identifier, input/output/cache/reasoning counters, the rates used and the charge. Identical model names at different providers stay separate; changing rates does not reprice history. An explicit per-image fallback applies only when token-based pricing is unavailable, never together with a token charge.
+
+Missing fields remain **unknown**, not zero. Older records without detailed usage or rate snapshots are marked historical, without invented past credits. A new unpriced call blocks subsequent calls under a finite budget. A failed call does not prove zero consumption; actual usage already reported by the provider is still recorded. Old token budgets are neither automatically converted to credits nor used as spending limits.
+
+A pending record is saved before each model call. Recovery retains actual usage already obtained and its original rate snapshot; the call detail, daily, turn and parent-task totals are accounted once in the same transaction. Missing usage stays unknown, so finite budgets may wait for reconciliation; recovery never turns unknown consumption into zero.
+
+`/status` separates estimated context capacity from recorded credits for the turn and today. The context gauge is not the provider's bill. See the repository's [limits, pause and usage](https://github.com/732124645/qiwu-vue-admin/blob/main/docs/agent.md#限额暂停与用量) section (Chinese).
 
 ## Sub-agents, deep research, charts / images / exports
 
-- **Sub-agents**: the agent can hand 1 to 3 independent subtasks to sub-agents running in parallel. They run as the requester, **with read-only tools only**, cannot delegate further or ask you questions; to change data they can only suggest it in their summary, and the main conversation goes through normal approval. A **Subtasks** card in the main conversation shows each task's state and summary and opens the sub-conversation;
+- **Sub-agents**: the agent can hand 1 to 3 independent subtasks to sub-agents running in parallel. They run as the requester, **with read-only tools only**, cannot delegate further or ask you questions; to change data they can only suggest it in their summary, and the main conversation goes through normal approval. The **Subtasks** card groups actual states and summaries; open read-only details in place while the parent conversation and draft remain;
 - **Deep research**: the platform skill **deep research** (start it with `$deep-research` in the input box) plans first, searches and reads several sources, then writes a **research report** with numbered citations. The turn has its own, wider step and time limits. Citations count only links the turn actually read; others are marked **Unverified**. A report exports to Markdown, prints as PDF, and each of its tables exports to Excel;
 - **Charts**: with numbers at hand the agent can draw bar, line or pie charts or tables, rendered directly by the page without running any code; a chart's data exports to Excel;
 - **Images**: when a model is marked **Image** in the settings, the agent can generate images, stored as private files of the requester, at most 4 per turn;
@@ -231,9 +260,10 @@ See the repository's [diagnostics](https://github.com/732124645/qiwu-vue-admin/b
 
 - **Notification settings**: behind the bell button at the top of the chat page, each kind of reminder (a long turn finishes, waiting for my confirmation or answer, automation results) can also **send an email**; all are off by default. Inbox messages always arrive, and the mobile app reads the inbox; emails go to the address in your profile, and without one you get only the inbox message;
 - **Keyboard shortcuts**: **Keyboard shortcuts** at the top lets you rebind four actions: new conversation, focus the message box, toggle plan mode and stop the turn. A combination needs Ctrl, Alt or ⌘ (stop may also be plain Esc); combinations the browser or page already uses are refused. The settings are saved in the current browser only;
-- **New window**: a non-temporary conversation can be opened in a new window.
+- Plain Esc in the floating composer minimizes the panel; stopping there uses the Stop button or a shortcut with a modifier. The independent chat page retains its configured stop shortcut.
+- **New window**: non-temporary conversations can be opened in a new window.
 
-See the repository's [chat page](https://github.com/732124645/qiwu-vue-admin/blob/main/docs/agent.md#对话页) section (Chinese).
+See the repository's [chat panel](https://github.com/732124645/qiwu-vue-admin/blob/main/docs/agent.md#聊天面板) section (Chinese).
 
 ## Batch runs and the "fill in customer details" sample
 

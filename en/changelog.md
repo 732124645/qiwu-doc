@@ -6,6 +6,32 @@ description: 'Qiwu release notes and upgrade steps for office requests, native a
 
 This page records the changes in each Qiwu release. For the current features and the status of each one, see [Introduction · Features at a glance](/en/guide/introduction#features-at-a-glance).
 
+## 1.11.0 · 2026-10-27
+
+Floating chat, credit budgets, recovery and development reloads. See the [public source commit](https://github.com/732124645/qiwu-vue-admin/commit/c83de79468f4aafc5559070365a6f8ee7abeac79).
+Release: [v1.11.0](https://github.com/732124645/qiwu-vue-admin/releases/tag/v1.11.0).
+
+- The [assistant](/en/features/agent) opens from the floating button beside the business page, preserving its URL, conversation and draft. History and the work panel open on demand. Subtasks show actual states and read-only details beside the parent, with a return control on phones. Notices, sharing and existing conversation URLs remain compatible.
+- Answers support safe Markdown tables, nested lists, task lists, code copy/wrap, source switching and downloads. The work panel brings together tasks, sources and outputs.
+- Spending limits use credits: configure each model's rates per million ordinary input, output, cache-read and cache-write tokens. Turn, user-day and tenant-day budgets support `0` for unlimited. Calls retain actual usage, reasoning/cache details, the rates used and credits; missing history stays unknown and is not repriced. Budgets are checked before the next call, so an in-flight call may cross the threshold.
+- Model default thinking behavior is separate from its capability, with explicit off and vLLM on/off. Direct execution of an external MCP tool requires the super administrator's explicit trust, without treating a vendor hint as proof or weakening existing personal confirmation requirements.
+- Sends use a stable UUID and durable receipt: a lost acknowledgement triggers queries only, and an explicit retry reuses the identifier. Streamed text is saved before broadcast so the displayed prefix can be recovered. Restarting resumes the task, not the original model token connection; the current step may need regeneration, and full refreshes do not guarantee an unsent draft. Calls save a pending record first, retaining actual usage and original rates, with details and aggregate totals accounted once atomically; unknown usage is never zeroed.
+- Unknown effects from writes or paid image calls pause related later operations until the person reconciles the current risk. Trust and automation cannot bypass this; local work must actually settle, and remote non-idempotent effects must be checked externally. Old turns and queued messages are not replayed. Affected automations are disabled and lose pre-approval, requiring separate setup. Active or unreconciled conversations cannot be directly forked, reverted or deleted.
+- Development reloads summarize changed files, compile/ready time and the previous comparison. One completed shared build produces one backend reload; compile errors leave the previous service running. Fixes cover locale changes refreshing the page, keyboard candidates, chat overflow, compaction within a long first turn, MCP stream cancellation, and recovery/isolation after migration-test timeouts.
+- Fully masked audit routes hide complete payloads, URL queries and free-form error text; static data-scope checks verify delegated locks and reject ambiguous service names.
+
+Upgrade steps:
+
+1. Back up the database, uploads and secrets. For the first upgrade, stop initiating new tasks during a maintenance window, wait for old work to finish, then enable `agent.paused` and stop all old workers. This is an emergency stop that interrupts running turns; if it must be used earlier, personally confirm the operation has ended and reconcile uncertain effects and charges. Update code, run `pnpm i` → `pnpm -r build` → `pnpm db:migrate` → `pnpm db:seed`, and start the new version. Never use `db:reset` to upgrade an existing database.
+2. The super administrator configures credit rates for old models, then sets the three budgets. Old token caps are not converted into credits; new budgets default to `0` for unlimited. Models without rates are refused before a request is sent.
+3. A new call-credit ledger migration and menu/parameter seeds are included. The MIT-licensed `marked` tokenizes Markdown; safe components still render the contents, without executing upstream HTML or scripts.
+4. **Public scope**: this composition keeps basic leave, travel, expense, seal and general requests, the existing approval center, required files/notices and basic mobile handling. Native attendance and office assistant application tools are not included. Both were publicly released in v1.10.0; existing tags and historical documentation remain. Projects using them must review version and extension dependencies; a hidden menu does not mean their source still ships.
+5. Retain the database, Redis and `APP_SECRET`. Old versions never saved these checkpoints or invocation records, so their missing output and usage cannot be recovered retroactively; the new guarantees apply to later tasks. Do not mix old workers or treat rollback to an unaware old tag as recovery. Normal shutdown uses bounded draining, cancellation and persistence; after forced termination, takeover waits for the lease. Existing deployment policy retains old static assets; queue and lease timing affect recovery. See [Disconnections, refreshes and deployments](/en/features/agent#disconnections-refreshes-and-deployments).
+
+6. After every new instance is running, model rates and budgets are configured, and old task outcomes are reconciled, root must set `agent.paused` back to `false` before reopening new tasks. Clearing the emergency stop does not clear conversation recovery markers; each owner still reconciles those separately.
+
+See [Upgrading](/guide/upgrade) (Chinese) and [Limits, emergency stop and usage](/en/features/agent#limits-emergency-stop-and-usage).
+
 ## 1.10.0 · 2026-10-23
 
 Office requests and native attendance. See the [v1.10.0 release notes](https://github.com/732124645/qiwu-vue-admin/releases/tag/v1.10.0) and [public release commit](https://github.com/732124645/qiwu-vue-admin/commit/35ce0e9e12c8b6e51bb956ef05bd5ff03be909ac).

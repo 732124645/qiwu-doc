@@ -15,7 +15,7 @@ The mobile app is **optional**: all its code lives in the `mobile/` directory at
 ::: info Current status
 Done: sign-in, Workbench, approvals (including dynamic forms), messages, the Me page, Chinese and English, light and dark themes, realtime push, new to-do WeChat alerts, app update checks, and mobile pages produced by the code generator.
 
-Automated tests: unit tests, end-to-end tests against H5 pages, app and mini program builds, and mini program package-size checks, including office approval and native clocking automation. Real app and mini program location permissions and on-site clocking have not yet been accepted.
+Automated tests cover unit logic, H5 end-to-end flows, app and mini program builds, and mini program package-size checks, including basic office approvals. Real-device and app-store acceptance remain deployment checks. Native clocking and its earlier test results belong to the v1.10.0 historical capability; they do not ship in the v1.11.0 public composition.
 
 Still in progress: item-by-item checks on real devices, sending WeChat subscribe messages with a real AppID and real templates, app store listings, and the mini program release. Building the app and uploading the mini program on Windows have not been verified either. Before going live, work through the [Mobile development · Release checklist](/core/mobile#发布清单) (Chinese) item by item.
 :::
@@ -173,7 +173,7 @@ Picking people for transfers, delegation, adding signers, copying to others and 
 
 ## Native clocking
 
-The Workbench **Clock** entry supports personal clock-in/out, today’s state and record queries. `none` mode requests no location; `site` mode requests one foreground location on tap and does not fall back on failure. An uncertain result queries the original request before any retry. Clocking belongs to OA and does not depend on approvals or DingTalk. See [Attendance](/en/features/attendance) for policies, access, privacy and real-device acceptance limits.
+This capability was publicly released in v1.10.0 and **does not ship in the v1.11.0 public composition**. See the [historical attendance reference](/en/features/attendance) for the old Workbench entry, location policy and duplicate protection. Historical builds and H5 results do not establish real-device location or on-site acceptance.
 
 ## Messages
 
