@@ -6,6 +6,27 @@ description: 'Qiwu release notes and upgrade steps for office requests, native a
 
 This page records the changes in each Qiwu release. For the current features and the status of each one, see [Introduction · Features at a glance](/en/guide/introduction#features-at-a-glance).
 
+## 1.12.0 · 2026-10-27
+
+Assistant desktop workspace, usage and settings pages, and the credits upgrade fix. See the [public source commit](https://github.com/732124645/qiwu-vue-admin/commit/c52c361f2ca14336c97a1e3c3fdec85ed4430ea5).
+Release: [v1.12.0](https://github.com/732124645/qiwu-vue-admin/releases/tag/v1.12.0).
+
+- [Assistant](/en/features/agent) chat is a desktop workspace: drag the conversation list and side panel, or use the arrow keys, to resize them; widths are remembered per user and browser, a double-click restores the default, and the list folds to a rail. The work panel and subtask details open in the main area, and focus mode hides the application menu and tabs. The header keeps three labelled buttons (work panel, focus mode, conversation settings), with the rest in a settings popover and an actions menu. Message actions appear in one row on hover, answers use a centred reading column, the composer shows its keys on a hint line and plan mode is a switch.
+- The usage page leads with key figures, shows credits with two decimals and thousands separators, lists business columns by default, explains data completeness only when it applies and draws a per-day chart with units and an empty state.
+- Agent settings open with a getting-started guide (model, web search, tool approval, try it), with tabs in setup order and plainer names.
+- Credits upgrade fix: models without rates work again; their calls are recorded as unpriced and are neither charged nor limited. A priced model is always charged: unknown usage is estimated from the request and the streamed output, and usage without cache details or with inconsistent totals is charged conservatively; both count toward budgets. The usage page lists unpriced and estimated calls separately, and the settings page warns when no credit limit is configured.
+- A model service that rejects turning reasoning off returns a dedicated error instead of a generic upstream failure.
+- The development server builds into its own `dist-dev/` output, so a parallel production build no longer breaks a running `pnpm dev`; it retries once when the backend exits before it is ready.
+- Server tests bind temporary listeners to the loopback address and start every spec file with empty rate-limit buckets, so unrelated local services and earlier files no longer cause sporadic 401, 404 or 429 answers.
+
+Upgrade steps:
+
+1. No new migrations. Update the code and run `pnpm i` → `pnpm -r build` → `pnpm db:migrate` → `pnpm db:seed` as usual. Never use `db:reset` to upgrade an existing database.
+2. In a project derived from an older template, add `dist-dev/` to `.gitignore`.
+3. Models without rates that v1.11.0 refused work again. Where credits should apply, the super administrator configures rates and the three budgets; when all three are `0`, the settings page says there is no credit cap.
+
+See [Upgrading](/guide/upgrade) (Chinese) and [Limits, emergency stop and usage](/en/features/agent#limits-emergency-stop-and-usage).
+
 ## 1.11.0 · 2026-10-27
 
 Floating chat, credit budgets, recovery and development reloads. See the [public source commit](https://github.com/732124645/qiwu-vue-admin/commit/c83de79468f4aafc5559070365a6f8ee7abeac79).

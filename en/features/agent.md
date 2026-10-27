@@ -25,7 +25,7 @@ The assistant is off by default; projects that don't need it can skip this page.
 
 First steps after turning it on:
 
-1. The super administrator adds a model provider on the **Models** tab of **Agent → Agent settings** (see the next section). Without a usable model, the chat page asks you to contact an administrator and the input box is disabled;
+1. The super administrator adds a model provider on the **Models** tab of **Agent → Agent settings** (see the next section). Since v1.12.0, a **Getting started** guide at the top of the settings page shows the state of each step in order (model, web search, tool approval, try it), and the tabs follow the same order. Without a usable model, the chat page asks you to contact an administrator and the input box is disabled;
 2. For web access, add a search provider on the **Web search** tab;
 3. In **System → Roles**, grant **Assistant** to the business roles; the skills, batch run, usage and automations pages are granted separately;
 4. With [multi-tenancy](/en/features/multi-tenancy) on, tick the **Agent** menu group into the tenant package first; only then can the tenant's roles be granted it.
@@ -36,7 +36,7 @@ Since v1.11.0, chat opens from the floating button, without a sidebar menu item.
 | --- | --- |
 | **Floating Assistant button** | Chat beside the current page; conversation and batch-review routes remain hidden from the sidebar |
 | **Agent → Skills** | Personal and tenant-wide skills, prompt templates, tenant instructions |
-| **Agent → Agent settings** | Models, web search, external MCP, tool policies, platform skills, instructions and limits, plus a **Diagnostics** tab for the super administrator only. With multi-tenancy on it is a platform-only page, and only the super administrator can change it |
+| **Agent → Agent settings** | A getting-started guide, then models, web search, external tools (MCP), tool approval, platform skills, rules and quotas, plus a **Diagnostics** tab for the super administrator only. With multi-tenancy on it is a platform-only page, and only the super administrator can change it |
 | **Agent → Agent usage** | Credits and actual usage by day, user or model, with paginated per-call rate snapshots |
 | **Agent → Automations** | Skills and prompts run in the background on a schedule, after a business event or by hand, with their run history; see [Automations](#automations) below |
 
@@ -56,7 +56,9 @@ Since v1.11.0, every model also needs explicit credit rates, measured as **credi
 | Cache write | Replaces the rate for that input portion; it is not added to the input total again |
 
 - A blank cache rate inherits ordinary input. Explicit `0` means free for that category. Rates have up to six decimal places; exact integer arithmetic rounds once after adding up a call.
-- Old models without rates show **Pricing required** and are refused **before a request is sent**, rather than treated as free. Configure rates after upgrading, then set budgets.
+- Since v1.12.0, a model without rates (including models from before the upgrade) keeps working and is marked **No rates configured** in settings. Its calls are recorded as **unpriced**: they are not charged in credits and not limited by credit budgets, which does not mean they are free; the usage page lists them separately. Add rates and budgets where credits should apply. An invalid rate is still refused.
+- Since v1.12.0, a model with rates is always charged: when the provider omits cache details, all input is charged at the highest of the input, cache-read and cache-write rates; a total that disagrees is priced from input plus output; unknown usage is estimated (see [Limits, emergency stop and usage](#limits-emergency-stop-and-usage)).
+- Since v1.12.0, a model service that rejects explicitly turning thinking off returns a dedicated error instead of a generic upstream failure, without retrying with another value. Pick another effort, or set the default to provider default or the vLLM switch.
 - Reasoning is part of output, and cache is part of input. Their detail counters must not be added to the totals a second time.
 - Model capability and default thinking behavior are separate: provider default, explicitly off, or a supported effort. The standard protocol sends supported reasoning parameters; vLLM mode presents only on/off, without inventing low/medium/high levels. Removing a capability declaration is not an instruction to turn thinking off upstream.
 - Keys are encrypted and **write-only**. Changing a base URL requires the key again, so the old key is never sent to the new address.
@@ -76,7 +78,7 @@ See the repository's [web search](https://github.com/732124645/qiwu-vue-admin/bl
 
 ## External MCP servers
 
-On the **External MCP** tab you can connect MCP servers outside this system (Streamable HTTP transport) so the agent can use their tools too.
+On the **External tools (MCP)** tab you can connect MCP servers outside this system (Streamable HTTP transport) so the agent can use their tools too.
 
 - Authentication can be none, a header token, or OAuth client credentials; credentials are encrypted and write-only;
 - Only public addresses are allowed by default; pointing at an internal address must be allowed explicitly by the super administrator;
@@ -89,7 +91,7 @@ See the repository's [external MCP servers](https://github.com/732124645/qiwu-vu
 
 Since v1.9.1, registered tools have names and purpose descriptions in the page language, together with readable names for known permissions. Tool identifiers remain available for reference; unknown tools and permissions keep their original text. This changes only the display: protocol names and arguments stay the same.
 
-The **Tool policies** tab lists every tool of this system with an approval policy, applied to all tenants:
+The **Tool approval** tab lists every tool of this system with an approval policy, applied to all tenants:
 
 | Policy | Meaning |
 | --- | --- |
@@ -109,7 +111,7 @@ Each conversation can also switch its **approval mode**:
 
 The approval card shows the tool, the record, each field's current → proposed value and the sources read in this turn, with the buttons **Approve**, **Approve for this conversation**, **Reject** and **Cancel turn**. You can add a reason when rejecting, and the agent will not retry. Apart from writes with the same tool on the same record already confirmed in **Trust this conversation**, automatic review, which both an administrator and you switched on, and an automation's [pre-approval](#automations), which you gave with your password, **every write is confirmed by a person each time**.
 
-There is also a **plan mode**: the agent stays read-only and lists its steps first; you confirm, then switch back to run them.
+There is also a **plan mode** (a switch in the composer): the agent stays read-only and lists its steps first; you confirm, then switch back to run them.
 
 See the repository's [tool policies](https://github.com/732124645/qiwu-vue-admin/blob/main/docs/agent.md#工具策略) and [chat panel](https://github.com/732124645/qiwu-vue-admin/blob/main/docs/agent.md#聊天面板) sections (Chinese).
 
@@ -126,7 +128,7 @@ In v1.10.0, every prepared request required the owner's individual confirmation 
 Automatic review lets a class of low-impact writes skip waiting for a click: another model (the review model) looks at each one first. Three things must all be true:
 
 1. The super administrator names the review model in the system parameter `agent.review.model`; without it, conversations have no auto review mode;
-2. An administrator sets a write tool to **Auto review** on **Tool policies** (or in an external MCP server's tool list);
+2. An administrator sets a write tool to **Auto review** on **Tool approval** (or in an external MCP server's tool list);
 3. The requester switches the conversation's approval mode to **Auto review**.
 
 From then on, that tool's writes go to the review model first, with three outcomes: **approve** (runs at once; the card says **Approved by automatic review** with the reason), **reject** (does not run, and the agent is told not to retry) or **hand over** (waits for you as usual, with the review's note on the card). A review model error or timeout, an answer in the wrong format, content too long to pass without truncation, 10 reviews already in the turn, an exhausted credit budget and similar cases all go to a person; nothing is ever approved by default. The review model sees only what you said in the conversation, the tool, its arguments, the change preview and the source links, never any tool output or page text.
@@ -143,13 +145,19 @@ When the agent is unsure (for example, it finds several companies with similar n
 
 ## The chat page
 
-Since v1.11.0, the **Assistant** button on the right opens chat beside the current business page. The desktop panel can be minimized or expanded; on phones it fills the width. The business URL, filters and page state remain. Independent conversation URLs still serve notices, sharing and existing links.
+Since v1.11.0, the **Assistant** button on the right opens chat beside the current business page; the panel can be minimized or expanded. The business URL, filters and page state remain. Independent conversation URLs still serve notices, sharing and existing links.
+
+Since v1.12.0, chat is a desktop workspace (the admin web targets computers; use the mobile app on phones):
+
+- **Layout**: drag the conversation list and the side panel, or use the left and right arrow keys, to resize them. Widths are remembered per user and browser, and a double-click on the divider restores the default. The list folds to a narrow rail. **Focus mode** hides the side menu and tabs, leaving only the conversation; press Esc or click again to leave.
+- **Header**: three labelled buttons, **Work panel**, **Focus mode** and **Conversation settings**. The settings popover holds the conversation options (temporary conversation, memory, profile), notifications and keyboard shortcuts; opening in a new window, export and sharing are in the **Conversation actions** menu (⋮). A narrow column gets a compact header and a one-line toolbar.
+- **Reading and typing**: answers use a centred reading column, and tables take their content width; message actions appear in one row on hover or focus. The composer placeholder only says `/` shows commands; the keys are listed on a hint line below.
 
 - **Conversations and drafts**: open history when needed to create, search, rename, pin, archive or delete. Minimize and reopen without losing the conversation or draft. A new page's context applies only to a new conversation, without silently replacing an existing draft's source. Identity, tenant or permission changes clear the panel state.
 - **Minimize and stop**: plain Esc in the composer minimizes the panel while work continues. Use **Stop** or a shortcut with a modifier to stop a turn. Keys consumed by a candidate menu or approval card do not also close the host. The independent page retains its original stop shortcut.
 - **Reading answers**: streamed answers, collapsible calls and reasoning summaries; tables, nested lists, task lists, code copy/wrap, Markdown source switching, exact source download and expanded reading. HTML is shown as text; external Markdown images are not loaded automatically.
-- **Work panel**: current tasks, sources and report/chart/image outputs open on demand. Wide containers show it beside chat; narrow containers use a drawer. Switching conversations clears old previews immediately; approval remains on its original confirmation card.
-- **Subtasks**: grouped by actual status, with active/finished counts, individual states and summaries. Open a read-only process view beside the parent; phones provide a return control, without changing the main conversation. Shared snapshots do not fetch private child conversations.
+- **Work panel**: current tasks, sources and report/chart/image outputs open on demand. It sits in the side panel and can be opened in the main area and moved back. Switching conversations clears old previews immediately; approval remains on its original confirmation card.
+- **Subtasks**: grouped by actual status, with active/finished counts, individual states and summaries. Open a read-only process view in the main area and use **Back to the conversation** to return, without changing the main conversation. Shared snapshots do not fetch private child conversations.
 - **Fork, resend and revert**: fork from a message or edit and resend the last one. Revert removes the last turn; **changes it already made are not rolled back**. Stop active work first and personally reconcile unknown results before forking, reverting or deleting; these actions cannot clear unresolved risks.
 - **Sharing and export**: same-tenant read-only links and Markdown export do not expand the viewer's business permissions.
 - **Sending during a turn**: add to the current turn or queue the next one; attachments still enforce current file access.
@@ -193,10 +201,10 @@ See the repository's [instructions, tone and prompt templates](https://github.co
 
 ## Profiles
 
-A **profile** is a named set of settings: model and reasoning effort, approval mode, a list of allowed tools and extra instructions. The **Profiles** button at the top of the chat page opens the list, where you add, edit and delete them.
+A **profile** is a named set of settings: model and reasoning effort, approval mode, a list of allowed tools and extra instructions. In **Conversation settings** at the top of the chat page, **Manage** opens the list, where you add, edit and delete them.
 
 - Profiles are **personal** or **tenant-wide** (changing tenant-wide ones needs the skill modify permission); other people's personal profiles stay invisible; each scope can have one default;
-- When you start a conversation you pick a profile at the top (your own default is preselected, else the tenant-wide default), or **No profile**;
+- When you start a conversation you pick a profile in **Conversation settings** (your own default is preselected, else the tenant-wide default), or **No profile**;
 - **A tenant-wide profile's approval mode can only be read only or ask**: trust this conversation and auto review agree to writes on your behalf, so only you can choose them, in a personal profile or in the conversation;
 - Since v1.9.1, select from your available system tools or enter other tool identifiers, such as built-in or external MCP tools. An empty selection leaves tools unrestricted. If the tool list cannot be loaded, the page warns you and preserves existing selections;
 - With a tool list, the agent can use only the listed tools (read-only built-in tools always stay); the extra instructions go into every request as background. Selecting or entering a tool does not grant permissions or bypass its approval policy.
@@ -205,12 +213,12 @@ See the repository's [profiles](https://github.com/732124645/qiwu-vue-admin/blob
 
 ## Memory
 
-Each person has a memory store of their own. The **My memories** button at the top of the chat page lists it, with search, add, edit and delete; **Forget everything** needs your current password.
+Each person has a memory store of their own. The **My memories** button in **Conversation settings** at the top of the chat page lists it, with search, add, edit and delete; **Forget everything** needs your current password.
 
 - **Saving**: when you explicitly say "remember …", the agent stops and shows you what it would save; **it is saved only after you confirm**, and an administrator cannot make this step automatic;
 - **Background distilling** (optional): once the super administrator turns on the parameter `agent.memory.extract`, the system periodically distills memories from idle conversations, **reading only the messages you sent**, never the agent's answers, tool results, web pages or attachments;
 - **Masking**: common forms of passwords, keys, tokens, ID card numbers, bank card numbers and mobile numbers are masked before saving;
-- **Use**: in conversations with memory on (the **Use memory** switch at the top turns it off per conversation), the agent takes the entries most relevant to the question into account; temporary conversations neither read nor write memory. Memories and message text are masked as `***` in the action log, with no original text kept.
+- **Use**: in conversations with memory on (the **Use memory** switch in **Conversation settings** turns it off per conversation), the agent takes the entries most relevant to the question into account; temporary conversations neither read nor write memory. Memories and message text are masked as `***` in the action log, with no original text kept.
 
 ::: warning Masking is not a silver bullet
 The masking rules only know common forms: they can mask too much (a ticket number that looks like a mobile number) or miss things (landline numbers, a passphrase with no hint word that does not look like a key). Don't ask the agent to remember anything sensitive; you can review and delete memories in **My memories** at any time.
@@ -234,9 +242,15 @@ Each model call checks spending already recorded before starting. Once a budget 
 
 **Agent → Agent usage** groups credits and actual usage by day, user or model, with paginated per-call details: provider, exact model identifier, input/output/cache/reasoning counters, the rates used and the charge. Identical model names at different providers stay separate; changing rates does not reprice history. An explicit per-image fallback applies only when token-based pricing is unavailable, never together with a token charge.
 
-Missing fields remain **unknown**, not zero. Older records without detailed usage or rate snapshots are marked historical, without invented past credits. A new unpriced call blocks subsequent calls under a finite budget. A failed call does not prove zero consumption; actual usage already reported by the provider is still recorded. Old token budgets are neither automatically converted to credits nor used as spending limits.
+Missing fields remain **unknown**, not zero. Older records without detailed usage or rate snapshots are marked historical, without invented past credits. Since v1.12.0:
 
-A pending record is saved before each model call. Recovery retains actual usage already obtained and its original rate snapshot; the call detail, daily, turn and parent-task totals are accounted once in the same transaction. Missing usage stays unknown, so finite budgets may wait for reconciliation; recovery never turns unknown consumption into zero.
+- **Unpriced** only means the model has no rates: the call runs, is not charged in credits and is not limited by the three credit budgets;
+- when a model has rates but this call's usage is unknown (the service reported none, or the call was stopped, timed out or failed before it ended), credits are estimated conservatively from the request and the streamed output, count toward the three budgets and are marked **estimated**; estimates stay out of token totals;
+- the usage page's **Data completeness** note lists unpriced and unknown-usage calls separately, and the settings page warns when all three budgets are 0 that there is no credit cap.
+
+ A failed call does not prove zero consumption; actual usage already reported by the provider is still recorded. Old token budgets are neither automatically converted to credits nor used as spending limits.
+
+A pending record is saved before each model call. Recovery retains actual usage already obtained and its original rate snapshot; the call detail, daily, turn and parent-task totals are accounted once in the same transaction. Missing usage stays unknown in token totals; with rates, credits are estimated and recomputed from actual usage when a late receipt arrives. Under a finite budget, an overdue call not yet settled makes the next call wait for its settlement. Recovery never turns unknown consumption into zero.
 
 `/status` separates estimated context capacity from recorded credits for the turn and today. The context gauge is not the provider's bill. See the repository's [limits, pause and usage](https://github.com/732124645/qiwu-vue-admin/blob/main/docs/agent.md#限额暂停与用量) section (Chinese).
 
@@ -258,8 +272,8 @@ See the repository's [diagnostics](https://github.com/732124645/qiwu-vue-admin/b
 
 ## Notifications, shortcuts and new windows
 
-- **Notification settings**: behind the bell button at the top of the chat page, each kind of reminder (a long turn finishes, waiting for my confirmation or answer, automation results) can also **send an email**; all are off by default. Inbox messages always arrive, and the mobile app reads the inbox; emails go to the address in your profile, and without one you get only the inbox message;
-- **Keyboard shortcuts**: **Keyboard shortcuts** at the top lets you rebind four actions: new conversation, focus the message box, toggle plan mode and stop the turn. A combination needs Ctrl, Alt or ⌘ (stop may also be plain Esc); combinations the browser or page already uses are refused. The settings are saved in the current browser only;
+- **Notification settings**: on the **Notifications** tab of **Conversation settings** at the top of the chat page, each kind of reminder (a long turn finishes, waiting for my confirmation or answer, automation results) can also **send an email**; all are off by default. Inbox messages always arrive, and the mobile app reads the inbox; emails go to the address in your profile, and without one you get only the inbox message;
+- **Keyboard shortcuts**: the **Keyboard shortcuts** tab of **Conversation settings** lets you rebind four actions: new conversation, focus the message box, toggle plan mode and stop the turn. A combination needs Ctrl, Alt or ⌘ (stop may also be plain Esc); combinations the browser or page already uses are refused. The settings are saved in the current browser only;
 - Plain Esc in the floating composer minimizes the panel; stopping there uses the Stop button or a shortcut with a modifier. The independent chat page retains its configured stop shortcut.
 - **New window**: non-temporary conversations can be opened in a new window.
 
