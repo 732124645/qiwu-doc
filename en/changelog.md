@@ -6,6 +6,27 @@ description: 'Qiwu release notes and upgrade steps for office requests, native a
 
 This page records the changes in each Qiwu release. For the current features and the status of each one, see [Introduction · Features at a glance](/en/guide/introduction#features-at-a-glance).
 
+## 1.13.0 · 2026-10-28
+
+Assistant conversation modes, automatic review and plan approval. See the [public source commit](https://github.com/732124645/qiwu-vue-admin/commit/4d0a6393596e0612d9caaa63807a48d9f3839bdd).
+Release: [v1.13.0](https://github.com/732124645/qiwu-vue-admin/releases/tag/v1.13.0).
+
+- Each [assistant](/en/features/agent#conversation-modes-and-tool-policies) conversation has one mode: read only, plan, ask every time (default) and auto review. It replaces the approval dropdown, the plan switch and the trust mode; Shift+Tab in the composer cycles through the available modes.
+- [Automatic review](/en/features/agent#automatic-review) takes effect as soon as it is selected: every write that needs confirmation goes to the review model first, without per-tool opt-in. A review rejection stops for a person with the reviewer's reason instead of being returned to the model.
+- Tool policies are run directly (`auto`), needs confirmation (`ask`), people only (`human`) and off (`deny`). People only is never reviewed or allowed for the conversation and is recommended for deleting, bulk changes, sending outside the system and money. Read tools run without asking unless the super administrator explicitly sets them to needs confirmation.
+- Approval cards offer **Allow once**, **Don't ask again for this tool in this conversation** (when available) and **Reject** with a note. Allowed tools are listed in the conversation settings, can be revoked one by one and are re-checked against the current policy when recorded and before every use; tools that need personal confirmation, people-only tools and external MCP tools never offer it. Sending a message while cards wait rejects the step's pending calls with the message as the note, and the agent continues at once; in auto review mode a card says why a call was not reviewed.
+- [Plan mode](/en/features/agent#plan-mode) ends with a plan card (steps, expected data changes, assumptions) that the person approves with automatic review or step-by-step confirmation, or sends back for changes; only the person leaves plan mode.
+- Model services can [load the provider's model list](/en/features/agent#models) and add models from a searchable picker instead of typing identifiers. A stored key is only sent to the stored address, redirects are not followed and the response is capped; super administrator only.
+- Removed the trust mode and the `agent.trust_mode` parameter; the `review` tool policy is merged into `ask`.
+
+Upgrade steps:
+
+1. This release has new migrations. Update the code and run `pnpm i` → `pnpm -r build` → `pnpm db:migrate` → `pnpm db:seed` as usual. Never use `db:reset` to upgrade an existing database.
+2. The migration converts existing data: conversations in plan mode keep it; trust-mode conversations become ask every time and their per-record trust is cleared; `review` policies become `ask`; the `agent.trust_mode` parameter is removed.
+3. Before offering auto review, the super administrator goes through the write tools on **Agent settings → Tool approval** and sets those that delete, change many records, send outside the system or move money to **People only**.
+
+See [Upgrading](/guide/upgrade) (Chinese) and [Conversation modes and tool policies](/en/features/agent#conversation-modes-and-tool-policies).
+
 ## 1.12.0 · 2026-10-27
 
 Assistant desktop workspace, usage and settings pages, and the credits upgrade fix. See the [public source commit](https://github.com/732124645/qiwu-vue-admin/commit/c52c361f2ca14336c97a1e3c3fdec85ed4430ea5).

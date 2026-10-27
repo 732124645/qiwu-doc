@@ -1,10 +1,10 @@
 ---
-description: 'The in-app assistant: staff ask a model / agent in plain language to look up data, search the web and change data, with human confirmation before changes by default. The APP_AGENT switch, model setup (OpenAI-compatible APIs), web search, external MCP servers, tool policies and approval modes, clarifying questions, skills, instructions and prompt templates, profiles, memory, automatic review, automations, sub-agents and deep research, charts and exports, limits and the emergency stop, usage, diagnostics, batch runs and the security model; off by default.'
+description: 'The in-app assistant: staff ask a model / agent in plain language to look up data, search the web and change data, with human confirmation before changes by default. The APP_AGENT switch, model setup (OpenAI-compatible APIs), web search, external MCP servers, conversation modes and tool policies, plan mode, clarifying questions, skills, instructions and prompt templates, profiles, memory, automatic review, automations, sub-agents and deep research, charts and exports, limits and the emergency stop, usage, diagnostics, batch runs and the security model; off by default.'
 ---
 
 # Assistant
 
-The **assistant** opens beside the current business page from the floating button on the right. Staff state what they need in plain language, and the model / agent does it **with the console's own tools, as that user**: looking up data, summarizing, changing data as asked; when it needs outside information, it searches the web and reads pages. In the default **Ask** mode, it first lists which record, each field's current → proposed value and the sources it relied on, and **runs the change only after a person confirms it**. Users can authorize some writes without repeated confirmation under the rules for [approval modes](#tool-policies-and-approval-modes), [automatic review](#automatic-review) and [automations](#automations).
+The **assistant** opens beside the current business page from the floating button on the right. Staff state what they need in plain language, and the model / agent does it **with the console's own tools, as that user**: looking up data, summarizing, changing data as asked; when it needs outside information, it searches the web and reads pages. In the default **Ask** mode, it first lists which record, each field's current → proposed value and the sources it relied on, and **runs the change only after a person confirms it**. Users can authorize some writes without repeated confirmation under the rules for [conversation modes](#conversation-modes-and-tool-policies), [automatic review](#automatic-review) and [automations](#automations).
 
 You can also tick several records in a list and have the agent run the same skill on each of them (for example 补齐客户信息, "fill in customer details"); the results go to a batch review page where you confirm them one by one or all at once. A skill or a prompt can also become an **automation** that runs in the background on a schedule, after a business action or on demand, with its results in your inbox.
 
@@ -62,6 +62,7 @@ Since v1.11.0, every model also needs explicit credit rates, measured as **credi
 - Reasoning is part of output, and cache is part of input. Their detail counters must not be added to the totals a second time.
 - Model capability and default thinking behavior are separate: provider default, explicitly off, or a supported effort. The standard protocol sends supported reasoning parameters; vLLM mode presents only on/off, without inventing low/medium/high levels. Removing a capability declaration is not an instruction to turn thinking off upstream.
 - Keys are encrypted and **write-only**. Changing a base URL requires the key again, so the old key is never sent to the new address.
+- Since v1.13.0, once the base URL and key are filled in, **Load models from service** reads the provider's model list (`GET {base URL}/models`) and you add models from a searchable picker instead of typing identifiers; with a stored key and an unchanged address it loads directly. A stored key is only sent to the stored address, redirects are not followed and the response size is capped. Super administrator only.
 - A conversation can select its configured provider and model. Errors show only a short reason, without the provider's response body or key.
 
 For base URLs, context windows, image capability and settings, see the repository's [model configuration](https://github.com/732124645/qiwu-vue-admin/blob/main/docs/agent.md#配置模型) section (Chinese).
@@ -87,31 +88,41 @@ On the **External tools (MCP)** tab you can connect MCP servers outside this sys
 
 See the repository's [external MCP servers](https://github.com/732124645/qiwu-vue-admin/blob/main/docs/agent.md#外部-mcp-服务器) section (Chinese).
 
-## Tool policies and approval modes
+## Conversation modes and tool policies
 
 Since v1.9.1, registered tools have names and purpose descriptions in the page language, together with readable names for known permissions. Tool identifiers remain available for reference; unknown tools and permissions keep their original text. This changes only the display: protocol names and arguments stay the same.
+
+Since v1.13.0, each conversation has one **mode**, which replaces the former approval dropdown, the plan switch and **Trust this conversation**. Pick it in the mode selector of the composer (or with `/approvals`); Shift+Tab in the composer cycles through the available modes:
+
+| Mode | Meaning |
+| --- | --- |
+| Read only | Only reads data, never changes it and never asks |
+| Plan | Also read only; the agent ends with a plan card and runs nothing until you approve it, see [Plan mode](#plan-mode) below |
+| Ask every time (default) | Reads run at once; you are asked before every write |
+| Auto review | Only when the platform has a review model: writes that need confirmation go to the review model first, and you are asked only when it is unsure or a call is risky, see [Automatic review](#automatic-review) below |
 
 The **Tool approval** tab lists every tool of this system with an approval policy, applied to all tenants:
 
 | Policy | Meaning |
 | --- | --- |
-| Run automatically (`auto`) | Default for read-only tools |
-| Ask (`ask`) | Stop and wait for the requester to confirm; default for write tools |
-| Auto review (`review`) | Write tools only: in a conversation in auto review mode the review model judges first, otherwise it behaves like **Ask**; see [Automatic review](#automatic-review) below |
-| Deny (`deny`) | The agent does not see the tool |
+| Run directly (`auto`) | Default for read-only tools; no confirmation |
+| Needs confirmation (`ask`) | Default for write tools: in **Ask every time** the requester confirms, in **Auto review** the review model judges first. A read-only tool set to this asks a person in every mode and is never reviewed |
+| People only (`human`) | Only the requester confirms, on the card, each time: never reviewed and never allowed for the rest of the conversation. Recommended for deleting, bulk changes, sending outside the system and money |
+| Off (`deny`) | The agent does not see the tool |
 
-System write tools can only be ask, auto review or deny, never auto. Direct execution of external tools depends on the super administrator’s explicit trust described above. Tools declared to require personal confirmation every time keep that requirement. A tool switched off as a whole on the MCP tools page cannot be used by the agent either.
+System write tools can only be **Needs confirmation**, **People only** or **Off**, never run directly. **Restore default** sets write tools that the developer declared high-risk to **People only** and other write tools to **Needs confirmation**. Direct execution of external tools depends on the super administrator's explicit trust described above. Tools declared to require personal confirmation every time keep that requirement. A tool switched off as a whole on the MCP tools page cannot be used by the agent either.
 
-Each conversation can also switch its **approval mode**:
+### Approval cards
 
-- **Read only**: only read-only tools are offered;
-- **Ask** (default): every write is confirmed;
-- **Trust this conversation**: once a tool has been confirmed for a record, it is not asked again for that record in this conversation. The super administrator can turn this option off with the parameter `agent.trust_mode`;
-- **Auto review**: offered only when the platform has a review model; writes of tools set to **Auto review** go to the review model first.
+The approval card shows the tool, the record, each field's current → proposed value and the sources read in this turn, with these buttons:
 
-The approval card shows the tool, the record, each field's current → proposed value and the sources read in this turn, with the buttons **Approve**, **Approve for this conversation**, **Reject** and **Cancel turn**. You can add a reason when rejecting, and the agent will not retry. Apart from writes with the same tool on the same record already confirmed in **Trust this conversation**, automatic review, which both an administrator and you switched on, and an automation's [pre-approval](#automations), which you gave with your password, **every write is confirmed by a person each time**.
+- **Allow once**: runs this call only;
+- **Don't ask again for “tool” in this conversation**: the tool then runs directly in this conversation, without a card and without review. Allowed tools are listed in **Conversation settings** and can be revoked one by one; an allowance is checked against the current policy when it is recorded and before every use, so it stops working once an administrator sets the tool to **People only** or turns it off. Switching modes keeps allowances, a fork does not inherit them, and reverting a turn removes the ones it recorded. Tools that need personal confirmation, tools set to **People only** and external MCP tools never offer it; external tools always ask;
+- **Reject**: you can add a note, and the agent will not retry the same call.
 
-There is also a **plan mode** (a switch in the composer): the agent stays read-only and lists its steps first; you confirm, then switch back to run them.
+Sending a message while cards wait means “reject with this note”: every pending card of the step, and the calls of that step that would ask, are rejected with your message, and the agent continues at once. **Stop** is always available. In auto review mode, a card that waits for you without review says why, for example the tool is set to **People only** or the platform has no review model.
+
+Apart from tools allowed for the conversation, writes that need confirmation approved by the review model after you chose auto review mode, and an automation's [pre-approval](#automations), which you gave with your password, **every write is confirmed by a person each time**.
 
 See the repository's [tool policies](https://github.com/732124645/qiwu-vue-admin/blob/main/docs/agent.md#工具策略) and [chat panel](https://github.com/732124645/qiwu-vue-admin/blob/main/docs/agent.md#聊天面板) sections (Chinese).
 
@@ -125,19 +136,32 @@ In v1.10.0, every prepared request required the owner's individual confirmation 
 
 ## Automatic review
 
-Automatic review lets a class of low-impact writes skip waiting for a click: another model (the review model) looks at each one first. Three things must all be true:
+Automatic review lets writes skip waiting for a click: another model (the review model) looks at each one first.
 
 1. The super administrator names the review model in the system parameter `agent.review.model`; without it, conversations have no auto review mode;
-2. An administrator sets a write tool to **Auto review** on **Tool approval** (or in an external MCP server's tool list);
-3. The requester switches the conversation's approval mode to **Auto review**.
+2. The requester switches the conversation to **Auto review**. Since v1.13.0 it takes effect as soon as it is selected, without per-tool opt-in: every write set to **Needs confirmation** goes to review first.
 
-From then on, that tool's writes go to the review model first, with three outcomes: **approve** (runs at once; the card says **Approved by automatic review** with the reason), **reject** (does not run, and the agent is told not to retry) or **hand over** (waits for you as usual, with the review's note on the card). A review model error or timeout, an answer in the wrong format, content too long to pass without truncation, 10 reviews already in the turn, an exhausted credit budget and similar cases all go to a person; nothing is ever approved by default. The review model sees only what you said in the conversation, the tool, its arguments, the change preview and the source links, never any tool output or page text.
+There are three outcomes: **approve** (runs at once; the card says **Approved by automatic review** with the reason), **reject** (does not run; the card waits for you with the reviewer's reason, and you can still confirm or reject it, so a rejection is not sent back to the agent on its own) or **hand over** (waits for you as usual, with the review's note on the card). Writes set to **People only**, tools that need personal confirmation, and the read only and plan modes are never reviewed; tools allowed for the conversation run directly. A review model error or timeout, an answer in the wrong format, content too long to pass without truncation, 10 reviews already in the turn, the same tool rejected twice in the turn, an exhausted credit budget and similar cases all go to a person; nothing is ever approved by default. The review model sees only what you said in the conversation, the tool, its arguments, the change preview and the source links, never any tool output or page text.
 
 ::: warning Limitations
-The review model can be wrong too, or be misled by crafted arguments, business data or context; it can only compare against what you said in the conversation, does not understand business rules, and does not replace permissions or data scope (the tool still runs with the requester's own permissions). Turn it on only for low-impact, reversible writes (editing a note, adding a tag); keep deletes, bulk changes, anything sent outside and anything involving money on **Ask**. Every approval is recorded on the approval card and in the action log for later checks.
+The review model can be wrong too, or be misled by crafted arguments, business data or context; it can only compare against what you said in the conversation, does not understand business rules, and does not replace permissions or data scope (the tool still runs with the requester's own permissions). Before offering auto review, the super administrator should go through the write tools on **Tool approval** and set those that delete, change many records, send outside the system or move money to **People only**; they are never reviewed. Every approval is recorded on the approval card and in the action log for later checks.
 :::
 
 See the repository's [automatic review](https://github.com/732124645/qiwu-vue-admin/blob/main/docs/agent.md#自动审查) section (Chinese).
+
+## Plan mode
+
+Since v1.13.0, in plan mode the agent uses read-only tools only and asks you when a decision is yours; when the plan is ready it proposes a **plan card**: title, summary, numbered steps, the data it expects to change and its assumptions. The turn waits for your choice:
+
+| Option | Result |
+| --- | --- |
+| Approve, run with automatic review | Only when the platform offers auto review: the conversation switches to **Auto review** and the agent starts a new turn that follows the plan |
+| Approve, confirm each change | The conversation switches to **Ask every time** and follows the plan, asking you before every write |
+| Keep refining | The mode stays; add a few notes if you like, and the agent keeps planning, usually with a new plan card |
+
+Sending a message while the card waits means “keep refining” with that message; **Stop** discards the plan. **Only you can leave plan mode**: by approving on the plan card or by changing the mode in the composer; the agent cannot switch it. While running, the agent reports progress in its plan checklist, with at most one step in progress at a time.
+
+See the repository's [plan mode](https://github.com/732124645/qiwu-vue-admin/blob/main/docs/agent.md#计划模式) section (Chinese).
 
 ## Clarifying questions and options
 
@@ -160,7 +184,7 @@ Since v1.12.0, chat is a desktop workspace (the admin web targets computers; use
 - **Subtasks**: grouped by actual status, with active/finished counts, individual states and summaries. Open a read-only process view in the main area and use **Back to the conversation** to return, without changing the main conversation. Shared snapshots do not fetch private child conversations.
 - **Fork, resend and revert**: fork from a message or edit and resend the last one. Revert removes the last turn; **changes it already made are not rolled back**. Stop active work first and personally reconcile unknown results before forking, reverting or deleting; these actions cannot clear unresolved risks.
 - **Sharing and export**: same-tenant read-only links and Markdown export do not expand the viewer's business permissions.
-- **Sending during a turn**: add to the current turn or queue the next one; attachments still enforce current file access.
+- **Sending during a turn**: add to the current turn or queue the next one. While the turn waits on approval cards, a message rejects them with the message as the note; while it waits on a plan card, a message means “keep refining”. Attachments still enforce current file access.
 - **Commands and notices**: `/` offers new conversation, compaction, model, approvals, skills and status commands. Waiting for confirmation or clarification and completion of a long turn still produce inbox notices, with optional mail.
 
 See the repository's [chat panel](https://github.com/732124645/qiwu-vue-admin/blob/main/docs/agent.md#聊天面板) section (Chinese).
@@ -169,7 +193,7 @@ See the repository's [chat panel](https://github.com/732124645/qiwu-vue-admin/bl
 
 - **An uncertain send**: the same send uses the same UUID, with a durable server receipt. After a lost acknowledgement, the client only queries receipt status; it does not automatically resend. An explicit retry reuses the original identifier. Browser session storage keeps only identifiers isolated by user and tenant, never message bodies. A full refresh does not guarantee retention of an unsent plaintext draft; reconcile the previous send before entering a new message.
 - **Recovering answers**: streamed text is saved to the database in batches about every 200 milliseconds before it is broadcast, with a revision and UTF-16 position. Reconnecting can fill in the prefix already displayed. After a server restart, recovery resumes the task, **not the original model token connection**; the current step may be interrupted and need regeneration. Queue and lease timing affect the wait, with no fixed recovery time.
-- **Unknown effects pause work**: an unknown result from a write or paid image call pauses subsequent writes and image generation. Read-only queries remain available, and their model calls are still metered. Conversation trust, automatic review and automations cannot bypass this pause. Personally check the business outcome and any charge, then acknowledge the current risk revision. This permits only later operations; old turns and queued messages are not replayed automatically. An automation with an unknown result is disabled and its pre-approval revoked; configure it again separately.
+- **Unknown effects pause work**: an unknown result from a write or paid image call pauses subsequent writes and image generation. Read-only queries remain available, and their model calls are still metered. Conversation allowances, automatic review and automations cannot bypass this pause. Personally check the business outcome and any charge, then acknowledge the current risk revision. This permits only later operations; old turns and queued messages are not replayed automatically. An automation with an unknown result is disabled and its pre-approval revoked; configure it again separately.
 - **Reconcile before continuing**: a local write timeout or missing trustworthy output also counts as unknown. The pause cannot be cleared while the original work has not actually settled. Check remote non-idempotent operations in the external system; exactly-once effects cannot be guaranteed for arbitrary external services.
 
 ## Skills
@@ -201,11 +225,11 @@ See the repository's [instructions, tone and prompt templates](https://github.co
 
 ## Profiles
 
-A **profile** is a named set of settings: model and reasoning effort, approval mode, a list of allowed tools and extra instructions. In **Conversation settings** at the top of the chat page, **Manage** opens the list, where you add, edit and delete them.
+A **profile** is a named set of settings: model and reasoning effort, conversation mode, a list of allowed tools and extra instructions. In **Conversation settings** at the top of the chat page, **Manage** opens the list, where you add, edit and delete them.
 
 - Profiles are **personal** or **tenant-wide** (changing tenant-wide ones needs the skill modify permission); other people's personal profiles stay invisible; each scope can have one default;
 - When you start a conversation you pick a profile in **Conversation settings** (your own default is preselected, else the tenant-wide default), or **No profile**;
-- **A tenant-wide profile's approval mode can only be read only or ask**: trust this conversation and auto review agree to writes on your behalf, so only you can choose them, in a personal profile or in the conversation;
+- **A tenant-wide profile's mode can only be read only, plan or ask every time**: auto review lets the review model agree to writes on your behalf, so only you can choose it, in a personal profile or in the conversation;
 - Since v1.9.1, select from your available system tools or enter other tool identifiers, such as built-in or external MCP tools. An empty selection leaves tools unrestricted. If the tool list cannot be loaded, the page warns you and preserves existing selections;
 - With a tool list, the agent can use only the listed tools (read-only built-in tools always stay); the extra instructions go into every request as background. Selecting or entering a tool does not grant permissions or bypass its approval policy.
 
@@ -306,7 +330,7 @@ There are four write modes:
 | Read only (default) | No write tools are offered |
 | Ask | A write stops and its approval card goes to your inbox; it goes on once you confirm it in the conversation |
 | Pre-approved | Write tools ticked one by one, **with your current password** when you add one; ticked writes run at once, other writes still wait for you |
-| Auto review | Only when the platform has a review model: writes of tools set to auto review go to the review model, other writes wait for you; see [Automatic review](#automatic-review) above |
+| Auto review | Only when the platform has a review model: writes that need confirmation go to the review model; tools set to **People only** and actions that need your personal confirmation wait for you; see [Automatic review](#automatic-review) above |
 
 About **pre-approval**:
 
@@ -326,7 +350,7 @@ See the repository's [automations](https://github.com/732124645/qiwu-vue-admin/b
 
 - **Owned by the requester**: conversations, approvals and questions can be seen and acted on only by their owner; anyone else gets 404, and only the requester can confirm a change;
 - **Runs as the user**: tools keep MCP's checks (permission, data scope, tenant and package, argument validation, time limit, masking of secret-named output fields). The agent can never do more than the requester could do on the pages; each turn reloads the requester's identity first and stops if the user was disabled or deleted;
-- **Writes need a person's consent**: a write runs only in four cases: confirmed on the card each time; trust this conversation (the same tool confirmed once for the same record); an automation's pre-approval given with your password (void once its conditions change); or, for a tool set to auto review with the conversation in auto review mode, approved by the review model. If permissions, the approval mode or the policy changed after confirmation, the call is still blocked;
+- **Writes need a person's consent**: a write runs only in four cases: confirmed on the card each time; a tool you chose not to be asked about again in this conversation (after confirming it once); an automation's pre-approval given with your password (void once its conditions change); or, after you chose auto review mode, a write that needs confirmation approved by the review model. **People only** writes and writes that need personal confirmation allow only the first case. If permissions, the conversation mode or the policy changed after confirmation, the call is still blocked;
 - **Outside content is untrusted**: web pages, search results and external MCP output are passed to the model as data only. Even if a page talks the model into changing data, the change stops at the approval card, which lists the sources;
 - **Outbound requests go to public addresses only**: page reading and external MCP connect only to public addresses and recheck every redirect. The model's API address is not checked this way (so a local or internal Ollama works) and only the super administrator can set it;
 - **Encrypted keys**: credentials of models, search providers and external MCP servers are encrypted with a key derived from `APP_SECRET` and are write-only; enter them again after changing `APP_SECRET`;
