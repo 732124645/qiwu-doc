@@ -6,6 +6,17 @@ description: '栖梧版本说明与升级步骤：OA 办公、原生考勤、智
 
 这里记录栖梧每个正式版本的变化。现在有哪些功能、各项的完成情况，见[介绍 · 功能一览](/guide/introduction#功能一览)。
 
+## 1.13.1 · 2026-10-28
+
+修复版本。公开版本：[源码提交](https://github.com/732124645/qiwu-vue-admin/commit/76d3df6edac268c2aa7bc672eddbf398bff0a576)。
+正式发布：[v1.13.1](https://github.com/732124645/qiwu-vue-admin/releases/tag/v1.13.1)。
+
+- 关闭 MCP 接入时，[智能助手](/features/agent)“配置方案”表单的工具列表也能正常载入，并且同时列出本人可用的本系统工具、联网工具、启用的内置工具和外部 MCP 工具。
+- MCP 工具调用的参数在 HTTP 请求追踪里整体遮蔽，传给工具的业务内容不再留在追踪日志中。
+- 测试修复：迁移防护测试在 Windows 上也能运行；等待防重复提交窗口的测试改为等记录真正过期，Docker Desktop 的 Redis 上不再偶发 429。
+
+升级：没有新迁移，照常更新代码、构建、执行迁移和种子即可。
+
 ## 1.13.0 · 2026-10-28
 
 助手会话模式、自动审查与方案批准。公开版本：[源码提交](https://github.com/732124645/qiwu-vue-admin/commit/4d0a6393596e0612d9caaa63807a48d9f3839bdd)。

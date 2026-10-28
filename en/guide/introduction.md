@@ -13,7 +13,7 @@ To learn why I built this project, see [Project story](/en/guide/story).
 ::: info Current status
 
 v1.13.0 updates how the [assistant](/en/features/agent) works: each conversation has one mode (read only, plan, ask every time, auto review); automatic review covers every write that needs confirmation and stops for a person when it rejects; an approval card can stop asking about a tool for the rest of the conversation; plan mode proposes a plan card that runs only after approval; and model services can load their model list. See the [v1.13.0 changelog](/en/changelog#_1-13-0-·-2026-10-28) · [public source commit](https://github.com/732124645/qiwu-vue-admin/commit/4d0a6393596e0612d9caaa63807a48d9f3839bdd).
-Release: [v1.13.0](https://github.com/732124645/qiwu-vue-admin/releases/tag/v1.13.0).
+Release: [v1.13.0](https://github.com/732124645/qiwu-vue-admin/releases/tag/v1.13.0); latest fix release [v1.13.1](https://github.com/732124645/qiwu-vue-admin/releases/tag/v1.13.1) ([changelog](/en/changelog)).
 
 The current public composition offers [basic office requests and approvals](/en/features/oa): leave, travel, expenses, seal use and general requests, with required attachments, notices and basic mobile handling. Native attendance and office assistant application tools were publicly released in v1.10.0 but do not ship in the current v1.13.0 composition. Their [historical reference](/en/features/attendance) and old tags remain. Complete collaboration, meeting, knowledge and supplies business features are outside this public distribution.
 

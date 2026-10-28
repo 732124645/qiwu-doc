@@ -13,7 +13,7 @@ description: '栖梧（Qiwu）是基于 NestJS 和 Vue 3 的 Node 全栈管理�
 ::: info 当前状态
 
 v1.13.0 更新[智能助手](/features/agent)的交互：每个会话一个模式（只读、计划、每次询问、自动审查），自动审查对所有需确认的写入生效、驳回时停下等人；审批卡可以选本会话内不再询问某个工具；计划模式提交方案卡，批准后才执行；模型服务可从服务加载模型列表。变化与升级步骤见 [v1.13.0 更新日志](/changelog#_1-13-0-·-2026-10-28) · [公开源码提交](https://github.com/732124645/qiwu-vue-admin/commit/4d0a6393596e0612d9caaa63807a48d9f3839bdd)。
-正式发布：[v1.13.0](https://github.com/732124645/qiwu-vue-admin/releases/tag/v1.13.0)。
+正式发布：[v1.13.0](https://github.com/732124645/qiwu-vue-admin/releases/tag/v1.13.0)；最新修复版 [v1.13.1](https://github.com/732124645/qiwu-vue-admin/releases/tag/v1.13.1)（[更新日志](/changelog)）。
 
 当前公开组合提供[基础 OA 申请与审批](/features/oa)，包括请假、出差、报销、用印、通用申请及所需附件、通知和基本移动办理。原生考勤和 OA 助手代申请曾在 v1.10.0 公开，但不在当前 v1.13.0 组合中；[历史说明](/features/attendance)与旧标签保留。会议、知识、物资等完整办公业务不属于当前公开版本。
 

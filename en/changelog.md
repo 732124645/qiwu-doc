@@ -6,6 +6,17 @@ description: 'Qiwu release notes and upgrade steps for office requests, native a
 
 This page records the changes in each Qiwu release. For the current features and the status of each one, see [Introduction · Features at a glance](/en/guide/introduction#features-at-a-glance).
 
+## 1.13.1 · 2026-10-28
+
+Bug-fix release. See the [public source commit](https://github.com/732124645/qiwu-vue-admin/commit/76d3df6edac268c2aa7bc672eddbf398bff0a576).
+Release: [v1.13.1](https://github.com/732124645/qiwu-vue-admin/releases/tag/v1.13.1).
+
+- With MCP access turned off, the [assistant](/en/features/agent) profile form still loads its tool list, which now includes your own tools, web tools, enabled built-in tools and external MCP tools.
+- MCP tool-call arguments are masked in HTTP request traces, so business content passed to tools no longer stays in the trace log.
+- Test fixes: the migration fence tests also run on Windows; tests that wait for the duplicate-submit window now wait until the keys are actually gone, avoiding sporadic 429 on Docker Desktop Redis.
+
+Upgrade: no new migrations; update the code, build and run migrations and seeds as usual.
+
 ## 1.13.0 · 2026-10-28
 
 Assistant conversation modes, automatic review and plan approval. See the [public source commit](https://github.com/732124645/qiwu-vue-admin/commit/4d0a6393596e0612d9caaa63807a48d9f3839bdd).
