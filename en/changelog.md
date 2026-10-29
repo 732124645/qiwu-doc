@@ -6,6 +6,26 @@ description: 'Qiwu release notes and upgrade steps for office requests, native a
 
 This page records the changes in each Qiwu release. For the current features and the status of each one, see [Introduction · Features at a glance](/en/guide/introduction#features-at-a-glance).
 
+## 1.14.0 · 2026-10-29
+
+Assistant in-place rewind, steering and tenant tool restrictions. See the [public source commit](https://github.com/732124645/qiwu-vue-admin/commit/dc00fc39857fa69630bdf8037a6083de1a6d0eb1).
+Release: [v1.14.0](https://github.com/732124645/qiwu-vue-admin/releases/tag/v1.14.0).
+
+- **Edit from here** on any sent [assistant](/en/features/agent#the-chat-page) message removes it and everything after it from the conversation and puts its text, attachments and skill back in the composer; **Regenerate** redoes the last turn and **Revert last turn** only removes. A confirmation lists the writes in the removed part that stay done or whose outcome is unknown (subtasks included); writes, extracted memories, mode changes and used credits are never undone. Newer items from another window make the request fail instead of removing what this page has not seen. Forking stays a separate action.
+- [Tenant tool restrictions](/en/features/agent#tenant-tool-restrictions): tenant administrators can set a tool to people only or off for their tenant under **Skills → Tool restrictions**. The stricter of the platform and the tenant setting applies, a tenant can never loosen one, and changes apply at the next call. They apply to the in-app assistant, not to MCP clients using a personal access token.
+- A status line under the composer shows the mode, context use (the provider's reported input when available), credits this turn and today, and the number of tools allowed for the conversation. `/status` also lists the model, profile, allowed tools and, with reasons, the tools that ask and the tools that are unavailable.
+- Approval cards say why they ask (needs confirmation, platform people only, tenant restriction, read tool set to ask, personal confirmation); blocked cards distinguish permission, mode, platform policy, tenant restriction and skill/profile tool lists.
+- Enter during a turn steers it: the message reaches the same turn as soon as the current tool call ends, and later calls of that step that would ask or write are rejected with the message as the note. **Queue for next turn** (Alt+Enter) only queues, also while cards wait.
+- Stop (Esc or the button) works with text in the composer and keeps the draft; queued messages are withdrawn and put back in the composer instead of starting. Queued or expired messages that never ran are no longer sent to the model or the review model.
+
+Upgrade steps:
+
+1. This release has new migrations. Update the code and run `pnpm i` → `pnpm -r build` → `pnpm db:migrate` → `pnpm db:seed` as usual. Never use `db:reset` to upgrade an existing database.
+2. The migration creates one tenant table (the tenant's tool restrictions); the seeds add two actions, browse / modify tool restrictions, under the skills page and add them once to tenant packages that already hold that page.
+3. Front ends or scripts that call the assistant API directly must follow the changes to the stop response, the rewind routes, the live events and the `/status` fields; see [Upgrading](/guide/upgrade) (Chinese).
+
+See [Upgrading](/guide/upgrade) (Chinese) and [The chat page](/en/features/agent#the-chat-page).
+
 ## 1.13.1 · 2026-10-28
 
 Bug-fix release. See the [public source commit](https://github.com/732124645/qiwu-vue-admin/commit/76d3df6edac268c2aa7bc672eddbf398bff0a576).

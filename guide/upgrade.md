@@ -11,6 +11,20 @@ description: '把栖梧模板发布的新版本合并进自己的项目：哪些
 - **合并代码**（本页）：把模板新版本的代码并进你的项目仓库；
 - **升级数据库**：代码合并以后，对已有的数据库执行迁移和种子（`pnpm db:migrate` → `pnpm db:seed`），见[部署](/guide/deploy)。
 
+## 升级到 v1.14.0
+
+本版有新迁移，完成代码合并和检查后照常执行 `pnpm db:migrate` → `pnpm db:seed` 并重启，**不要重置数据库**。
+
+- 迁移只新建一张租户表 `agent_tool_restriction`，存租户对工具的收紧（[租户工具限制](/features/agent#租户工具限制)）。
+- 种子在技能管理页下新增两个动作“浏览工具限制 / 修改工具限制”（`agent.restriction.browse` / `agent.restriction.modify`），第一次建出时自动补进已经包含技能页的租户套餐；之后超级管理员在套餐里去掉，也不会再被补回。
+- 运行中发消息：`mode: 'steer'` 是插话，当前这次工具调用一结束就送进本轮，同一步后面会问人或会写入的调用以它为说明记为拒绝；`mode: 'queue'` 在等审批时只排队，不再拒绝卡片。
+- 停止接口 `POST /api/agent/threads/:id/cancel` 改为返回被撤回的排队消息（`{ queued: [...] }`），这些消息不再在停止后自动开始。
+- “编辑后重发”不再分叉，改为原地回退：`GET …/rewind-preview?seq=` 与 `POST …/rewind { seq, lastSeq }`，过期的 `lastSeq` 返回 409；`POST …/revert` 保留，运行中返回会话忙，自动化、子任务和批量会话不能回退（409）。实时事件新增 `{ type: 'rewound', threadId, fromSeq }`。
+- 审批卡新增 `why`；`unreviewed` 与 `blocked.reason` 新增 `tenant`，`blocked.reason` 新增 `list`（原来记为 `policy` 的“不在技能 / 方案清单里”）。`GET …/status` 新增模式、仍有效的放行、每轮上限、配置方案、实际上下文和按工具的原因。自己调用这些接口的前端或脚本须同步修改。
+
+详细变化见 [v1.14.0 更新日志](/changelog#_1-14-0-·-2026-10-29) · [公开源码提交](https://github.com/732124645/qiwu-vue-admin/commit/dc00fc39857fa69630bdf8037a6083de1a6d0eb1)。
+正式发布：[v1.14.0](https://github.com/732124645/qiwu-vue-admin/releases/tag/v1.14.0)。
+
 ## 升级到 v1.13.0
 
 本版有新迁移，完成代码合并和检查后照常执行 `pnpm db:migrate` → `pnpm db:seed` 并重启，**不要重置数据库**。

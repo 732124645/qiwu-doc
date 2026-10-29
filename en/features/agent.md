@@ -35,7 +35,7 @@ Since v1.11.0, chat opens from the floating button, without a sidebar menu item.
 | Page | Content |
 | --- | --- |
 | **Floating Assistant button** | Chat beside the current page; conversation and batch-review routes remain hidden from the sidebar |
-| **Agent → Skills** | Personal and tenant-wide skills, prompt templates, tenant instructions |
+| **Agent → Skills** | Personal and tenant-wide skills, prompt templates, tenant instructions and the tenant's tool restrictions |
 | **Agent → Agent settings** | A getting-started guide, then models, web search, external tools (MCP), tool approval, platform skills, rules and quotas, plus a **Diagnostics** tab for the super administrator only. With multi-tenancy on it is a platform-only page, and only the super administrator can change it |
 | **Agent → Agent usage** | Credits and actual usage by day, user or model, with paginated per-call rate snapshots |
 | **Agent → Automations** | Skills and prompts run in the background on a schedule, after a business event or by hand, with their run history; see [Automations](#automations) below |
@@ -112,15 +112,28 @@ The **Tool approval** tab lists every tool of this system with an approval polic
 
 System write tools can only be **Needs confirmation**, **People only** or **Off**, never run directly. **Restore default** sets write tools that the developer declared high-risk to **People only** and other write tools to **Needs confirmation**. Direct execution of external tools depends on the super administrator's explicit trust described above. Tools declared to require personal confirmation every time keep that requirement. A tool switched off as a whole on the MCP tools page cannot be used by the agent either.
 
+### Tenant tool restrictions
+
+Since v1.14.0, tenant administrators can open **Tool restrictions** on **Agent → Skills** and set a tool to **People only** or **Off** for their tenant, or clear the restriction:
+
+- **Tighten only**: the stricter of the platform policy and the tenant restriction applies; a tenant can never loosen one, and loosening the platform policy later does not loosen the tenant's restriction;
+- Changes **apply at the next call**, including a turn that is already running;
+- A read-only tool restricted to **People only** asks you every time; it cannot be allowed for the conversation and is never reviewed;
+- Restrictions apply to the in-app assistant only, not to [MCP clients](/en/features/mcp) connected with a personal access token. The platform **Tool approval** page shows only the platform layer.
+
+The two actions (browse / modify tool restrictions) are granted through tenant packages; see [Upgrading](/guide/upgrade) (Chinese). See the repository's [tenant restrictions](https://github.com/732124645/qiwu-vue-admin/blob/main/docs/agent.md#租户收紧) section (Chinese).
+
 ### Approval cards
 
 The approval card shows the tool, the record, each field's current → proposed value and the sources read in this turn, with these buttons:
 
 - **Allow once**: runs this call only;
-- **Don't ask again for “tool” in this conversation**: the tool then runs directly in this conversation, without a card and without review. Allowed tools are listed in **Conversation settings** and can be revoked one by one; an allowance is checked against the current policy when it is recorded and before every use, so it stops working once an administrator sets the tool to **People only** or turns it off. Switching modes keeps allowances, a fork does not inherit them, and reverting a turn removes the ones it recorded. Tools that need personal confirmation, tools set to **People only** and external MCP tools never offer it; external tools always ask;
+- **Don't ask again for “tool” in this conversation**: the tool then runs directly in this conversation, without a card and without review. Allowed tools are listed in **Conversation settings** and can be revoked one by one; an allowance is checked against the current policy when it is recorded and before every use, so it stops working once an administrator sets the tool to **People only** or turns it off. Switching modes keeps allowances, a fork does not inherit them, and a rewind removes the ones recorded in the removed part. Tools that need personal confirmation, tools set to **People only** and external MCP tools never offer it; external tools always ask;
 - **Reject**: you can add a note, and the agent will not retry the same call.
 
-Sending a message while cards wait means “reject with this note”: every pending card of the step, and the calls of that step that would ask, are rejected with your message, and the agent continues at once. **Stop** is always available. In auto review mode, a card that waits for you without review says why, for example the tool is set to **People only** or the platform has no review model.
+Since v1.14.0, every card that waits for you says **why it asks**: the write needs confirmation, the platform set the tool to people only, a tenant restriction, a read-only tool set to needs confirmation, or personal confirmation every time. A blocked call shows a card that says what is missing: permission, the conversation mode, the platform policy, a tenant restriction that turns the tool off, or the tool list of the skill or profile.
+
+Pressing Enter while cards wait means “reject with this note”: every pending card of the step, and the calls of that step that would ask, are rejected with your message, and the agent continues at once; a message sent with **Queue for next turn** leaves the cards alone. **Stop** is always available. In auto review mode, a card that waits for you without review says why, for example the tool is set to **People only** or the platform has no review model.
 
 Apart from tools allowed for the conversation, writes that need confirmation approved by the review model after you chose auto review mode, and an automation's [pre-approval](#automations), which you gave with your password, **every write is confirmed by a person each time**.
 
@@ -178,13 +191,15 @@ Since v1.12.0, chat is a desktop workspace (the admin web targets computers; use
 - **Reading and typing**: answers use a centred reading column, and tables take their content width; message actions appear in one row on hover or focus. The composer placeholder only says `/` shows commands; the keys are listed on a hint line below.
 
 - **Conversations and drafts**: open history when needed to create, search, rename, pin, archive or delete. Minimize and reopen without losing the conversation or draft. A new page's context applies only to a new conversation, without silently replacing an existing draft's source. Identity, tenant or permission changes clear the panel state.
-- **Minimize and stop**: plain Esc in the composer minimizes the panel while work continues. Use **Stop** or a shortcut with a modifier to stop a turn. Keys consumed by a candidate menu or approval card do not also close the host. The independent page retains its original stop shortcut.
+- **Minimize and stop**: plain Esc in the floating composer minimizes the panel while work continues. Use **Stop** or a shortcut with a modifier to stop a turn; on the independent page Esc stops it. Since v1.14.0, stopping also works with text in the composer and keeps the draft; queued messages are withdrawn and put back in the composer instead of starting. Keys consumed by a candidate menu or approval card do not also close the host.
+- **Status line**: since v1.14.0, a line under the composer shows the mode, context use (the provider's reported input when available, otherwise an estimate), credits this turn (with the per-turn limit when set) and today, and the number of tools allowed for the conversation; click it to open the allowed list.
 - **Reading answers**: streamed answers, collapsible calls and reasoning summaries; tables, nested lists, task lists, code copy/wrap, Markdown source switching, exact source download and expanded reading. HTML is shown as text; external Markdown images are not loaded automatically.
 - **Work panel**: current tasks, sources and report/chart/image outputs open on demand. It sits in the side panel and can be opened in the main area and moved back. Switching conversations clears old previews immediately; approval remains on its original confirmation card.
 - **Subtasks**: grouped by actual status, with active/finished counts, individual states and summaries. Open a read-only process view in the main area and use **Back to the conversation** to return, without changing the main conversation. Shared snapshots do not fetch private child conversations.
-- **Fork, resend and revert**: fork from a message or edit and resend the last one. Revert removes the last turn; **changes it already made are not rolled back**. Stop active work first and personally reconcile unknown results before forking, reverting or deleting; these actions cannot clear unresolved risks.
+- **Edit from here, regenerate and revert**: since v1.14.0, **Edit from here** on any sent message removes it and everything after it from the conversation and puts its text, attachments and skill back in the composer, together with any messages still queued; **Regenerate** on the last answer rewinds the last turn and sends it again; **Revert last turn** in the conversation menu only removes. Before anything is removed, a confirmation lists the writes in the removed part that already ran or whose outcome is unknown (subtasks included): a rewind only changes the conversation, and **those writes, extracted memories, mode changes and used credits are never undone**; results of calls that had already run before a steering message are kept. If another window has produced items this page has not seen, the rewind fails instead of removing them. Automation, subtask and batch conversations cannot be rewound.
+- **Fork**: still a separate action that copies the conversation from any message into a new one, leaving the original unchanged. Stop active work first and personally reconcile unknown results before forking, rewinding or deleting; these actions cannot clear unresolved risks.
 - **Sharing and export**: same-tenant read-only links and Markdown export do not expand the viewer's business permissions.
-- **Sending during a turn**: add to the current turn or queue the next one. While the turn waits on approval cards, a message rejects them with the message as the note; while it waits on a plan card, a message means “keep refining”. Attachments still enforce current file access.
+- **Sending during a turn**: since v1.14.0, Enter **steers** the running turn: the message reaches it as soon as the current tool call ends, and the later calls of that step that would ask or write are rejected with the message as the note, so the agent reads your words and decides again; reads that run directly continue. **Queue for next turn** (Alt+Enter) only queues the message until the turn ends and leaves waiting cards alone. While the turn waits on approval cards, a steering message rejects them with the message as the note; while it waits on a plan card, it means “keep refining”. Queued or expired messages that never ran are not sent to the model or the review model. Attachments still enforce current file access.
 - **Commands and notices**: `/` offers new conversation, compaction, model, approvals, skills and status commands. Waiting for confirmation or clarification and completion of a long turn still produce inbox notices, with optional mail.
 
 See the repository's [chat panel](https://github.com/732124645/qiwu-vue-admin/blob/main/docs/agent.md#聊天面板) section (Chinese).
@@ -276,7 +291,7 @@ Missing fields remain **unknown**, not zero. Older records without detailed usag
 
 A pending record is saved before each model call. Recovery retains actual usage already obtained and its original rate snapshot; the call detail, daily, turn and parent-task totals are accounted once in the same transaction. Missing usage stays unknown in token totals; with rates, credits are estimated and recomputed from actual usage when a late receipt arrives. Under a finite budget, an overdue call not yet settled makes the next call wait for its settlement. Recovery never turns unknown consumption into zero.
 
-`/status` separates estimated context capacity from recorded credits for the turn and today. The context gauge is not the provider's bill. See the repository's [limits, pause and usage](https://github.com/732124645/qiwu-vue-admin/blob/main/docs/agent.md#限额暂停与用量) section (Chinese).
+The status line under the composer shows the mode, context use, credits this turn and today, and the allowed tools count. `/status` also lists the model, profile and allowed tools, and, with reasons (permission, platform policy, tenant restriction, skill or profile list, conversation mode), the tools that ask you and the tools that are unavailable. The context gauge is not the provider's bill. See the repository's [limits, pause and usage](https://github.com/732124645/qiwu-vue-admin/blob/main/docs/agent.md#限额暂停与用量) section (Chinese).
 
 ## Sub-agents, deep research, charts / images / exports
 
@@ -297,7 +312,7 @@ See the repository's [diagnostics](https://github.com/732124645/qiwu-vue-admin/b
 ## Notifications, shortcuts and new windows
 
 - **Notification settings**: on the **Notifications** tab of **Conversation settings** at the top of the chat page, each kind of reminder (a long turn finishes, waiting for my confirmation or answer, automation results) can also **send an email**; all are off by default. Inbox messages always arrive, and the mobile app reads the inbox; emails go to the address in your profile, and without one you get only the inbox message;
-- **Keyboard shortcuts**: the **Keyboard shortcuts** tab of **Conversation settings** lets you rebind four actions: new conversation, focus the message box, toggle plan mode and stop the turn. A combination needs Ctrl, Alt or ⌘ (stop may also be plain Esc); combinations the browser or page already uses are refused. The settings are saved in the current browser only;
+- **Keyboard shortcuts**: the **Keyboard shortcuts** tab of **Conversation settings** lets you rebind five actions: new conversation, focus the message box, toggle plan mode, stop the turn and queue for next turn (Alt+Enter by default). A combination needs Ctrl, Alt or ⌘ (stop may also be plain Esc, which works with text in the composer and keeps the draft); combinations the browser or page already uses are refused. The settings are saved in the current browser only;
 - Plain Esc in the floating composer minimizes the panel; stopping there uses the Stop button or a shortcut with a modifier. The independent chat page retains its configured stop shortcut.
 - **New window**: non-temporary conversations can be opened in a new window.
 
@@ -375,9 +390,10 @@ The [live demo](/en/guide/introduction#live-demo) does **not** have the assistan
 ## Known limits
 
 - The concurrent turn limit is soft: requests arriving together may give a user one extra turn;
-- Models, search providers and external MCP servers are platform settings; tenants cannot add their own external MCP servers yet;
+- Models, search providers and external MCP servers are platform settings; tenants cannot add their own external MCP servers yet and can only [tighten tool policies](#tenant-tool-restrictions), which does not affect MCP clients connected with a personal access token;
+- Queued messages withdrawn by Stop return only to the composer of the page that stopped; another tab open on the same conversation must be refreshed to see them gone;
 - Only remote HTTP MCP servers are supported, not stdio servers that need a process started on the server;
-- Reverting a turn does not roll back changes it made; a tool timeout only ends the wait, and a database operation already started cannot be interrupted;
+- Rewinding or reverting only changes the conversation and does not roll back changes already made; a tool timeout only ends the wait, and a database operation already started cannot be interrupted;
 - The model's answers and judgment can be wrong: check each current → proposed value and source on the approval card.
 
 The full list is in the repository's [known limits](https://github.com/732124645/qiwu-vue-admin/blob/main/docs/agent.md#已知上限) section (Chinese).
