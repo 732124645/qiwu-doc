@@ -6,6 +6,24 @@ description: 'Qiwu release notes and upgrade steps for office requests, native a
 
 This page records the changes in each Qiwu release. For the current features and the status of each one, see [Introduction · Features at a glance](/en/guide/introduction#features-at-a-glance).
 
+## 1.15.0 · 2026-10-30
+
+Operations release: process roles, database pool settings, stall diagnostics and a model provider concurrency limit. See the [public source commit](https://github.com/732124645/qiwu-vue-admin/commit/a0be38c5c88d2cd5d67b2cc50ac6dc872ccd89ce).
+Release: [v1.15.0](https://github.com/732124645/qiwu-vue-admin/releases/tag/v1.15.0).
+
+- Process roles: the new `APP_ROLE` variable takes `all`, `api` or `worker` (default `all`, identical to before). An `api` process serves pages and live pushes but runs no scheduled tasks or queue jobs; "Run once" on the task page is handed to a worker. A `worker` process runs scheduled tasks and every queue job, and its background pushes still reach browsers. The PM2 setup gains an optional worker app (`QW_PM2_WORKER_INSTANCES`, default 0 keeps the single app), and the deploy script health-checks it. See [Process roles](https://github.com/732124645/qiwu-vue-admin/blob/main/docs/scale-out.md#进程角色) (Chinese).
+- Database pool: new `DB_POOL_SIZE` (default 10), `DB_POOL_ACQUIRE_TIMEOUT_MS` and `DB_POOL_QUEUE_LIMIT` (default 0, unlimited, as before). A request that cannot get a connection in time now fails with 503 "The service is busy" instead of waiting until the browser gives up.
+- Stall diagnostics: the server monitor shows event-loop delay (p50 / p99 / max) and utilization of the instance that answered; `LOG_SLOW_REQUEST_MS` marks slow requests in the log together with the scheduled tasks running in that process; `LOG_EVENT_LOOP_INTERVAL_MS` / `LOG_EVENT_LOOP_WARN_MS` log event-loop delay periodically; the scheduler log also records the executing instance and the maximum event-loop delay during the run. All are off by default. See [Stall diagnostics](https://github.com/732124645/qiwu-vue-admin/blob/main/docs/scale-out.md#卡顿诊断) (Chinese).
+- Model provider concurrency limit: each [assistant](/en/features/agent#models) provider can set a maximum number of simultaneous calls, counted across all instances and tenants. Calls over the limit wait for a slot and show "The model is busy" after 120 seconds; calls that never got a slot are not billed.
+- Two new startup hints: a warning when the same key has different values in `.env` and `.env.local` (names only; `.env` wins), and an `effective config` line listing the non-secret settings in effect.
+- Deploy guide: every `pm2` command is shown as the application user (`sudo -u qiwu -H pm2 …`) with a hint for "Process or Namespace not found"; the nginx example enables HTTP/2; a capacity note relates PM2 instances, pool size and MySQL `max_connections`. See [deployment](https://github.com/732124645/qiwu-vue-admin/blob/main/docs/deploy.md) (Chinese).
+
+Upgrade steps:
+
+1. Run `pnpm i` → `pnpm -r build` → `pnpm db:migrate` → `pnpm db:seed` as usual. The migration only adds three nullable columns (executing instance and maximum event-loop delay on the scheduler log, concurrency limit on the model provider); old records stay empty.
+2. Every new environment variable defaults to the old behaviour, so leaving them unset behaves like v1.14.1. The default `all` role adds an idle `scheduler-run` queue, visible on the queue monitor page.
+3. To move background work into its own process, set `QW_PM2_WORKER_INSTANCES` as described in the [deployment guide](https://github.com/732124645/qiwu-vue-admin/blob/main/docs/deploy.md#使用-pm2-部署可选) (Chinese). Switching on and switching back both require `pm2 delete` before starting again, and at least one `all` or `worker` instance must remain, otherwise scheduled tasks and queues stop.
+
 ## 1.14.1 · 2026-10-30
 
 Bug-fix release. See the [public source commit](https://github.com/732124645/qiwu-vue-admin/commit/1eb5fcf864cee59b776dbc564ce6312d38eb7551).

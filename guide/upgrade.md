@@ -11,6 +11,18 @@ description: '把栖梧模板发布的新版本合并进自己的项目：哪些
 - **合并代码**（本页）：把模板新版本的代码并进你的项目仓库；
 - **升级数据库**：代码合并以后，对已有的数据库执行迁移和种子（`pnpm db:migrate` → `pnpm db:seed`），见[部署](/guide/deploy)。
 
+## 升级到 v1.15.0
+
+本版有新迁移，完成代码合并和检查后照常执行 `pnpm db:migrate` → `pnpm db:seed` 并重启，**不要重置数据库**。
+
+- 迁移只新增三个可为空的列：调度日志的执行实例和事件循环最大延迟，模型提供方的并发上限；旧记录保持为空。
+- 新增的环境变量（`APP_ROLE`、`DB_POOL_*`、`LOG_SLOW_REQUEST_MS` 等）默认值都不改变原有行为；默认的 `all` 角色会多一个空闲的 `scheduler-run` 队列，队列监控页能看到。
+- 启动日志多一条 `.env` 与 `.env.local` 同键不同值的警告，以及一行 `effective config`；项目自己的非秘密键可以追加到 `EFFECTIVE_CONFIG_KEYS`。
+- 要把后台任务拆到单独进程时，按[部署](/guide/deploy#使用-pm2-守护进程-可选)设置 `QW_PM2_WORKER_INSTANCES`；第一次开启和切回单个应用都要先 `pm2 delete` 再启动，并且至少保留一个 `all` 或 `worker` 实例，否则定时任务和队列都会停。
+
+详细变化见 [v1.15.0 更新日志](/changelog#_1-15-0-·-2026-10-30) · [公开源码提交](https://github.com/732124645/qiwu-vue-admin/commit/a0be38c5c88d2cd5d67b2cc50ac6dc872ccd89ce)。
+正式发布：[v1.15.0](https://github.com/732124645/qiwu-vue-admin/releases/tag/v1.15.0)。
+
 ## 升级到 v1.14.0
 
 本版有新迁移，完成代码合并和检查后照常执行 `pnpm db:migrate` → `pnpm db:seed` 并重启，**不要重置数据库**。

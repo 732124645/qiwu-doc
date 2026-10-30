@@ -193,7 +193,7 @@ The download is checked against its sha256; restart the server and it takes effe
 
 ## Try office requests and attendance
 
-The v1.14.1 public composition provides basic office requests and approvals. After migration and seeding, review models, requester scope and approvers before granting staff access. Tenant packages also need the relevant capabilities.
+The v1.15.0 public composition provides basic office requests and approvals. After migration and seeding, review models, requester scope and approvers before granting staff access. Tenant packages also need the relevant capabilities.
 
 1. Submit [leave, travel, expenses, seal or general requests](/en/features/oa), then view and handle them in the approval center.
 2. Mobile shows complete details, attachments and decisions. Create/edit travel, expenses and seal requests on desktop; leave and dynamic forms can start on mobile.
@@ -201,7 +201,7 @@ The v1.14.1 public composition provides basic office requests and approvals. Aft
 
 Leave preserves its existing sample settings; the other four office models default to explicit protected-administrator handling and rejection when nobody is available. Review them for your own organization.
 
-Native clocking and office assistant application tools were publicly released in v1.10.0 but do not ship in the current v1.14.1 composition. The [attendance page](/en/features/attendance) is a historical reference, not a current installation step.
+Native clocking and office assistant application tools were publicly released in v1.10.0 but do not ship in the current v1.15.0 composition. The [attendance page](/en/features/attendance) is a historical reference, not a current installation step.
 
 ## Troubleshooting
 

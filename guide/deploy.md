@@ -23,6 +23,8 @@ pnpm -r build
 
 普通配置写 `apps/server/.env`（`NODE_ENV=production`、库名、Redis 库号、`TRUST_PROXY`、`CORS_ORIGIN`、`SWAGGER_ENABLED=false` 等），账号和密钥只写 `.env.local` 或进程环境，`.env` 里连空值也不写。不要复制开发或测试环境的密钥，生产环境会拒绝带 `not-for-production` 标记的密钥。Redis 库号先确认空闲，不和开发、测试、演示共用；`.env.local` 设为 `600`。示例见[仓库](https://github.com/732124645/qiwu-vue-admin/blob/main/docs/deploy.md#构建产物与环境)，各项含义见[环境变量](/reference/env)。
 
+v1.15.0 起新增数据库连接池设置 `DB_POOL_SIZE`（默认 10）、`DB_POOL_ACQUIRE_TIMEOUT_MS` 和 `DB_POOL_QUEUE_LIMIT`，默认值与以前行为相同；拿不到连接的请求会返回 503 而不是一直等。`.env` 和 `.env.local` 同一个键写了不同值时，以 `.env` 为准，启动日志会给出一条警告（只列键名）。见[仓库](https://github.com/732124645/qiwu-vue-admin/blob/main/docs/deploy.md#构建产物与环境)。
+
 Redis 还有两项要求，都来自任务队列（把耗时的工作交给后台执行的功能）：
 
 - `maxmemory-policy`（内存满时怎么处理）必须是 `noeviction`，在 `redis.conf` 里设置；其他策略会在内存不足时删掉键，排队中的任务就丢了。应用启动时检查这一项，不符合时只记警告日志。
@@ -74,9 +76,13 @@ node --env-file-if-exists=.env.local --env-file-if-exists=.env dist/main.js
 
 `X-Forwarded-For` 用 `$remote_addr` 覆盖，不能追加，否则 IP 黑名单和限流可能被绕过；`Host`、`X-Forwarded-Host`、`X-Forwarded-Proto` 保留浏览器访问的地址和协议，否则密码登录、短信登录、刷新登录和 WebSocket 会被拒绝（控制台登录返回 403 `A1007`）。代理做不到这一点时，把控制台的地址（比如 `https://qiwu.example.com`）加进环境变量 `CORS_ORIGIN`。nginx 下发的 CSP 必须和 `apps/web/csp.ts` 完全一致，`client_max_body_size` 要覆盖上传上限，`/files/` 只能指向上传目录的 `public/`。完整配置见[仓库](https://github.com/732124645/qiwu-vue-admin/blob/main/docs/deploy.md#nginx-反向代理与-csp)。
 
+建议在 `listen 443 ssl` 之后加上 `http2 on;`（nginx 1.25.1 及以上）：浏览器对同一主机最多只开 6 个 HTTP/1.1 连接，慢接口和导出会让同页其他请求排队，HTTP/2 没有这个限制；不支持的客户端自动回落，WebSocket 照常可用。
+
 ## 使用 PM2 守护进程（可选）
 
 PM2 能在崩溃后自动重启、开机自启。它是 AGPL-3.0 协议，只在服务器上全局安装（`npm install -g pm2`），不加进项目依赖。仓库自带 `scripts/deploy/ecosystem.config.cjs`（cluster 模式，2 个 worker）；先执行迁移和种子，再 `pm2 start`。安装位置、升级顺序和调整 worker 数见[仓库](https://github.com/732124645/qiwu-vue-admin/blob/main/docs/deploy.md#使用-pm2-部署可选)。同一台机器上的 cluster 已满足[多实例部署](#多实例部署)的大部分条件。
+
+所有 `pm2` 命令都用应用用户执行，例如 `sudo -u qiwu -H pm2 logs qiwu-server`；在 root 下直接执行会另起一个看不到应用进程的 PM2。想把定时任务和队列放到单独的进程，设置 `QW_PM2_WORKER_INSTANCES`（默认 0，保持单个应用），会多出一个 worker 应用，详见[仓库](https://github.com/732124645/qiwu-vue-admin/blob/main/docs/deploy.md#使用-pm2-部署可选)。
 
 ## GitHub Actions 自动部署
 
@@ -156,3 +162,5 @@ git push origin v1.2.0
 ## 多实例部署
 
 服务端可以运行多个实例，实时推送和限流经 Redis 共享。前提：Redis 7 及以上；同一部署的所有实例连同一个 MySQL 库和 Redis，`REDIS_DB`、`REDIS_KEY_PREFIX`、`APP_SECRET` 和程序版本都相同，不同部署用不同库号；所有实例的 `APP_MULTI_TENANT` 也要相同，切换时全部重启；本地文件放共享目录，跨机器建议用 S3。每个实例都运行全部队列的处理器，同一个任务只会被一个实例取走，加实例就加处理能力；任务可能执行不止一次，处理器要能安全地重复执行，见[仓库](https://github.com/732124645/qiwu-vue-admin/blob/main/docs/queue.md#每个实例都运行处理器)。只用 WebSocket，不需要粘性会话；迁移和种子仍只在发布时执行一次。模板只在同一台机器上用两个进程测试过，完整条件和限制见[仓库](https://github.com/732124645/qiwu-vue-admin/blob/main/docs/scale-out.md#启动前置条件)。
+
+v1.15.0 起可以用 `APP_ROLE`（`all` / `api` / `worker`，默认 `all`）让不同进程分工：`api` 只处理请求，`worker` 跑定时任务和队列。至少要保留一个 `all` 或 `worker` 实例，否则定时任务和队列任务不再执行；用 PM2 时见上文。同一台机器上 `QW_PM2_INSTANCES × DB_POOL_SIZE` 要小于 MySQL 的 `max_connections`。见[仓库](https://github.com/732124645/qiwu-vue-admin/blob/main/docs/scale-out.md#进程角色)。

@@ -38,7 +38,7 @@ For the status of each item, see [Introduction · Features at a glance](/en/guid
 | --- | --- |
 | [Workflow](/en/features/workflow) | Draw processes in the tree or BPMN designer, no-code approvals, dynamic forms, automatic timeout handling, approval data |
 | [Office requests](/en/features/oa) | Leave, travel, expenses, seal use and general forms; shared approval center, private files/notices and basic mobile handling |
-| [Attendance (historical)](/en/features/attendance) | Publicly released in v1.10.0; not included in the current v1.14.1 public composition |
+| [Attendance (historical)](/en/features/attendance) | Publicly released in v1.10.0; not included in the current v1.15.0 public composition |
 
 ## Mobile
 

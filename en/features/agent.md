@@ -64,6 +64,7 @@ Since v1.11.0, every model also needs explicit credit rates, measured as **credi
 - Keys are encrypted and **write-only**. Changing a base URL requires the key again, so the old key is never sent to the new address.
 - Since v1.13.0, once the base URL and key are filled in, **Load models from service** reads the provider's model list (`GET {base URL}/models`) and you add models from a searchable picker instead of typing identifiers; with a stored key and an unchanged address it loads directly. A stored key is only sent to the stored address, redirects are not followed and the response size is capped. Super administrator only.
 - A conversation can select its configured provider and model. Errors show only a short reason, without the provider's response body or key.
+- Since v1.15.0, a provider can set a concurrency limit: the maximum number of simultaneous calls to it, counted across all instances and tenants; blank or 0 means unlimited. Calls over the limit wait for a slot and fail with "The model is busy, please try again later" after 120 seconds; a waiting call was never sent, so it is not billed and does not use the daily budget.
 
 For base URLs, context windows, image capability and settings, see the repository's [model configuration](https://github.com/732124645/qiwu-vue-admin/blob/main/docs/agent.md#配置模型) section (Chinese).
 

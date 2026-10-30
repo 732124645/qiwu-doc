@@ -6,6 +6,26 @@ description: '栖梧版本说明与升级步骤：OA 办公、原生考勤、智
 
 这里记录栖梧每个正式版本的变化。现在有哪些功能、各项的完成情况，见[介绍 · 功能一览](/guide/introduction#功能一览)。
 
+## 1.15.0 · 2026-10-30
+
+运维版本：进程角色拆分、连接池设置、卡顿诊断、模型提供方并发上限。公开版本：[源码提交](https://github.com/732124645/qiwu-vue-admin/commit/a0be38c5c88d2cd5d67b2cc50ac6dc872ccd89ce)。
+正式发布：[v1.15.0](https://github.com/732124645/qiwu-vue-admin/releases/tag/v1.15.0)。
+
+- 进程角色：新增环境变量 `APP_ROLE`，可选 `all` / `api` / `worker`，默认 `all`，行为与以前完全相同。`api` 进程只处理页面请求和实时推送，不跑定时任务和队列任务，任务页的“执行一次”交给 worker 进程执行；`worker` 进程跑定时任务和全部队列任务，后台推送仍能送到浏览器。PM2 配置多了一个可选的 worker 应用（`QW_PM2_WORKER_INSTANCES`，默认 0 即保持单个应用），部署脚本会一并做健康检查。见[多实例部署 · 进程角色](https://github.com/732124645/qiwu-vue-admin/blob/main/docs/scale-out.md#进程角色)。
+- 数据库连接池：新增 `DB_POOL_SIZE`（默认 10）、`DB_POOL_ACQUIRE_TIMEOUT_MS` 和 `DB_POOL_QUEUE_LIMIT`（默认 0，不限，与以前相同）。请求在限定时间内拿不到数据库连接时，直接返回 503“服务繁忙”，不再一直等到浏览器超时。
+- 卡顿诊断：服务监控页显示响应本次请求的那个实例的事件循环延迟（p50 / p99 / 最大值）和利用率；`LOG_SLOW_REQUEST_MS` 把慢请求在日志里标出，并附上当时同进程在跑的定时任务；`LOG_EVENT_LOOP_INTERVAL_MS` / `LOG_EVENT_LOOP_WARN_MS` 定期把事件循环延迟写进日志；调度日志多记执行实例和执行期间的事件循环最大延迟。这些默认都关闭。见[卡顿诊断](https://github.com/732124645/qiwu-vue-admin/blob/main/docs/scale-out.md#卡顿诊断)。
+- 模型提供方并发上限：[智能助手](/features/agent#配置模型)的每个模型提供方可以设置同时发出的调用上限，按所有实例、所有租户合计。超出上限的调用先排队等名额，等满 120 秒仍没有名额就提示“模型繁忙”；没等到名额的调用不计积分。
+- 启动时多两处提示：`.env` 与 `.env.local` 同一个键写了不同值时给出警告（只列键名，以 `.env` 为准），并输出一行 `effective config`，列出当前生效的非秘密配置。
+- 部署指南更新：所有 `pm2` 命令都以应用用户执行（`sudo -u qiwu -H pm2 …`），并说明出现 “Process or Namespace not found” 时怎么办；nginx 示例开启 HTTP/2；新增一段容量说明，把 PM2 实例数、连接池大小和 MySQL 的 `max_connections` 对起来。见[部署](https://github.com/732124645/qiwu-vue-admin/blob/main/docs/deploy.md)。
+
+升级步骤：
+
+1. 照常执行 `pnpm i` → `pnpm -r build` → `pnpm db:migrate` → `pnpm db:seed`。迁移只新增三个可为空的列（调度日志的执行实例与事件循环最大延迟，模型提供方的并发上限），旧记录保持为空。
+2. 新增的环境变量默认值都不改变原有行为，不设置就和 v1.14.1 一样。默认的 `all` 角色会多一个空闲的 `scheduler-run` 队列，在队列监控页能看到。
+3. 要把后台任务拆到单独进程时，按[部署](/guide/deploy#使用-pm2-守护进程-可选)设置 `QW_PM2_WORKER_INSTANCES`；第一次开启和切回单个应用都要先 `pm2 delete` 再启动，并且至少保留一个 `all` 或 `worker` 实例，否则定时任务和队列都会停。
+
+更多步骤见[升级模板版本](/guide/upgrade)。
+
 ## 1.14.1 · 2026-10-30
 
 修复版本。公开版本：[源码提交](https://github.com/732124645/qiwu-vue-admin/commit/1eb5fcf864cee59b776dbc564ce6312d38eb7551)。
