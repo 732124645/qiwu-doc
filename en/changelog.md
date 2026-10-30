@@ -6,6 +6,13 @@ description: 'Qiwu release notes and upgrade steps for office requests, native a
 
 This page records the changes in each Qiwu release. For the current features and the status of each one, see [Introduction · Features at a glance](/en/guide/introduction#features-at-a-glance).
 
+## 1.14.1 · 2026-10-30
+
+Bug-fix release. See the [public source commit](https://github.com/732124645/qiwu-vue-admin/commit/1eb5fcf864cee59b776dbc564ce6312d38eb7551).
+Release: [v1.14.1](https://github.com/732124645/qiwu-vue-admin/releases/tag/v1.14.1).
+
+- Opening the sign-in page while still signed in (a bookmark, a link, the back button or a new tab) no longer asks for the password again: it goes straight to the page asked for, or home. A locked screen, an ended session or a session that failed to load still show the sign-in form.
+
 ## 1.14.0 · 2026-10-29
 
 Assistant in-place rewind, steering and tenant tool restrictions. See the [public source commit](https://github.com/732124645/qiwu-vue-admin/commit/dc00fc39857fa69630bdf8037a6083de1a6d0eb1).
