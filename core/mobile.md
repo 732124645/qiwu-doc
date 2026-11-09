@@ -52,7 +52,7 @@ resolve: {
 - `zod` 指向 `mobile/node_modules/zod`，应用和共享包只打包一份 zod。`mobile/package.json` 里 zod 的版本要和根目录 `pnpm-workspace.yaml` 的 catalog 一致；
 - `mobile/tsconfig.json` 的 `paths` 也这样配置，类型检查和构建看到的是同一份代码。
 
-共享包也要能在小程序里运行，所以 `packages/shared/src` 只能导入 `zod` 和自己的文件，`packages/shared/tsconfig.json` 要保持 `"types": []`（不能用 Node 的 `process`、`Buffer` 等）。往共享包里加代码时要注意这两点，`pnpm verify` 的架构检查也会检查。
+共享包的根入口和 `@qiwu/shared/im-client` 要保持平台可移植，不能带入 Node 的 `process`、`Buffer` 等运行时；`packages/shared/tsconfig.json` 保持 `"types": []`。浏览器专用的官方媒体 SDK 和录音器放在 `@qiwu/shared/im-media` 子入口，App 和小程序不能从根入口间接导入它。新增依赖按架构白名单和许可证规则登记，由 `pnpm verify` 检查。
 
 ### 版本
 
@@ -222,7 +222,7 @@ Windows 上停止之后，在同一个终端里运行别的命令之前，先执
    Windows 上停止后同样先执行 `Remove-Item Env:VITE_API_BASE`；
 3. 在 HBuilderX 里导入 `mobile/dist/dev/app`，运行到手机或模拟器。
 
-HBuilderX 调试时用的是**标准基座**：DCloud 预先做好的调试用 App，运行时把你的代码装进去。标准基座在 iOS 上写死了浅色模式，跟随系统时看不到深色效果，核对深色要用云打包出来的 App。
+HBuilderX 的**标准基座**是 DCloud 预先做好的调试用 App，运行时载入页面资源。标准基座不能据此视为包含本项目新增的 SQLite、Record 和 `qw-livekit` 原生能力；聊天和通话要重新编译原生整包或自定义基座。标准基座在 iOS 上还写死了浅色模式，跟随系统时看不到深色效果，应在自己的原生包里核对。
 
 ### 连哪个服务端
 
@@ -297,7 +297,7 @@ try {
 
 ### 登录状态和权限
 
-账号密码登录和短信登录都带 `clientId: 'mobile'` 和 `keepSignedIn: true`，微信登录由服务端按同样的方式处理。建立的是移动端会话，从登录起最长 7 天，见[登录与账号 · 会话时长](/features/login#会话时长)。
+账号密码登录和短信登录都带 `clientId: 'mobile'` 和 `keepSignedIn: true`。App/H5 构建另外分别声明 `mobileKind: 'app' | 'h5'`；小程序由服务端确定类型。只有 App 使用下面的长期会话与单 App 会话规则，H5 仍为 7 天，小程序保留微信静默登录。见[登录与账号 · 会话时长](/features/login#会话时长)。
 
 - **access 令牌**（访问令牌）只放在内存里，应用重启后就没有了，第一个请求 401 后自动刷新；
 - **refresh 令牌**（刷新令牌）放在 uni 的本地存储里（键 `qw.auth.rt`），刷新时放在请求体里发送（`POST /api/auth/refresh`），应答给出新的 access 令牌和换过的新 refresh 令牌。
@@ -595,6 +595,22 @@ export const bookApi = {
 
 生成的移动端页面没有这些，需要时自己补：密文列、关键字以外的筛选、详情里的部门名和用户名（显示编号）、子表单元格上的错误提示。页面的样子见[代码生成器 · 移动端页面](/features/codegen#移动端页面)。
 
+## 聊天、语音与原生通话
+
+`APP_IM` 默认关闭；开启且租户套餐包含聊天时，App/H5 的消息页显示聊天入口，微信小程序不显示。使用规则见[员工聊天与通话](/features/im)。App 的缓存用 SQLite；任意文件选择使用 Native.js 系统选择器，不扩大普通附件组件的能力。退出、被踢和换账号清除缓存；会话过期只锁定。
+
+语音使用系统 RecorderManager，先申请麦克风权限，再复查当前账号和操作代次；录音文件随发件箱持久保存。实时音视频通过同模块 `uni_modules/qw-livekit` 的 UTS API 和 `.nvue` 兼容视频组件接入官方 Swift/Android SDK；临时媒体票据只留在 App-service，不通过页面参数或组件属性传递。
+
+`manifest.json` 已登记 SQLite、Record、Android 麦克风/摄像头权限和 iOS 用途说明。**重新编译原生整包或自定义基座**，旧安装包只发 wgt 无法增加这些能力。原生依赖版本、最低系统配置和构建适配以[插件说明](https://github.com/732124645/qiwu-vue-admin/blob/v1.16.0/mobile/src/uni_modules/qw-livekit/README.md)为准。
+
+本版没有已签名安装包，也没有真实 LiveKit/TURN 和目标设备媒体的验收结果。Android SDK 传递依赖许可仍待澄清，原生编译或模拟器通过不能替代最终包的分发核对。部署和跨网络检查见[LiveKit 接入](/core/livekit)。
+
+### App 长期会话与单 App 会话
+
+- `auth.mobile.session_days` 默认 `0`：使用时保持登录，连续 400 天未打开需要重登；正整数按最初登录时间计算绝对期限。只有 root 能改，不受聊天开关控制。
+- `auth.app.single_session` 默认 `true`：同一账号在另一台 App 登录会结束旧 App 会话并清除旧设备聊天缓存；Web、H5、小程序不受影响。
+- 改密、重置、停用、强退、退出、刷新令牌重用等安全结束规则仍有效。旧 App 没有声明 `mobileKind` 时沿用旧期限，需先升级客户端。
+
 ## 构建与打包
 
 | 命令 | 产物 | 说明 |
@@ -605,7 +621,7 @@ export const bookApi = {
 
 哪些是自动的、哪些要手工做：
 
-- **自动**：编译三个平台；小程序的包体积检查；`build:app` 把 `mobile/unpackage/res`（图标和启动图）复制到 `dist/build/app/unpackage/res`；
+- **自动**：编译三个平台；小程序的包体积检查；`build:app` 清理旧输出，严格校验 App 脚本、配置、manifest、nvue 页面和视图产物，再复制 `mobile/unpackage/res`（图标和启动图）。它不代替原生 UTS 编译、SDK 链接、签名或设备安装；
 - **手工**：上传小程序（微信开发者工具或 miniprogram-ci）；在 HBuilderX 里打包 App、准备签名证书；提交审核、上架。
 
 小程序和 App 构建时一定要带上 `VITE_API_BASE`，换成你自己的接口域名：
@@ -652,7 +668,7 @@ try {
 
 App 图标和启动图是 `mobile/unpackage/res/{icons,splash}/` 下的 PNG，`manifest.json` 按相对路径引用它们。它们不放在 `src/static`，否则会打进小程序的主包。换图标时，在 HBuilderX 的 manifest 可视化编辑器里用一张 1024×1024 的原图重新生成各种尺寸。
 
-签名证书、隐私政策和上架见下文的[发布清单](#发布清单)。
+新增 UTS 插件后，须先用匹配工具链编译插件 API、兼容视频组件和官方 SDK，再完成最终宿主打包。现有 HBuilderX/Xcode 验证链有已记录的链接适配点，不能把 App 源构建成功当作 GUI 可直接签名安装，详情见[插件构建限制](https://github.com/732124645/qiwu-vue-admin/blob/v1.16.0/mobile/src/uni_modules/qw-livekit/README.md#hbuilderx--xcode-兼容限制)。签名证书、隐私政策和上架见下文的[发布清单](#发布清单)。
 
 ## 微信小程序登录
 
@@ -732,7 +748,7 @@ App 这边的代码在 `mobile/src/core/update.ts`：
 
 ## App 权限
 
-安卓申请网络状态、相机与前台粗略/精确位置权限，没有后台持续定位、安装包和读存储权限；iOS 写好了相机、相册和使用期间位置的用途说明，缺少时调用会闪退，审核也会被拒。单元测试 `mobile/src/__tests__/mobile-manifest.spec.ts` 检查这两份列表：新增原生能力时，在同一次提交里改 `manifest.json`、这个测试和隐私政策，并发整包。见仓库的[移动端文档 · App 权限](https://github.com/732124645/qiwu-vue-admin/blob/main/docs/mobile.md#app-权限安卓)。
+当前公开组合的 App 权限包括网络状态、相机和录音；iOS 用途说明覆盖相机、相册和麦克风。麦克风只在本人主动录制语音或参与通话时申请，不提供后台持续采集。不要从历史考勤版本推断当前源码包含定位能力。单元测试 `mobile/src/__tests__/mobile-manifest.spec.ts` 检查这两份列表：新增原生能力时，在同一次提交里改 `manifest.json`、这个测试和隐私政策，并发整包。见仓库的[移动端文档 · App 权限](https://github.com/732124645/qiwu-vue-admin/blob/main/docs/mobile.md#app-权限安卓)。
 
 ## 发布清单
 

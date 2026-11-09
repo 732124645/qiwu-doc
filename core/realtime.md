@@ -336,18 +336,22 @@ export class UniSocketTransport extends WsTransport {
 
 ### 处理哪些推送
 
-移动端只处理三种，其余的忽略：
+移动端处理通知、会话结束和员工聊天提示；聊天业务另行复查当前成员资格，实时载荷不传媒体密钥：
 
 ```ts
 // mobile/src/core/realtime.ts（节选）
 function onMessage(msg: RealtimeMessage) {
   if (msg.type === RT.wfTask || msg.type === RT.notifyNew) useCountsStore().load()
-  else if (msg.type === RT.sessionKicked) kicked()
+  else if (msg.type === RT.sessionKicked) kicked(msg.payload)
+  else if (msg.type === RT.imEntry) imEntryHint(msg.payload)
+  else if (msg.type === RT.imRoom) imRoomHint(msg.payload)
+  else if (msg.type === RT.imCall) imCallHint(msg.payload)
 }
 ```
 
 - `wf:task`、`notify:new`：通过普通接口重新读取待办数、审批中数量和未读数（`mobile/src/core/stores/counts.ts`），页签角标和工作台跟着更新；
-- `session:kicked`：断开连接、清除登录状态、回到登录页，提示"你已被管理员强制下线，请重新登录"；
+- `session:kicked`：断开连接、清除聊天缓存和登录状态，回到登录页，按实际结束原因提示。`app_replaced` 表示同一账号已在另一台 App 登录，提示账号已在另一台设备登录；管理员强退等情况显示各自的原因；
+- `im:entry`、`im:room`：交给聊天引擎更新缓存或只获取变化的会话；`im:call`：交给前台通话控制器复查状态，不在推送里携带媒体票据；小程序不启用聊天。
 - `notify:bulletin` 不处理："消息"页每次显示都会重新加载。
 
 每次连上（包括重连）也会读一次计数，补上断线期间的变化。

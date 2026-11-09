@@ -11,6 +11,21 @@ description: '把栖梧模板发布的新版本合并进自己的项目：哪些
 - **合并代码**（本页）：把模板新版本的代码并进你的项目仓库；
 - **升级数据库**：代码合并以后，对已有的数据库执行迁移和种子（`pnpm db:migrate` → `pnpm db:seed`），见[部署](/guide/deploy)。
 
+## 升级到 v1.16.0
+
+本版新增聊天、消息、成员、表情与通话等存储结构，以及 App 会话相关配置。合并代码后先备份，再执行冻结安装、构建、`pnpm db:migrate` → `pnpm db:seed`，**不要重置已有数据库**；使用移动端时也要安装 `mobile/` 的独立依赖。
+
+- `APP_IM` 和 `im.call.enabled` 默认关闭；种子和表结构会照常安装，启用前核对[租户套餐、员工范围和保留参数](/features/im#启用)。
+- Web/H5 缓存使用 IndexedDB，App 使用 SQLite。恢复备份或重置数据库后，由超级管理员通过参数管理把 `im.sync.epoch` 改成新值；普通发版不要随意改它。
+- App 长期会话和单 App 会话属于认证功能，不受聊天开关控制。`auth.mobile.session_days` 默认 `0`，`auth.app.single_session` 默认开；旧 App 没声明端类型时沿用原期限规则，需配套升级客户端。见[App 会话](/core/mobile#app-长期会话与单-app-会话)。
+- App 新增 SQLite、Record 和 `qw-livekit` 原生能力，必须重新编译整包或自定义基座，填写自己的标识、签名和 HTTPS API 地址。wgt 不能向旧包添加原生模块。
+- 语音消息可独立使用；实时通话须另行部署 LiveKit v1.13.11，保持禁止自动建房、配置 TURN 和仅服务端保存的控制密钥，再打开通话参数。见[LiveKit 接入](/core/livekit)。
+- 本版不附第三方 SDK 二进制和签名 App 包；宿主安装、真实服务和硬件媒体未验收，Android 传递依赖分发许可仍待澄清。不要把原生编译或模拟器结果写成最终包可直接发布。
+- 公开组合仍只含基础办公申请与审批，私有完整办公业务不在本版范围；小程序聊天、离线推送和后台来电也未实施。
+
+详细变化见 [v1.16.0 更新日志](/changelog#_1-16-0-·-2026-11-09) · [公开源码提交](https://github.com/732124645/qiwu-vue-admin/commit/0c0c2b6bd1b3b7dd117dde4752c8b56f987877f5)。
+正式发布：[v1.16.0](https://github.com/732124645/qiwu-vue-admin/releases/tag/v1.16.0)。
+
 ## 升级到 v1.15.0
 
 本版有新迁移，完成代码合并和检查后照常执行 `pnpm db:migrate` → `pnpm db:seed` 并重启，**不要重置数据库**。

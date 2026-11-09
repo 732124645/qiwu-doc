@@ -1,5 +1,5 @@
 ---
-description: 'Qiwu''s employee mobile app built with uni-app for WeChat mini program, Android and iOS: sign-in, Workbench, approvals, messages, WeChat alerts and app updates.'
+description: 'Qiwu employee mobile client: sign-in, approvals, messages, App/H5 chat, voice messages, foreground calls, native builds and outstanding real-service, device and redistribution checks.'
 ---
 
 # Mobile app
@@ -13,9 +13,9 @@ The mobile app is for employees only. A mobile client for members or customers i
 The mobile app is **optional**: all its code lives in the `mobile/` directory at the repository root, and you can delete the whole directory if you don't need it; see [Desktop only](#desktop-only).
 
 ::: info Current status
-Done: sign-in, Workbench, approvals (including dynamic forms), messages, the Me page, Chinese and English, light and dark themes, realtime push, new to-do WeChat alerts, app update checks, and mobile pages produced by the code generator.
+Done: sign-in, Workbench, approvals (including dynamic forms), messages, the Me page, Chinese and English, light and dark themes, realtime push, new to-do WeChat alerts, app update checks, and generated mobile pages. App/H5 also integrates [employee chat](/en/features/im), voice messages and foreground audio/video; the mini program has no chat.
 
-Automated tests cover unit logic, H5 end-to-end flows, app and mini program builds, and mini program package-size checks, including basic office approvals. Real-device and app-store acceptance remain deployment checks. Native clocking and its earlier test results belong to the v1.10.0 historical capability; they do not ship in the v1.11.0 public composition.
+Automated tests include unit and H5 end-to-end tests, App source builds, mini program builds and package-size checks, including basic office approvals. The calling plugin separately has real SDK compilation, UTS linking and simulator platform tests. Product host signing/install, real LiveKit/TURN, hardware media and app-store acceptance remain outstanding. Android transitive dependency redistribution is unresolved; see [App requirements](/en/features/im#app-requirements-and-acceptance). Native attendance and its older results are historical v1.10.0 capabilities and are absent from the current public composition.
 
 Still in progress: item-by-item checks on real devices, sending WeChat subscribe messages with a real AppID and real templates, app store listings, and the mini program release. Building the app and uploading the mini program on Windows have not been verified either. Before going live, work through the [Mobile development · Release checklist](/core/mobile#发布清单) (Chinese) item by item.
 :::
@@ -25,7 +25,7 @@ Still in progress: item-by-item checks on real devices, sending WeChat subscribe
 | Platform | Purpose | Differences from the other platforms |
 | --- | --- | --- |
 | WeChat mini program | Production release | WeChat sign-in is available; **New to-do WeChat alerts** can be turned on; the appearance always follows the system; attachments are picked from WeChat chat history |
-| Android app, iOS app | Production release | Checks for updates once at each start; the appearance can be changed on the **Me** page; attachments can only be images (take a photo or choose from the album) |
+| Android app, iOS app | Native packaging targets; signing/install, devices and redistribution are separate checks | Update checks and appearance switch; chat can select any allowed file, while ordinary upload controls still select pictures only; foreground calls need the native plugin |
 | H5 | Only for development, debugging and automated tests; not a production release target | No update checks; attachments use the browser's file picker |
 
 **H5** is the web version opened in a browser. During development you can debug in a desktop browser first, then check the result in WeChat DevTools and on phones; see [Mobile development · Debugging in the browser (H5)](/core/mobile#在浏览器里调试-h5) (Chinese).
@@ -39,7 +39,7 @@ The mobile app opens on the sign-in page. If you have already signed in on this 
 - **Two methods**: the **Password** and **SMS code** tabs, with the same rules as on desktop; see [Sign-in and accounts · Sign-in methods](/features/login#登录方式) (Chinese).
 - **Captcha**: as on desktop, the parameter `captcha.mode` decides whether a slider or an image captcha appears; when it is off, none appears. See [Sign-in and accounts · Captcha](/features/login#验证码) (Chinese). Tapping **Get code** to send an SMS goes through the same check first. Once the code is sent, the button counts down ("Resend in Ns").
 - **Remember username**: remembers only the username, only on this phone. The password is never saved.
-- **Staying signed in**: sign-ins on mobile always keep you signed in, for at most 7 days from sign-in; after that you sign in again. In **Monitoring → Online users**, the client of these sessions shows as "Phone".
+- **Staying signed in**: App duration follows `auth.mobile.session_days`: default `0` keeps active use signed in, with sign-in required after 400 days without opening; a positive value counts from the original sign-in. H5 remains 7 days and the mini program retains WeChat silent sign-in. One App session per account is the default; signing into another App ends the old session and clears its chat cache. See [App sessions](/core/mobile#app-长期会话与单-app-会话) (Chinese).
 - **Password change required**: if the account still uses its initial password or the password has expired, after sign-in you can only stay on the **Change password** page. The page explains why, and you can also **Sign out**. You reach the Workbench only after changing the password.
 - **No sign-up or password reset**: use the desktop for those.
 - **Footer**: the language switcher on the left; the version, **Privacy** and **Terms** on the right.
@@ -187,6 +187,14 @@ The **Messages** tab:
 - Tap an inbox message to open the **Message** page, which also marks it as read. Inbox messages are plain text with their line breaks kept; bulletin details show rich text that was sanitized when it was saved.
 
 Bulletins are published on desktop in **System → Message center → Bulletins**; inbox messages are sent by the system's various features. See [Message center](/features/messaging) (Chinese).
+
+## Employee chat, voice messages and calls
+
+With `APP_IM=true` and Chat included in the tenant package, the app's Messages tab adds a Chat / Notifications switch. Its badge combines inbox and chat unread counts. Employees can find colleagues in the tenant directory, start direct/group chat and send text, pictures, allowed files, stickers and voice messages. See [Employee chat and calls](/en/features/im). The mini program has no chat entry.
+
+Voice messages use the existing attachment service and need no LiveKit service. Realtime calls additionally need `im.call.enabled` and a deployed/configured [LiveKit/TURN service](/en/core/livekit); none is preconfigured. Calls are foreground-only. Backgrounding, signing out or losing page ownership stops media; returning does not automatically open a microphone or answer. There is no lock-screen answering or offline push.
+
+The app uses SQLite, native recording and `qw-livekit`. Rebuild a native package or custom debugging base, then sign/install it with your own application identifiers and credentials; a wgt-only update cannot add native capabilities to an old package. Compilation and simulator tests do not establish target-device acceptance, and Android dependency licensing must be clarified before distribution. See [Mobile development](/core/mobile#聊天语音与原生通话) (Chinese).
 
 ## Me
 

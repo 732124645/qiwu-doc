@@ -22,6 +22,7 @@ For the status of each item, see [Introduction · Features at a glance](/en/guid
 | [Monitoring and logs](/features/monitor) (Chinese) | Server, MySQL, Redis and job queue monitoring; action log, sign-in log, API access and error logs |
 | [Scheduled tasks](/features/job) (Chinese) | Visual cron editor, misfire policy, retries, timeouts, run log, plus built-in system tasks |
 | [Message center](/features/messaging) (Chinese) | Inbox messages, email, SMS, WeChat subscribe messages, multilingual message templates, send records |
+| [Employee chat and calls](/en/features/im) | Direct/group chat, voice messages and foreground calls; off by default, with real-service, hardware and native redistribution acceptance outstanding |
 | [File management](/features/storage) (Chinese) | Local or S3 storage, direct browser upload, public and private files |
 
 ## Developer tools
@@ -38,7 +39,7 @@ For the status of each item, see [Introduction · Features at a glance](/en/guid
 | --- | --- |
 | [Workflow](/en/features/workflow) | Draw processes in the tree or BPMN designer, no-code approvals, dynamic forms, automatic timeout handling, approval data |
 | [Office requests](/en/features/oa) | Leave, travel, expenses, seal use and general forms; shared approval center, private files/notices and basic mobile handling |
-| [Attendance (historical)](/en/features/attendance) | Publicly released in v1.10.0; not included in the current v1.15.0 public composition |
+| [Attendance (historical)](/en/features/attendance) | Publicly released in v1.10.0; not included in the current v1.16.0 public composition |
 
 ## Mobile
 

@@ -6,6 +6,29 @@ description: '栖梧版本说明与升级步骤：OA 办公、原生考勤、智
 
 这里记录栖梧每个正式版本的变化。现在有哪些功能、各项的完成情况，见[介绍 · 功能一览](/guide/introduction#功能一览)。
 
+## 1.16.0 · 2026-11-09
+
+员工聊天、语音消息与前台音视频接入。公开版本：[源码提交](https://github.com/732124645/qiwu-vue-admin/commit/0c0c2b6bd1b3b7dd117dde4752c8b56f987877f5)。
+正式发布：[v1.16.0](https://github.com/732124645/qiwu-vue-admin/releases/tag/v1.16.0)。
+
+- 新增[员工聊天](/features/im)：PC Web 与 App/H5 私聊、群聊和员工通讯录，文字、emoji、图片、文件、内置与个人表情，编辑、撤回、读位置和未读数。只面向租户内启用的员工，`APP_IM` 默认关闭，开启多租户时受套餐控制。
+- 本地优先缓存：Web/H5 使用 IndexedDB，App 使用 SQLite；缓存按服务、租户、账号和同步时期隔离。发送队列持久保存，退出、被踢和换账号清理，会话过期只锁定。
+- 语音消息：Web/H5 复用 recorder-core，App 复用系统录音，上传 WAV 并由服务端读取实际格式、时长和大小；语音独立于 LiveKit。失败语音随持久队列恢复、重试和清理。
+- 前台音视频：一对一和最多 8 人的小群，接听、拒绝、静音、摄像头、镜头切换、扬声器偏好和挂断。使用官方 LiveKit SDK，App 通过 `qw-livekit` UTS API 和 nvue 原生视频组件接入；[自托管接入](/core/livekit)可配置，`im.call.enabled` 默认关闭。
+- App 长期会话：`auth.mobile.session_days` 默认 `0`，使用时保持登录，连续 400 天未打开需要重登；默认单 App 会话，另一台 App 登录结束旧会话并清除聊天缓存。Web、H5 和小程序原期限规则保留。
+- 公开组合继续只提供[基础办公申请和审批](/features/oa)，不包含完整协作、会议、知识、资产车辆或员工服务等私有办公能力。
+
+本版发布自有源码、依赖坐标和声明，不附第三方 SDK 二进制或已签名的 Android/iOS 安装包。双平台插件有原生编译/链接和模拟器测试记录；产品宿主签名安装、真实 LiveKit/TURN、Android/iPhone 硬件媒体仍未验收。Android `android-jain-sip-ri:1.3.0-91` 的版本特定分发许可仍待[上游澄清](https://github.com/livekit/client-sdk-android/issues/1048)，不能把源码发布写成最终 App 可分发验收完成。
+
+升级步骤：
+
+1. 备份现有数据库和文件。更新代码后执行 `pnpm i --frozen-lockfile`，有移动端时再执行 `pnpm -C mobile install --frozen-lockfile`，然后 `pnpm -r build` → `pnpm db:migrate` → `pnpm db:seed`，不要用 `db:reset` 升级。
+2. 保持聊天和通话默认关闭，先核对租户套餐与聊天保留参数，再按[员工聊天](/features/im#启用)启用。恢复备份或重置后，按文档更新同步时期，避免复用旧缓存。
+3. App 必须重编原生整包或自定义基座，填写自己的标识、证书和 API 地址；仅更新 wgt 无法加入 SQLite、Record 和通话插件。
+4. 通话另行部署 LiveKit v1.13.11，保持 `room.auto_create: false`，配置 HTTPS/WSS/TURN 和仅服务端保存的密钥，完成[真实服务验收](/core/livekit#接入验收)。小程序聊天、App 离线推送和后台来电没有实施。
+
+更多步骤见[升级模板版本](/guide/upgrade#升级到-v1-16-0)。
+
 ## 1.15.0 · 2026-10-30
 
 运维版本：进程角色拆分、连接池设置、卡顿诊断、模型提供方并发上限。公开版本：[源码提交](https://github.com/732124645/qiwu-vue-admin/commit/a0be38c5c88d2cd5d67b2cc50ac6dc872ccd89ce)。

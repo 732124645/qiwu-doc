@@ -12,10 +12,12 @@ To learn why I built this project, see [Project story](/en/guide/story).
 
 ::: info Current status
 
-v1.15.0 is an operations release: the new `APP_ROLE` setting moves scheduled tasks and queues into a separate worker process; the database pool is tunable and returns "service busy" when connections run out; the server monitor shows event-loop delay, which together with slow-request marking and the scheduler log helps trace stalls; [assistant](/en/features/agent#models) model providers can set a concurrency limit; and startup warns about keys repeated in `.env` and `.env.local`. Every new setting defaults to the old behaviour. See the [v1.15.0 changelog](/en/changelog#_1-15-0-·-2026-10-30) · [public source commit](https://github.com/732124645/qiwu-vue-admin/commit/a0be38c5c88d2cd5d67b2cc50ac6dc872ccd89ce).
-Release: [v1.15.0](https://github.com/732124645/qiwu-vue-admin/releases/tag/v1.15.0).
+v1.16.0 adds [employee chat, voice messages and foreground calls](/en/features/im) on desktop Web and App/H5. Realtime calls use a configurable self-hosted LiveKit service, with at most 8 group participants including the caller. Both `APP_IM` and `im.call.enabled` default to off. App sessions add long-duration and single-App-session rules. See the [v1.16.0 changelog](/en/changelog#_1-16-0-·-2026-11-09) · [public source commit](https://github.com/732124645/qiwu-vue-admin/commit/0c0c2b6bd1b3b7dd117dde4752c8b56f987877f5).
+Release: [v1.16.0](https://github.com/732124645/qiwu-vue-admin/releases/tag/v1.16.0).
 
-The current public composition offers [basic office requests and approvals](/en/features/oa): leave, travel, expenses, seal use and general requests, with required attachments, notices and basic mobile handling. Native attendance and office assistant application tools were publicly released in v1.10.0 but do not ship in the current v1.15.0 composition. Their [historical reference](/en/features/attendance) and old tags remain. Complete collaboration, meeting, knowledge and supplies business features are outside this public distribution.
+This release provides project-owned source, dependency coordinates and integration instructions, without third-party SDK binaries or signed application packages. Plugin compilation and simulator tests have evidence; real LiveKit/TURN, host signing/install and Android/iPhone hardware media remain unaccepted. One Android transitive dependency still awaits redistribution-license clarification; see [App requirements](/en/features/im#app-requirements-and-acceptance). Mini program chat and App offline push are not implemented.
+
+The current public composition offers [basic office requests and approvals](/en/features/oa): leave, travel, expenses, seal use and general requests, with required attachments, notices and basic mobile handling. Native attendance and office assistant application tools were publicly released in v1.10.0 but do not ship in the current v1.16.0 composition. Their [historical reference](/en/features/attendance) and old tags remain. Complete collaboration, meeting, knowledge and supplies business features are outside this public distribution.
 
 Qiwu is open source under the **MIT license**. The tables below cover sign-in, permissions, multi-tenancy, code generation, workflows, messaging, files and the general assistant. Mobile builds and local debugging are available; real-device, app-store, SMTP and S3 acceptance still belongs to the deployment owner. See the [Changelog](/en/changelog) for version history.
 :::
@@ -156,7 +158,8 @@ For details on each feature, see the [Features overview](/en/features/).
 | [Assistant](/en/features/agent) (floating chat: credit rates and actual-usage details, models over OpenAI-compatible APIs, web search, external MCP servers, skills, human confirmation before changes by default, batch runs on the rows selected in a list; automations, profiles, memory, automatic review, deep research and charts; off by default) | ✅ |
 | Mobile app (uni-app: WeChat mini program, Android, iOS; sign-in, Workbench, messages, approvals (including dynamic forms), realtime push, WeChat subscribe message reminders and app update checks are done, with light and dark themes; checks on real devices before release are still in progress) | 🚧 |
 | Other third-party sign-in (GitHub, DingTalk, WeCom, Feishu (Lark), WeChat QR code, etc.) | ⏸ |
-| Instant messaging (one-to-one chat, group chat, staff directory), offline push for the app | ⏸ |
+| [Employee chat and calls](/en/features/im) (direct/group chat, directory, text/pictures/files/stickers/voice; foreground calls up to 8 participants) | Source and engineering checks complete; real media, devices and native redistribution acceptance outstanding |
+| Mini program chat, App offline push and background answering | ⏸ |
 
 ## Disclaimer
 

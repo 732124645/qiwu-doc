@@ -6,6 +6,29 @@ description: 'Qiwu release notes and upgrade steps for office requests, native a
 
 This page records the changes in each Qiwu release. For the current features and the status of each one, see [Introduction · Features at a glance](/en/guide/introduction#features-at-a-glance).
 
+## 1.16.0 · 2026-11-09
+
+Employee chat, voice messages and foreground audio/video integration. See the [public source commit](https://github.com/732124645/qiwu-vue-admin/commit/0c0c2b6bd1b3b7dd117dde4752c8b56f987877f5).
+Release: [v1.16.0](https://github.com/732124645/qiwu-vue-admin/releases/tag/v1.16.0).
+
+- [Employee chat](/en/features/im) on desktop Web and App/H5: direct/group rooms and a tenant staff directory; text, emoji, pictures, files, built-in/personal stickers, edit/recall, read positions and unread counts. Active employees only; `APP_IM` defaults to off, and tenant packages control access with multi-tenancy enabled.
+- Local-first caching: IndexedDB on Web/H5 and SQLite in the app, isolated by service, tenant, account and synchronization epoch. The outbox persists; sign-out, kicks and account changes clear data, while expiration locks it.
+- Voice messages: recorder-core for Web/H5, system recording for the app, WAV uploads with server-derived format/duration/size. No LiveKit service is needed for voice messages. Files persist with retryable outgoing messages and are cleaned up after success, expiry or discard.
+- Foreground calls: one-to-one and small groups up to 8 participants, acceptance/rejection, mute, camera controls, camera switching, speaker preference and hang-up. Official LiveKit SDKs, with `qw-livekit` UTS API and nvue native video components in the app. [Self-hosted service configuration](/en/core/livekit) is configurable; `im.call.enabled` defaults to off.
+- Long App sessions: `auth.mobile.session_days` defaults to `0`, retaining active use and requiring sign-in after 400 days without opening. Single-App-session is the default; another App sign-in ends the old session and clears its chat cache. Existing Web, H5 and mini program duration rules remain.
+- The public composition retains only [basic office requests and approvals](/en/features/oa), without private collaboration, meeting, knowledge, asset/vehicle or employee-service capabilities.
+
+This is a project-owned source release with dependency coordinates and notices, without third-party SDK binaries or signed Android/iOS packages. Native compilation/linking and simulator tests have evidence; host signing/install, a real LiveKit/TURN service and Android/iPhone hardware media remain unaccepted. The version-specific redistribution grant for Android `android-jain-sip-ri:1.3.0-91` awaits [upstream clarification](https://github.com/livekit/client-sdk-android/issues/1048). Source publication does not establish final App distribution readiness.
+
+Upgrade steps:
+
+1. Back up the database and files. After updating source, run `pnpm i --frozen-lockfile`, then `pnpm -C mobile install --frozen-lockfile` if using mobile, followed by `pnpm -r build` → `pnpm db:migrate` → `pnpm db:seed`. Do not upgrade with `db:reset`.
+2. Keep chat/calls off initially, review tenant packages and chat-retention parameters, then [enable chat](/en/features/im#enable-chat). After restoring or resetting a database, update the synchronization epoch as documented to avoid reusing old caches.
+3. Rebuild the app's native package or custom base with your identifiers, signing credentials and API URL. A wgt-only update cannot add SQLite, Record or the calling plugin.
+4. Deploy LiveKit v1.13.11 separately, retain `room.auto_create: false`, configure HTTPS/WSS/TURN and server-only keys, and complete [real-service acceptance](/en/core/livekit#acceptance). Mini program chat, App offline push and background answering are not implemented.
+
+For further upgrade instructions, see [Upgrading the template](/guide/upgrade#升级到-v1-16-0) (Chinese).
+
 ## 1.15.0 · 2026-10-30
 
 Operations release: process roles, database pool settings, stall diagnostics and a model provider concurrency limit. See the [public source commit](https://github.com/732124645/qiwu-vue-admin/commit/a0be38c5c88d2cd5d67b2cc50ac6dc872ccd89ce).

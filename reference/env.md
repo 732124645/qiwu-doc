@@ -35,11 +35,17 @@ description: '服务端 .env、.env.local 的分工和加载顺序，账号密�
 
 `STORAGE_LOCAL_ROOT` 是本地存储根目录（默认 `./data/upload`）；`CODEGEN_WRITE` 决定生成器能否写仓库，只在开发环境生效；`APP_DEMO_MODE` 见[部署 · 演示模式](/guide/deploy#演示模式)；`APP_MULTI_TENANT` 是多租户开关（默认 `false`，只在启动时读取），打开和关闭的步骤见[部署 · 打开或关闭多租户](/guide/deploy#打开或关闭多租户)；`APP_WXOA` 是[微信公众号](/features/wxoa)模块的开关（默认 `false`，只在启动时读取，改完要重启），见[部署 · 公众号模块](/guide/deploy#公众号模块)；`APP_MCP` 是 [MCP 智能体接入](/features/mcp)的开关（默认 `false`，只在启动时读取，改完要重启），见[部署 · 智能体接入](/guide/deploy#智能体接入-mcp)；`APP_AGENT` 是[智能助手](/features/agent)的开关（默认 `false`，只在启动时读取，改完要重启），模型和搜索服务的密钥不放在环境变量里，而是在后台页面填写，见[部署 · 智能助手](/guide/deploy#智能助手)；`SEED_ADMIN_PASSWORD` 只写 `.env.local`，第一次创建 `admin` 时使用，不设置时 `db:seed` 随机生成并只打印一次。
 
+## 员工聊天与媒体
+
+`APP_IM` 默认 `false`，只在启动时读取；聊天还受租户套餐控制，见[员工聊天](/features/im)。语音消息不需要 LiveKit。实时通话另外要求系统参数 `im.call.enabled=true`，以及 `IM_LIVEKIT_URL`（WSS 源）、`IM_LIVEKIT_API_URL`（HTTPS 控制源）、仅服务端保存的 `IM_LIVEKIT_API_KEY` / `IM_LIVEKIT_API_SECRET`。
+
+密钥只写 `.env.local` 或受保护环境变量，不进入 `.env`、`VITE_*`、App manifest 或前端包。非默认公网控制端口显式登记在 `OUTBOUND_LIVEKIT_PORTS`；生产不要全局放开私网目标。完整配置、TURN、端口和代理日志要求见[LiveKit 部署](/core/livekit)。
+
 ## 前端
 
 前端的环境变量**不能放任何密钥**，因为它们会被打包进浏览器代码里。
 
-`VITE_APP_TITLE` 是系统名称，显示在浏览器标签、侧栏和登录页，写在 `apps/web/.env.development` 和 `.env.production`；`CSP_CONNECT_SRC` 只在用 S3 时构建前端用，见[仓库部署文档](https://github.com/732124645/qiwu-vue-admin/blob/main/docs/deploy.md#文件存储s3-直传与私有下载)；`API_PROXY_TARGET` 是启动 Vite 时的进程变量，不写进 `.env`，见[仓库](https://github.com/732124645/qiwu-vue-admin/blob/main/docs/new-project.md#与模板同时运行)。
+`VITE_APP_TITLE` 是系统名称，显示在浏览器标签、侧栏和登录页，写在 `apps/web/.env.development` 和 `.env.production`；`CSP_CONNECT_SRC` 在接入 S3 或 LiveKit 时于前端构建前设置允许连接的源，媒体说明见[LiveKit](/core/livekit#反向代理和-csp)，S3 见[仓库部署文档](https://github.com/732124645/qiwu-vue-admin/blob/main/docs/deploy.md#文件存储s3-直传与私有下载)；`API_PROXY_TARGET` 是启动 Vite 时的进程变量，不写进 `.env`，见[仓库](https://github.com/732124645/qiwu-vue-admin/blob/main/docs/new-project.md#与模板同时运行)。
 
 前端请求接口固定走同源的 `/api`，没有单独的接口地址配置。
 
