@@ -117,7 +117,7 @@ With the switch on, **System** gets two more pages:
 
 The buttons of both pages are granted in **System → Roles → Menu permissions**: MCP tools has browse and modify, Access tokens has browse and revoke. The **Access tokens** tab in My profile is available to every signed-in user without a grant.
 
-Since v1.9.1, registered tool names and purpose descriptions, and known permission names, follow the page language. Identifiers remain available for reference, and the personal access token selector uses readable tool names too. Unknown tools and permissions keep their original text. The display does not change the identifiers, arguments or permission checks used by `tools/list` and `tools/call`.
+Registered tool names and purpose descriptions, and known permission names, follow the page language. Identifiers remain available for reference, and the personal access token selector uses readable tool names too. Unknown tools and permissions keep their original text. The display does not change the identifiers, arguments or permission checks used by `tools/list` and `tools/call`.
 
 ## Configuring a client
 

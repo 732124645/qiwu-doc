@@ -114,4 +114,4 @@ location /rtc {
 
 当前这些现场结果仍未验收。故障网络下不承诺远端媒体瞬时撤销；单元测试和数据库状态不能代替真实服务检查。
 
-进一步说明：[员工聊天与通话](/features/im) · [移动端开发](/core/mobile) · [源码配置说明](https://github.com/732124645/qiwu-vue-admin/blob/v1.16.0/docs/livekit.md)。
+进一步说明：[员工聊天与通话](/features/im) · [移动端开发](/core/mobile) · [源码配置说明](https://github.com/732124645/qiwu-vue-admin/blob/v1.17.0/docs/livekit.md)。

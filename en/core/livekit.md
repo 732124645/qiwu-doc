@@ -114,4 +114,4 @@ Complete these checks in your environment and retain the outcomes:
 
 These on-site results remain unaccepted. Instant remote-media revocation is not promised during a network outage. Unit tests and database state do not replace real-service checks.
 
-Further reading: [Employee chat and calls](/en/features/im) · [Mobile development](/core/mobile) (Chinese) · [Source configuration guide](https://github.com/732124645/qiwu-vue-admin/blob/v1.16.0/docs/livekit.md) (Chinese).
+Further reading: [Employee chat and calls](/en/features/im) · [Mobile development](/core/mobile) (Chinese) · [Source configuration guide](https://github.com/732124645/qiwu-vue-admin/blob/v1.17.0/docs/livekit.md) (Chinese).

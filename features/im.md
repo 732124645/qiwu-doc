@@ -83,7 +83,7 @@ description: '栖梧的员工即时通讯：私聊、群聊、通讯录、文字
 | `im.voice.max_mb` | `5` | 语音大小上限，允许 `1–20`，同时受存储上限约束 |
 | `im.call.enabled` | `false` | 允许新通话；还须配置 LiveKit，关闭后仍清理已有通话 |
 
-恢复数据库前先备份，并按[源码中的保留与恢复说明](https://github.com/732124645/qiwu-vue-admin/blob/v1.16.0/docs/im.md#保留与恢复)处理同步时期。不要通过 `db:reset` 升级生产库。
+恢复数据库前先备份，并按[源码中的保留与恢复说明](https://github.com/732124645/qiwu-vue-admin/blob/v1.17.0/docs/im.md#保留与恢复)处理同步时期。不要通过 `db:reset` 升级生产库。
 
 ## App 要求与验收
 
@@ -95,4 +95,4 @@ description: '栖梧的员工即时通讯：私聊、群聊、通讯录、文字
 
 部署后用 Android 和 iPhone 核对：录音互播、权限拒绝、扬声器/耳机、镜头切换、系统中断、退出/后台停止，以及 Wi-Fi、蜂窝和禁 UDP 网络下的 TURN。真实服务还要验证房间删除后旧凭据不能重新进入。当前没有这些现场通过记录。
 
-更多开发说明：[移动端开发](/core/mobile) · [LiveKit 部署](/core/livekit) · [原生插件源码与说明](https://github.com/732124645/qiwu-vue-admin/tree/v1.16.0/mobile/src/uni_modules/qw-livekit)。
+更多开发说明：[移动端开发](/core/mobile) · [LiveKit 部署](/core/livekit) · [原生插件源码与说明](https://github.com/732124645/qiwu-vue-admin/tree/v1.17.0/mobile/src/uni_modules/qw-livekit)。

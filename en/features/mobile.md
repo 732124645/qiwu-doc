@@ -15,7 +15,7 @@ The mobile app is **optional**: all its code lives in the `mobile/` directory at
 ::: info Current status
 Done: sign-in, Workbench, approvals (including dynamic forms), messages, the Me page, Chinese and English, light and dark themes, realtime push, new to-do WeChat alerts, app update checks, and generated mobile pages. App/H5 also integrates [employee chat](/en/features/im), voice messages and foreground audio/video; the mini program has no chat.
 
-Automated tests include unit and H5 end-to-end tests, App source builds, mini program builds and package-size checks, including basic office approvals. The calling plugin separately has real SDK compilation, UTS linking and simulator platform tests. Product host signing/install, real LiveKit/TURN, hardware media and app-store acceptance remain outstanding. Android transitive dependency redistribution is unresolved; see [App requirements](/en/features/im#app-requirements-and-acceptance). Native attendance and its older results are historical v1.10.0 capabilities and are absent from the current public composition.
+Automated tests include unit and H5 end-to-end tests, App source builds, mini program builds and package-size checks, including basic office approvals. The calling plugin separately has real SDK compilation, UTS linking and simulator platform tests. Product host signing/install, real LiveKit/TURN, hardware media and app-store acceptance remain outstanding. Android transitive dependency redistribution is unresolved; see [App requirements](/en/features/im#app-requirements-and-acceptance). The current public version does not include attendance (clock-in/out).
 
 Still in progress: item-by-item checks on real devices, sending WeChat subscribe messages with a real AppID and real templates, app store listings, and the mini program release. Building the app and uploading the mini program on Windows have not been verified either. Before going live, work through the [Mobile development · Release checklist](/core/mobile#发布清单) (Chinese) item by item.
 :::
@@ -171,10 +171,6 @@ For which components are read-only and which validation rules the phone does not
 
 Picking people for transfers, delegation, adding signers, copying to others and starting a process always opens a people picker in a bottom sheet. It lists all enabled users, you can search by name, and with multiple selection the confirm button shows how many people are selected. Picking a department also uses a bottom sheet, and you can pick a department at any level.
 
-## Native clocking
-
-This capability was publicly released in v1.10.0 and **does not ship in the v1.11.0 public composition**. See the [historical attendance reference](/en/features/attendance) for the old Workbench entry, location policy and duplicate protection. Historical builds and H5 results do not establish real-device location or on-site acceptance.
-
 ## Messages
 
 ![Mobile Messages tab](/screenshots/en-mobile-messages.webp)
@@ -194,7 +190,7 @@ With `APP_IM=true` and Chat included in the tenant package, the app's Messages t
 
 Voice messages use the existing attachment service and need no LiveKit service. Realtime calls additionally need `im.call.enabled` and a deployed/configured [LiveKit/TURN service](/en/core/livekit); none is preconfigured. Calls are foreground-only. Backgrounding, signing out or losing page ownership stops media; returning does not automatically open a microphone or answer. There is no lock-screen answering or offline push.
 
-The app uses SQLite, native recording and `qw-livekit`. Rebuild a native package or custom debugging base, then sign/install it with your own application identifiers and credentials; a wgt-only update cannot add native capabilities to an old package. Compilation and simulator tests do not establish target-device acceptance, and Android dependency licensing must be clarified before distribution. See [Mobile development](/core/mobile#聊天语音与原生通话) (Chinese).
+The app uses SQLite, native recording and `qw-livekit`. Rebuild a native package or custom debugging base, then sign/install it with your own application identifiers and credentials; a wgt-only update cannot add native capabilities to an old package. Compilation and simulator tests do not establish target-device acceptance, and Android dependency licensing must be clarified before distribution. See [Mobile development](/core/mobile#聊天、语音与原生通话) (Chinese).
 
 ## Me
 

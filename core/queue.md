@@ -105,6 +105,6 @@ async requestBuild(reportId: number) {
 - [组成](https://github.com/732124645/qiwu-vue-admin/blob/main/docs/queue.md#组成)：各部分的位置和连接方式；
 - [添加队列与处理器](https://github.com/732124645/qiwu-vue-admin/blob/main/docs/queue.md#添加队列与处理器)：完整示例和自定义 id 的规则；
 - [租户规则](https://github.com/732124645/qiwu-vue-admin/blob/main/docs/queue.md#租户规则)、[重试与保留](https://github.com/732124645/qiwu-vue-admin/blob/main/docs/queue.md#重试与保留)；
-- [每个实例都运行处理器](https://github.com/732124645/qiwu-vue-admin/blob/main/docs/queue.md#每个实例都运行处理器)：并发和优雅关闭；
+- [哪些实例运行处理器](https://github.com/732124645/qiwu-vue-admin/blob/main/docs/queue.md#哪些实例运行处理器)：并发和优雅关闭；
 - [队列监控页](https://github.com/732124645/qiwu-vue-admin/blob/main/docs/queue.md#队列监控页)、[Redis 要求](https://github.com/732124645/qiwu-vue-admin/blob/main/docs/queue.md#redis-要求)；
 - [设计说明 · 任务队列](https://github.com/732124645/qiwu-vue-admin/blob/main/docs/design-notes.md#queue)：为什么这样设计。

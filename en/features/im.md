@@ -83,7 +83,7 @@ Change these in System → Parameters:
 | `im.voice.max_mb` | `5` | Voice size limit, `1–20`, also bounded by storage configuration |
 | `im.call.enabled` | `false` | Allow new calls; LiveKit configuration is also required; disabling does not stop cleanup |
 
-Back up before restoring a database and follow the [source retention/recovery guide](https://github.com/732124645/qiwu-vue-admin/blob/v1.16.0/docs/im.md#保留与恢复) (Chinese) for the synchronization epoch. Do not use `db:reset` to upgrade a production database.
+Back up before restoring a database and follow the [source retention/recovery guide](https://github.com/732124645/qiwu-vue-admin/blob/v1.17.0/docs/im.md#保留与恢复) (Chinese) for the synchronization epoch. Do not use `db:reset` to upgrade a production database.
 
 ## App requirements and acceptance
 
@@ -95,4 +95,4 @@ Back up before restoring a database and follow the [source retention/recovery gu
 
 After deployment, use Android and iPhone devices to check voice-message exchange, denied permissions, speaker/headset routes, camera switching, interruptions, sign-out/background cleanup, Wi-Fi, cellular and TURN with UDP blocked. Also prove that old credentials cannot reconnect after a room is deleted. There are no recorded on-site passes for these checks yet.
 
-Further reading: [Mobile development](/core/mobile) (Chinese) · [LiveKit deployment](/en/core/livekit) · [Native plugin source and guide](https://github.com/732124645/qiwu-vue-admin/tree/v1.16.0/mobile/src/uni_modules/qw-livekit).
+Further reading: [Mobile development](/core/mobile) (Chinese) · [LiveKit deployment](/en/core/livekit) · [Native plugin source and guide](https://github.com/732124645/qiwu-vue-admin/tree/v1.17.0/mobile/src/uni_modules/qw-livekit).

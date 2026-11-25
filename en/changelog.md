@@ -1,15 +1,44 @@
 ---
-description: 'Qiwu release notes and upgrade steps for office requests, native attendance, the assistant, workflow, mobile, multi-tenancy and security.'
+description: 'Qiwu release notes and upgrade steps for office requests, employee chat, workflow, mobile, multi-tenancy, MCP access and security; 1.8.0 to 1.16.0 are withdrawn and included in 1.17.0.'
 ---
 
 # Changelog
 
-This page records the changes in each Qiwu release. For the current features and the status of each one, see [Introduction · Features at a glance](/en/guide/introduction#features-at-a-glance).
+This page records the changes in each Qiwu release. Versions 1.8.0 to 1.16.0 have been withdrawn from the public repository; their entries are kept and marked withdrawn, and their changes other than the in-app assistant are included in [1.17.0](#_1-17-0-·-2026-11-25). For the current features and the status of each one, see [Introduction · Features at a glance](/en/guide/introduction#features-at-a-glance).
+
+## 1.17.0 · 2026-11-25
+
+Removes the in-app assistant; the changes of the withdrawn 1.8.0 to 1.16.0 other than the assistant are included in this release.
+Release: [v1.17.0](https://github.com/732124645/qiwu-vue-admin/releases/tag/v1.17.0).
+
+Versions 1.8.0 to 1.16.0 have been withdrawn from the public repository and their tags and releases deleted. Their entries below are kept and marked withdrawn, with the assistant-only items removed. Coming from 1.7.1, read them as part of this release: basic office requests, operations (process roles, pool settings, stall diagnostics, configuration visibility), employee chat with audio/video calls, and several fixes.
+
+Removed:
+
+- **The in-app assistant, as a whole**: the `APP_AGENT` switch, every `/api/agent/*` route, the **Agent** menu group with its pages, the assistant's seeds (including the customer sample's enrichment skill), the assistant documentation in the repository, and the recipes `agent-skill` / `agent-extension` with their skills `qiwu-agent-skill` / `qiwu-agent-extension`.
+- [MCP agent access](/en/features/mcp) (`APP_MCP`) stays: its routes, guards and the modules' tools are unchanged for external clients.
+
+Breaking changes for projects built on the template:
+
+- `@McpTool` no longer accepts `preview`, `highRisk`, `perCallConfirmation` or `confirmationRevision`; `MCP_CONFIRMATION_REVISION` and `ToolExecutionContext` are gone and a tool method receives only its validated input. `ToolHost` keeps the MCP path only, and `@AgentBatchTarget` is removed.
+- The personal inbox routes no longer return the `action` field on an item.
+- The B8xxx error codes (`Err.AGENT_*`) are removed; the range stays unused.
+- Removed from the server core: `AuditWriter.onAction` (with `ActionHeard`), `ParamService.onInvalidate`, `maskSecrets` (the other redaction helpers stay), `StorageService.putAgentImage` (with `AGENT_IMAGE_TAG`), the `agent*` entries of `CACHE_NAMESPACES`, the `APP_AGENT` key of the env schema, `MENU_FEATURES` and `GRANT_SWITCHES`. The `cfg_mcp_tool.agent_policy` column is no longer mapped.
+- Removed from `@qiwu/shared`: the agent schemas and their exports (`platform/agent/*`), the agent i18n modules and seed strings, `DEMO_CUSTOMER_TARGET` / `DEMO_CUSTOMER_ENRICH_SKILL`, the realtime event `RT.agentEvent` (`agent:event`), `agent` from `BUILTIN_MENU_GROUPS` and `agent-setting` from `PLATFORM_ONLY_ROUTES`.
+- Dependencies: the server no longer depends on `openai`, the web no longer on `marked`. A project that imports either directly adds it to its own `package.json`.
+
+Upgrade steps:
+
+1. Run migrations and seeds as usual, **migrating before restarting** every instance. The migration `20261125040531-agent-retire` acts only on a database upgraded from a release with the assistant: it soft-deletes its menus, their role and tenant package grants, the `agent.*` system parameters and the assistant's inbox and mail templates. The assistant's tables and their rows are kept, never dropped; remove them yourself only after a backup and when nothing of yours reads them.
+2. `APP_AGENT` can be deleted from `.env`; left there it is ignored (the env schema drops unknown keys).
+3. Old assistant queues and keys left in Redis do not affect the application. After every old instance has stopped, they can be removed with `SCAN` + `UNLINK` (never `KEYS` or `FLUSHDB`); see [Upgrading the template](/guide/upgrade#升级到-v1-17-0) (Chinese) for the commands.
+4. Coming from 1.7.1, the upgrade steps of 1.10.0 to 1.16.0 below apply as well; new modules such as employee chat and calls stay off by default.
+5. Projects that merged a 1.8.0 to 1.16.0 tag: the public history has been rewritten, and the new history shares only commits up to 1.7.1 with those tags. Merging v1.17.0 compares both sides from that common base, so the assistant code stays in the project's own branch and is not removed automatically; the merge may also raise conflicts to resolve. If you do not need the assistant, remove its directories and hook points (module registration, menu and seed registration, shared exports, dependencies) as v1.17.0 does, then run the migrations so the retirement migration handles menus, grants and parameters; or keep that code and maintain it yourself.
 
 ## 1.16.0 · 2026-11-09
 
-Employee chat, voice messages and foreground audio/video integration. See the [public source commit](https://github.com/732124645/qiwu-vue-admin/commit/0c0c2b6bd1b3b7dd117dde4752c8b56f987877f5).
-Release: [v1.16.0](https://github.com/732124645/qiwu-vue-admin/releases/tag/v1.16.0).
+Employee chat, voice messages and foreground audio/video integration.
+Withdrawn: this version's tag and release have been deleted from the public repository; the changes below are included in [v1.17.0](#_1-17-0-·-2026-11-25).
 
 - [Employee chat](/en/features/im) on desktop Web and App/H5: direct/group rooms and a tenant staff directory; text, emoji, pictures, files, built-in/personal stickers, edit/recall, read positions and unread counts. Active employees only; `APP_IM` defaults to off, and tenant packages control access with multi-tenancy enabled.
 - Local-first caching: IndexedDB on Web/H5 and SQLite in the app, isolated by service, tenant, account and synchronization epoch. The outbox persists; sign-out, kicks and account changes clear data, while expiration locks it.
@@ -31,55 +60,37 @@ For further upgrade instructions, see [Upgrading the template](/guide/upgrade#�
 
 ## 1.15.0 · 2026-10-30
 
-Operations release: process roles, database pool settings, stall diagnostics and a model provider concurrency limit. See the [public source commit](https://github.com/732124645/qiwu-vue-admin/commit/a0be38c5c88d2cd5d67b2cc50ac6dc872ccd89ce).
-Release: [v1.15.0](https://github.com/732124645/qiwu-vue-admin/releases/tag/v1.15.0).
+Operations release: process roles, database pool settings and stall diagnostics.
+Withdrawn: this version's tag and release have been deleted from the public repository; the changes below are included in [v1.17.0](#_1-17-0-·-2026-11-25).
 
 - Process roles: the new `APP_ROLE` variable takes `all`, `api` or `worker` (default `all`, identical to before). An `api` process serves pages and live pushes but runs no scheduled tasks or queue jobs; "Run once" on the task page is handed to a worker. A `worker` process runs scheduled tasks and every queue job, and its background pushes still reach browsers. The PM2 setup gains an optional worker app (`QW_PM2_WORKER_INSTANCES`, default 0 keeps the single app), and the deploy script health-checks it. See [Process roles](https://github.com/732124645/qiwu-vue-admin/blob/main/docs/scale-out.md#进程角色) (Chinese).
 - Database pool: new `DB_POOL_SIZE` (default 10), `DB_POOL_ACQUIRE_TIMEOUT_MS` and `DB_POOL_QUEUE_LIMIT` (default 0, unlimited, as before). A request that cannot get a connection in time now fails with 503 "The service is busy" instead of waiting until the browser gives up.
 - Stall diagnostics: the server monitor shows event-loop delay (p50 / p99 / max) and utilization of the instance that answered; `LOG_SLOW_REQUEST_MS` marks slow requests in the log together with the scheduled tasks running in that process; `LOG_EVENT_LOOP_INTERVAL_MS` / `LOG_EVENT_LOOP_WARN_MS` log event-loop delay periodically; the scheduler log also records the executing instance and the maximum event-loop delay during the run. All are off by default. See [Stall diagnostics](https://github.com/732124645/qiwu-vue-admin/blob/main/docs/scale-out.md#卡顿诊断) (Chinese).
-- Model provider concurrency limit: each [assistant](/en/features/agent#models) provider can set a maximum number of simultaneous calls, counted across all instances and tenants. Calls over the limit wait for a slot and show "The model is busy" after 120 seconds; calls that never got a slot are not billed.
 - Two new startup hints: a warning when the same key has different values in `.env` and `.env.local` (names only; `.env` wins), and an `effective config` line listing the non-secret settings in effect.
 - Deploy guide: every `pm2` command is shown as the application user (`sudo -u qiwu -H pm2 …`) with a hint for "Process or Namespace not found"; the nginx example enables HTTP/2; a capacity note relates PM2 instances, pool size and MySQL `max_connections`. See [deployment](https://github.com/732124645/qiwu-vue-admin/blob/main/docs/deploy.md) (Chinese).
 
 Upgrade steps:
 
-1. Run `pnpm i` → `pnpm -r build` → `pnpm db:migrate` → `pnpm db:seed` as usual. The migration only adds three nullable columns (executing instance and maximum event-loop delay on the scheduler log, concurrency limit on the model provider); old records stay empty.
+1. Run `pnpm i` → `pnpm -r build` → `pnpm db:migrate` → `pnpm db:seed` as usual. The migration adds two nullable columns to the scheduler log (executing instance and maximum event-loop delay) and one to a retired feature's table; old records stay empty.
 2. Every new environment variable defaults to the old behaviour, so leaving them unset behaves like v1.14.1. The default `all` role adds an idle `scheduler-run` queue, visible on the queue monitor page.
 3. To move background work into its own process, set `QW_PM2_WORKER_INSTANCES` as described in the [deployment guide](https://github.com/732124645/qiwu-vue-admin/blob/main/docs/deploy.md#使用-pm2-部署可选) (Chinese). Switching on and switching back both require `pm2 delete` before starting again, and at least one `all` or `worker` instance must remain, otherwise scheduled tasks and queues stop.
 
 ## 1.14.1 · 2026-10-30
 
-Bug-fix release. See the [public source commit](https://github.com/732124645/qiwu-vue-admin/commit/1eb5fcf864cee59b776dbc564ce6312d38eb7551).
-Release: [v1.14.1](https://github.com/732124645/qiwu-vue-admin/releases/tag/v1.14.1).
+Bug-fix release.
+Withdrawn: this version's tag and release have been deleted from the public repository; the changes below are included in [v1.17.0](#_1-17-0-·-2026-11-25).
 
 - Opening the sign-in page while still signed in (a bookmark, a link, the back button or a new tab) no longer asks for the password again: it goes straight to the page asked for, or home. A locked screen, an ended session or a session that failed to load still show the sign-in form.
 
 ## 1.14.0 · 2026-10-29
 
-Assistant in-place rewind, steering and tenant tool restrictions. See the [public source commit](https://github.com/732124645/qiwu-vue-admin/commit/dc00fc39857fa69630bdf8037a6083de1a6d0eb1).
-Release: [v1.14.0](https://github.com/732124645/qiwu-vue-admin/releases/tag/v1.14.0).
-
-- **Edit from here** on any sent [assistant](/en/features/agent#the-chat-page) message removes it and everything after it from the conversation and puts its text, attachments and skill back in the composer; **Regenerate** redoes the last turn and **Revert last turn** only removes. A confirmation lists the writes in the removed part that stay done or whose outcome is unknown (subtasks included); writes, extracted memories, mode changes and used credits are never undone. Newer items from another window make the request fail instead of removing what this page has not seen. Forking stays a separate action.
-- [Tenant tool restrictions](/en/features/agent#tenant-tool-restrictions): tenant administrators can set a tool to people only or off for their tenant under **Skills → Tool restrictions**. The stricter of the platform and the tenant setting applies, a tenant can never loosen one, and changes apply at the next call. They apply to the in-app assistant, not to MCP clients using a personal access token.
-- A status line under the composer shows the mode, context use (the provider's reported input when available), credits this turn and today, and the number of tools allowed for the conversation. `/status` also lists the model, profile, allowed tools and, with reasons, the tools that ask and the tools that are unavailable.
-- Approval cards say why they ask (needs confirmation, platform people only, tenant restriction, read tool set to ask, personal confirmation); blocked cards distinguish permission, mode, platform policy, tenant restriction and skill/profile tool lists.
-- Enter during a turn steers it: the message reaches the same turn as soon as the current tool call ends, and later calls of that step that would ask or write are rejected with the message as the note. **Queue for next turn** (Alt+Enter) only queues, also while cards wait.
-- Stop (Esc or the button) works with text in the composer and keeps the draft; queued messages are withdrawn and put back in the composer instead of starting. Queued or expired messages that never ran are no longer sent to the model or the review model.
-
-Upgrade steps:
-
-1. This release has new migrations. Update the code and run `pnpm i` → `pnpm -r build` → `pnpm db:migrate` → `pnpm db:seed` as usual. Never use `db:reset` to upgrade an existing database.
-2. The migration creates one tenant table (the tenant's tool restrictions); the seeds add two actions, browse / modify tool restrictions, under the skills page and add them once to tenant packages that already hold that page.
-3. Front ends or scripts that call the assistant API directly must follow the changes to the stop response, the rewind routes, the live events and the `/status` fields; see [Upgrading](/guide/upgrade) (Chinese).
-
-See [Upgrading](/guide/upgrade) (Chinese) and [The chat page](/en/features/agent#the-chat-page).
+Withdrawn: this version contained only changes to the in-app assistant, which was removed in [v1.17.0](#_1-17-0-·-2026-11-25); its tag and release have been deleted from the public repository.
 
 ## 1.13.1 · 2026-10-28
 
-Bug-fix release. See the [public source commit](https://github.com/732124645/qiwu-vue-admin/commit/76d3df6edac268c2aa7bc672eddbf398bff0a576).
-Release: [v1.13.1](https://github.com/732124645/qiwu-vue-admin/releases/tag/v1.13.1).
+Bug-fix release.
+Withdrawn: this version's tag and release have been deleted from the public repository; the changes below are included in [v1.17.0](#_1-17-0-·-2026-11-25).
 
-- With MCP access turned off, the [assistant](/en/features/agent) profile form still loads its tool list, which now includes your own tools, web tools, enabled built-in tools and external MCP tools.
 - MCP tool-call arguments are masked in HTTP request traces, so business content passed to tools no longer stays in the trace log.
 - Test fixes: the migration fence tests also run on Windows; tests that wait for the duplicate-submit window now wait until the keys are actually gone, avoiding sporadic 429 on Docker Desktop Redis.
 
@@ -87,35 +98,13 @@ Upgrade: no new migrations; update the code, build and run migrations and seeds 
 
 ## 1.13.0 · 2026-10-28
 
-Assistant conversation modes, automatic review and plan approval. See the [public source commit](https://github.com/732124645/qiwu-vue-admin/commit/4d0a6393596e0612d9caaa63807a48d9f3839bdd).
-Release: [v1.13.0](https://github.com/732124645/qiwu-vue-admin/releases/tag/v1.13.0).
-
-- Each [assistant](/en/features/agent#conversation-modes-and-tool-policies) conversation has one mode: read only, plan, ask every time (default) and auto review. It replaces the approval dropdown, the plan switch and the trust mode; Shift+Tab in the composer cycles through the available modes.
-- [Automatic review](/en/features/agent#automatic-review) takes effect as soon as it is selected: every write that needs confirmation goes to the review model first, without per-tool opt-in. A review rejection stops for a person with the reviewer's reason instead of being returned to the model.
-- Tool policies are run directly (`auto`), needs confirmation (`ask`), people only (`human`) and off (`deny`). People only is never reviewed or allowed for the conversation and is recommended for deleting, bulk changes, sending outside the system and money. Read tools run without asking unless the super administrator explicitly sets them to needs confirmation.
-- Approval cards offer **Allow once**, **Don't ask again for this tool in this conversation** (when available) and **Reject** with a note. Allowed tools are listed in the conversation settings, can be revoked one by one and are re-checked against the current policy when recorded and before every use; tools that need personal confirmation, people-only tools and external MCP tools never offer it. Sending a message while cards wait rejects the step's pending calls with the message as the note, and the agent continues at once; in auto review mode a card says why a call was not reviewed.
-- [Plan mode](/en/features/agent#plan-mode) ends with a plan card (steps, expected data changes, assumptions) that the person approves with automatic review or step-by-step confirmation, or sends back for changes; only the person leaves plan mode.
-- Model services can [load the provider's model list](/en/features/agent#models) and add models from a searchable picker instead of typing identifiers. A stored key is only sent to the stored address, redirects are not followed and the response is capped; super administrator only.
-- Removed the trust mode and the `agent.trust_mode` parameter; the `review` tool policy is merged into `ask`.
-
-Upgrade steps:
-
-1. This release has new migrations. Update the code and run `pnpm i` → `pnpm -r build` → `pnpm db:migrate` → `pnpm db:seed` as usual. Never use `db:reset` to upgrade an existing database.
-2. The migration converts existing data: conversations in plan mode keep it; trust-mode conversations become ask every time and their per-record trust is cleared; `review` policies become `ask`; the `agent.trust_mode` parameter is removed.
-3. Before offering auto review, the super administrator goes through the write tools on **Agent settings → Tool approval** and sets those that delete, change many records, send outside the system or move money to **People only**.
-
-See [Upgrading](/guide/upgrade) (Chinese) and [Conversation modes and tool policies](/en/features/agent#conversation-modes-and-tool-policies).
+Withdrawn: this version contained only changes to the in-app assistant, which was removed in [v1.17.0](#_1-17-0-·-2026-11-25); its tag and release have been deleted from the public repository.
 
 ## 1.12.0 · 2026-10-27
 
-Assistant desktop workspace, usage and settings pages, and the credits upgrade fix. See the [public source commit](https://github.com/732124645/qiwu-vue-admin/commit/c52c361f2ca14336c97a1e3c3fdec85ed4430ea5).
-Release: [v1.12.0](https://github.com/732124645/qiwu-vue-admin/releases/tag/v1.12.0).
+Development server and test fixes.
+Withdrawn: this version's tag and release have been deleted from the public repository; the changes below are included in [v1.17.0](#_1-17-0-·-2026-11-25).
 
-- [Assistant](/en/features/agent) chat is a desktop workspace: drag the conversation list and side panel, or use the arrow keys, to resize them; widths are remembered per user and browser, a double-click restores the default, and the list folds to a rail. The work panel and subtask details open in the main area, and focus mode hides the application menu and tabs. The header keeps three labelled buttons (work panel, focus mode, conversation settings), with the rest in a settings popover and an actions menu. Message actions appear in one row on hover, answers use a centred reading column, the composer shows its keys on a hint line and plan mode is a switch.
-- The usage page leads with key figures, shows credits with two decimals and thousands separators, lists business columns by default, explains data completeness only when it applies and draws a per-day chart with units and an empty state.
-- Agent settings open with a getting-started guide (model, web search, tool approval, try it), with tabs in setup order and plainer names.
-- Credits upgrade fix: models without rates work again; their calls are recorded as unpriced and are neither charged nor limited. A priced model is always charged: unknown usage is estimated from the request and the streamed output, and usage without cache details or with inconsistent totals is charged conservatively; both count toward budgets. The usage page lists unpriced and estimated calls separately, and the settings page warns when no credit limit is configured.
-- A model service that rejects turning reasoning off returns a dedicated error instead of a generic upstream failure.
 - The development server builds into its own `dist-dev/` output, so a parallel production build no longer breaks a running `pnpm dev`; it retries once when the backend exits before it is ready.
 - Server tests bind temporary listeners to the loopback address and start every spec file with empty rate-limit buckets, so unrelated local services and earlier files no longer cause sporadic 401, 404 or 429 answers.
 
@@ -123,44 +112,32 @@ Upgrade steps:
 
 1. No new migrations. Update the code and run `pnpm i` → `pnpm -r build` → `pnpm db:migrate` → `pnpm db:seed` as usual. Never use `db:reset` to upgrade an existing database.
 2. In a project derived from an older template, add `dist-dev/` to `.gitignore`.
-3. Models without rates that v1.11.0 refused work again. Where credits should apply, the super administrator configures rates and the three budgets; when all three are `0`, the settings page says there is no credit cap.
 
-See [Upgrading](/guide/upgrade) (Chinese) and [Limits, emergency stop and usage](/en/features/agent#limits-emergency-stop-and-usage).
+For further upgrade instructions, see [Upgrading the template](/guide/upgrade#升级到-v1-12-0) (Chinese).
 
 ## 1.11.0 · 2026-10-27
 
-Floating chat, credit budgets, recovery and development reloads. See the [public source commit](https://github.com/732124645/qiwu-vue-admin/commit/c83de79468f4aafc5559070365a6f8ee7abeac79).
-Release: [v1.11.0](https://github.com/732124645/qiwu-vue-admin/releases/tag/v1.11.0).
+Development reloads and audit masking.
+Withdrawn: this version's tag and release have been deleted from the public repository; the changes below are included in [v1.17.0](#_1-17-0-·-2026-11-25).
 
-- The [assistant](/en/features/agent) opens from the floating button beside the business page, preserving its URL, conversation and draft. History and the work panel open on demand. Subtasks show actual states and read-only details beside the parent, with a return control on phones. Notices, sharing and existing conversation URLs remain compatible.
-- Answers support safe Markdown tables, nested lists, task lists, code copy/wrap, source switching and downloads. The work panel brings together tasks, sources and outputs.
-- Spending limits use credits: configure each model's rates per million ordinary input, output, cache-read and cache-write tokens. Turn, user-day and tenant-day budgets support `0` for unlimited. Calls retain actual usage, reasoning/cache details, the rates used and credits; missing history stays unknown and is not repriced. Budgets are checked before the next call, so an in-flight call may cross the threshold.
-- Model default thinking behavior is separate from its capability, with explicit off and vLLM on/off. Direct execution of an external MCP tool requires the super administrator's explicit trust, without treating a vendor hint as proof or weakening existing personal confirmation requirements.
-- Sends use a stable UUID and durable receipt: a lost acknowledgement triggers queries only, and an explicit retry reuses the identifier. Streamed text is saved before broadcast so the displayed prefix can be recovered. Restarting resumes the task, not the original model token connection; the current step may need regeneration, and full refreshes do not guarantee an unsent draft. Calls save a pending record first, retaining actual usage and original rates, with details and aggregate totals accounted once atomically; unknown usage is never zeroed.
-- Unknown effects from writes or paid image calls pause related later operations until the person reconciles the current risk. Trust and automation cannot bypass this; local work must actually settle, and remote non-idempotent effects must be checked externally. Old turns and queued messages are not replayed. Affected automations are disabled and lose pre-approval, requiring separate setup. Active or unreconciled conversations cannot be directly forked, reverted or deleted.
-- Development reloads summarize changed files, compile/ready time and the previous comparison. One completed shared build produces one backend reload; compile errors leave the previous service running. Fixes cover locale changes refreshing the page, keyboard candidates, chat overflow, compaction within a long first turn, MCP stream cancellation, and recovery/isolation after migration-test timeouts.
+- Development reloads summarize changed files, compile/ready time and the previous comparison. One completed shared build produces one backend reload; compile errors leave the previous service running; locale edits keep the current page.
 - Fully masked audit routes hide complete payloads, URL queries and free-form error text; static data-scope checks verify delegated locks and reject ambiguous service names.
 
 Upgrade steps:
 
-1. Back up the database, uploads and secrets. For the first upgrade, stop initiating new tasks during a maintenance window, wait for old work to finish, then enable `agent.paused` and stop all old workers. This is an emergency stop that interrupts running turns; if it must be used earlier, personally confirm the operation has ended and reconcile uncertain effects and charges. Update code, run `pnpm i` → `pnpm -r build` → `pnpm db:migrate` → `pnpm db:seed`, and start the new version. Never use `db:reset` to upgrade an existing database.
-2. The super administrator configures credit rates for old models, then sets the three budgets. Old token caps are not converted into credits; new budgets default to `0` for unlimited. Models without rates are refused before a request is sent.
-3. A new call-credit ledger migration and menu/parameter seeds are included. The MIT-licensed `marked` tokenizes Markdown; safe components still render the contents, without executing upstream HTML or scripts.
-4. **Public scope**: this composition keeps basic leave, travel, expense, seal and general requests, the existing approval center, required files/notices and basic mobile handling. Native attendance and office assistant application tools are not included. Both were publicly released in v1.10.0; existing tags and historical documentation remain. Projects using them must review version and extension dependencies; a hidden menu does not mean their source still ships.
-5. Retain the database, Redis and `APP_SECRET`. Old versions never saved these checkpoints or invocation records, so their missing output and usage cannot be recovered retroactively; the new guarantees apply to later tasks. Do not mix old workers or treat rollback to an unaware old tag as recovery. Normal shutdown uses bounded draining, cancellation and persistence; after forced termination, takeover waits for the lease. Existing deployment policy retains old static assets; queue and lease timing affect recovery. See [Disconnections, refreshes and deployments](/en/features/agent#disconnections-refreshes-and-deployments).
+1. Back up the database, uploads and secrets, and keep Redis and `APP_SECRET`. Update the code, run `pnpm i` → `pnpm -r build` → `pnpm db:migrate` → `pnpm db:seed`, then start the new version. Never use `db:reset` to upgrade an existing database.
+2. **Public scope**: the public composition keeps basic leave, travel, expense, seal and general requests, the existing approval center, required files/notices and basic mobile handling. Native attendance, released in v1.10.0, is not included; the upgrade migration disables its old menus, grants and retention jobs while keeping historical business rows. Projects using it must review their own code and migration dependencies and keep backups; a hidden menu does not mean its source still ships.
 
-6. After every new instance is running, model rates and budgets are configured, and old task outcomes are reconciled, root must set `agent.paused` back to `false` before reopening new tasks. Clearing the emergency stop does not clear conversation recovery markers; each owner still reconciles those separately.
-
-See [Upgrading](/guide/upgrade) (Chinese) and [Limits, emergency stop and usage](/en/features/agent#limits-emergency-stop-and-usage).
+For further upgrade instructions, see [Upgrading the template](/guide/upgrade#升级到-v1-11-0) (Chinese).
 
 ## 1.10.0 · 2026-10-23
 
-Office requests and native attendance. See the [v1.10.0 release notes](https://github.com/732124645/qiwu-vue-admin/releases/tag/v1.10.0) and [public release commit](https://github.com/732124645/qiwu-vue-admin/commit/35ce0e9e12c8b6e51bb956ef05bd5ff03be909ac).
+Office requests and native attendance.
+Withdrawn: this version's tag and release have been deleted from the public repository. Its office requests are included in [v1.17.0](#_1-17-0-·-2026-11-25); native attendance is not.
 
 - [Office requests](/en/features/oa): leave, travel, expenses, seal use and general forms, using the existing workflow lists for my requests, to-dos, handled tasks and CC. Requests, attachments, expense lines and process status save and update in shared transactions. Expense approval is not payment; seal approval does not mean a document has been stamped.
 - Mobile shows complete requests and private attachments for handling; existing leave and dynamic-form submission remains. Create/edit travel, expenses and seal requests on desktop. Business file metadata and downloads enforce record and field access; global file-management status cannot bypass it.
-- [Native attendance](/en/features/attendance): mobile clock-in/out, tenant time zone and location policies, office sites, personal and department records and daily summaries, approved leave/travel links and retention cleanup. No DingTalk required. No shift scheduling, corrections, lateness/early-departure judgments or payroll settlement.
-- [Assistant](/en/features/agent#office-requests): query your own to-dos and requests you participated in, and prepare the five request types. Every request needs your own individual confirmation click; conversation trust, automatic review, automations and bulk approval cannot replace it. No delegated approval or clocking tools.
+- Native attendance: mobile clock-in/out, tenant time zone and location policies, office sites, personal and department records and daily summaries, approved leave/travel links and retention cleanup. No DingTalk required. No shift scheduling, corrections, lateness/early-departure judgments or payroll settlement.
 
 Upgrade steps:
 
@@ -170,62 +147,21 @@ Upgrade steps:
 
 ## 1.9.1 · 2026-10-22
 
-Improves readability and layout on the [assistant](/en/features/agent) and [MCP tools](/en/features/mcp) pages.
+Improves readability of the [MCP tools](/en/features/mcp) page and restored page tabs.
+Withdrawn: this version's tag and release have been deleted from the public repository; the changes below are included in [v1.17.0](#_1-17-0-·-2026-11-25).
 
-- Registered tools show localized names and purpose descriptions, with readable names for known permissions. Tool identifiers and the protocol stay the same; unknown tools and permissions retain their original text.
-- Profile tool lists let you select your available system tools or enter other tool identifiers; leave the list empty for no restriction. Existing selections survive a failed load, and permission and approval checks still apply.
-- Settings, skills and automations have clearer tab labels and content spacing; limits use responsive columns, and forms and instructions fit narrow screens better.
+- Registered tools show localized names and purpose descriptions, with readable names for known permissions; the personal access token tool selector uses the readable names too. Tool identifiers and the protocol stay the same; unknown tools and permissions keep their original text.
 - Restored page tabs use current menu titles, icons and cache settings while preserving the original query parameters.
 
 No database migrations, new dependencies or new environment variables.
 
 ## 1.9.0 · 2026-10-22
 
-The second set of [assistant](/en/features/agent) features: it can run in the background on a schedule or after a business action, remember your preferences, hand low-impact changes to a review model, delegate subtasks, do deep research, draw charts and export its results. The assistant is still off by default (switch `APP_AGENT`). For the full reference in the repository, see the [in-app agent docs](https://github.com/732124645/qiwu-vue-admin/blob/main/docs/agent.md) (Chinese).
-
-Added:
-
-- **Automations**: a new page **Agent → Automations** (permission `agent.automation.use`; sharing with the whole tenant also needs `agent.automation.share`). A skill or a prompt runs on a schedule (5-field cron with a time zone, at most every 5 minutes), after a business action is written to the action log (only when the owner can see the record) or on demand; each run happens in a hidden conversation as its owner, with permissions checked again every time. Write modes: read only (default), ask (the approval cards go to the inbox) and pre-approved (write tools ticked one by one, confirmed with the current password). A pre-approval holds only while the owner's permissions, data scope and department, the tool's switch and the bound personal or platform skill and personal profile are unchanged; otherwise the write waits for a person. Run history, results in the inbox with optional mail; limits per user and per day; one run at a time per automation.
-- **Profiles**: a named set of model, reasoning effort, approval mode, allowed tools and extra instructions, personal or tenant-wide (tenant-wide ones can only be read only or ask), picked for a new conversation or set as the default.
-- **Personal memory**: "remember …" saves only after you confirm; an optional background distiller reads only your own messages. Passwords, keys and the like are masked before saving; temporary conversations never use memory, and it can be turned off per conversation; **My memories** lists, edits and deletes entries, and **Forget everything** needs your current password.
-- **Automatic review**: once an administrator sets a write tool to **Auto review** and the conversation is in auto review mode, a review model (the super administrator's parameter `agent.review.model`) approves, rejects or hands over each write; anything unclear, truncated or failed goes to a person; at most 10 reviews per turn.
-- **Sub-agents, deep research, charts and exports**: the agent can hand 1 to 3 read-only subtasks to sub-agents running in parallel; a new platform skill, deep research, has its own step and time limits and ends with a cited report; charts (bar, line, pie, table), image generation with models marked **Image**, and exports to xlsx, Markdown and print.
-- **Diagnostics and personal settings**: a new **Diagnostics** tab on **Agent settings** (super administrator) tests whether models, search providers and external MCP servers can be reached, and shows turn counts, recent failed turns and orphan turn sweeps. Everyone can set notifications (always in the inbox, mail optional), customize the chat page's keyboard shortcuts and open a conversation in a new window.
-- **For projects**: three extension points, built-in tools, context contributors and approval reviewers; a new recipe `docs/ai/recipes/agent-extension.md` with its skill `qiwu-agent-extension`.
-
-Changed:
-
-- The assistant's reminders no longer carry the conversation title; in inbox templates installed earlier, the conversation number now shows where the title used to be.
-- Memories and chat message text are masked as `***` in the action and API logs, with no original text kept.
-
-Upgrade notes:
-
-- One database migration, `20261022091719-agent-automation`: it creates 4 tables for profiles, memories, automations and automation runs (`agent_profile`, `agent_memory`, `agent_automation`, `agent_automation_run`) and adds 4 columns to the conversation table `agent_thread` (the profile used, whether memory is on, the parent conversation of a sub-agent, the automation run it belongs to). As before, **these tables are created whether or not the switch is on**.
-- `pnpm db:seed` writes the **Automations** menu and permissions, the new system parameters, the inbox and mail templates for automations, mail templates for the reminders, and the platform skill deep research. Existing templates are not overwritten. The new parameters (review model, memory distilling, memories per turn, deep research steps and time, automations per user and runs per day) are in the repository's [parameter table](https://github.com/732124645/qiwu-vue-admin/blob/main/docs/agent.md#限额暂停与用量) (Chinese).
-- No new environment variables and no new dependencies.
-- Upgrade as usual: update to the v1.9.0 code → `pnpm i` → `pnpm -r build` → `pnpm db:migrate` → `pnpm db:seed` → restart the server; see [Deploy](/guide/deploy) (Chinese).
+Withdrawn: this version contained only changes to the in-app assistant, which was removed in [v1.17.0](#_1-17-0-·-2026-11-25); its tag and release have been deleted from the public repository.
 
 ## 1.8.0 · 2026-10-22
 
-Adds an in-app **assistant**, off by default. Staff state what they need in plain language on a chat page, and a model / agent uses the console's own tools, as that user, to look up data, search the web and change data as asked; every change is confirmed by a person first. See [Assistant](/en/features/agent); for the full reference in the repository, see the [in-app agent docs](https://github.com/732124645/qiwu-vue-admin/blob/main/docs/agent.md) (Chinese).
-
-Added:
-
-- **Switch**: set `APP_AGENT=true` in the server environment to load the module; restart after changing it. While off, every `/api/agent/*` route returns 404 and the **Agent** menu group is hidden. It runs on the existing job queue, Redis and Socket.IO; no new service is needed.
-- **Chat page**: a conversation list like a desktop chat app (search, rename, pin, archive, delete, unread and running views, temporary conversations), streamed answers with collapsible tool calls, a reasoning summary, citations and suggested follow-ups; fork from any message, edit and resend, revert the last turn, share a read-only link within the tenant, export Markdown, copy and rate messages. A message sent while a turn runs joins the current turn or waits for the next one, and the turn can be stopped. Slash commands, `$` to call a skill, attachments from file storage (text, the first sheet of an xlsx, images for models that read them), a context gauge with automatic and manual compaction, and an inbox message when a turn waits for you or a long one finishes. A button in the corner of every page opens the chat with the current page and the selected rows.
-- **Tools only**: the agent acts through the modules' `@McpTool` methods (the same list and checks as MCP), run in-process with the signed-in user's permissions, data scope and tenant, plus built-in tools for a plan checklist, questions with options and loading a skill. Each conversation picks an approval mode: read only, ask (default) or trust this conversation. A write tool **never runs before a person confirms it**: the approval card shows the tool, the record, each field's current and proposed value and the web sources the turn read. Plan mode lists the steps before anything changes.
-- **Models and the web**: models through any OpenAI-compatible Chat Completions API (DeepSeek, Qwen, Kimi, Zhipu, Ollama, OpenAI and others) with streaming, tool calls and reasoning effort, chosen per conversation. Web search through Bocha or Tavily; a page reader limited to the turn's search results, the user's links and allowed sites, checking for a public address on every redirect; web pages and external output are handed to the model as untrusted content. External MCP servers (Streamable HTTP, header token or OAuth client credentials) with their tools enabled one by one, each with its own approval policy; a server's request for more input shows as a question card.
-- **Skills, instructions and templates**: skills at platform, tenant and personal level (create, edit, enable, import and export as `SKILL.md`, drafted from a conversation), loaded only when used; platform, tenant and personal instructions with a tone preset; prompt templates.
-- **Platform settings (super administrator)**: model providers, search providers, external MCP servers, tool policies (write tools can only ask or be denied), platform skills, instructions and limits (steps, time and tokens per turn, tokens per user and per tenant per day, concurrent turns per user), and the emergency stop parameter `agent.paused`. Keys are encrypted with a key derived from `APP_SECRET` and never returned. A usage page sums calls and tokens by day, user or model; every tool call is in the action log.
-- **Batch runs**: run a skill on the rows selected in a list, one conversation per record, started in turn within the concurrency limit, and confirm the resulting changes one by one or all at once on a batch review page. Sample: **Sample customers** with the platform skill 补齐客户信息 ("fill in customer details": fill empty fields from the web, with sources) and the tools `demo.customer.search`, `demo.customer.get` and `demo.customer.update`.
-- **For projects**: write tools may declare a `preview` method for the approval card, and `@AgentBatchTarget` makes a list's records batchable; a new recipe `docs/ai/recipes/agent-skill.md` with its skill `qiwu-agent-skill`.
-
-Upgrade notes:
-
-- One database migration: it creates the assistant's 14 tables (`agent_*`) and the sample customer table `demo_customer`, and adds an approval policy column to the MCP tool switch table `cfg_mcp_tool`. **These tables are created whether or not the switch is on.** `pnpm db:seed` writes the **Agent** menu group, its parameters, two inbox templates, the sample customer menu and data, and the platform skill 补齐客户信息 (the **Agent** menus stay hidden while the switch is off).
-- New server environment variable `APP_AGENT`, `false` by default; leave it unset if you don't need the module. The keys of models and search services are not environment variables: once it is on, enter them on **Agent → Agent settings**. For turning it on and the outbound firewall, see [Deploy · Assistant](/guide/deploy#智能助手) (Chinese).
-- One new server dependency, `openai` (7.39.0, Apache-2.0), used to call OpenAI-compatible model services; it has no install scripts, and `pnpm i` installs it.
-- Upgrade as usual: update to the v1.8.0 code → `pnpm i` → `pnpm -r build` → `pnpm db:migrate` → `pnpm db:seed` → restart the server; see [Deploy](/guide/deploy) (Chinese).
+Withdrawn: this version contained only changes to the in-app assistant, which was removed in [v1.17.0](#_1-17-0-·-2026-11-25); its tag and release have been deleted from the public repository.
 
 ## 1.7.1 · 2026-10-22
 

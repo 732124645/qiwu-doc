@@ -33,7 +33,7 @@ For how permissions work (feature permissions, data scope, the privilege escalat
 In addition, [My profile](#my-profile) in the avatar menu at the top right is available to every signed-in user, with no grant needed.
 
 ::: info With multi-tenancy on
-**Tenants** and **Tenant packages** can be used only by people in the default tenant (the platform). **Menus**, **Dictionaries**, **Parameters**, **App versions** and **OAuth2 clients** under **System**, the templates, **Mail accounts** and **SMS channels** under **Message center**, **Storage configs**, **API access log** and **API error log**, **MCP tools** and **Agent settings** are **platform-only pages** too: only the platform can use them, and they are not visible in tenants. See [Permissions and data scope · Tenant packages and platform-only pages](/en/features/permission#tenant-packages-and-platform-only-pages).
+**Tenants** and **Tenant packages** can be used only by people in the default tenant (the platform). **Menus**, **Dictionaries**, **Parameters**, **App versions** and **OAuth2 clients** under **System**, the templates, **Mail accounts** and **SMS channels** under **Message center**, **Storage configs**, **API access log** and **API error log**, and **MCP tools** are **platform-only pages** too: only the platform can use them, and they are not visible in tenants. See [Permissions and data scope · Tenant packages and platform-only pages](/en/features/permission#tenant-packages-and-platform-only-pages).
 :::
 
 ::: tip Who can see these menus

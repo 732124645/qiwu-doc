@@ -191,17 +191,16 @@ node scripts/fetch-ip2region.mjs
 
 The download is checked against its sha256; restart the server and it takes effect. Without it everything still works; the **Location** column just stays empty. For downloading through a proxy and pinning the sha256, see [the repository's deployment guide](https://github.com/732124645/qiwu-vue-admin/blob/main/docs/deploy.md#ip-地理位置数据ip2region) (Chinese).
 
-## Try office requests and attendance
+## Try office requests
 
-The v1.15.0 public composition provides basic office requests and approvals. After migration and seeding, review models, requester scope and approvers before granting staff access. Tenant packages also need the relevant capabilities.
+The current v1.17.0 public composition provides basic office requests and approvals. After migration and seeding, review models, requester scope and approvers before granting staff access. Tenant packages also need the relevant capabilities.
 
 1. Submit [leave, travel, expenses, seal or general requests](/en/features/oa), then view and handle them in the approval center.
 2. Mobile shows complete details, attachments and decisions. Create/edit travel, expenses and seal requests on desktop; leave and dynamic forms can start on mobile.
-3. The floating [Assistant](/en/features/agent) button opens general chat and project tools; configure a model first, then rates and budgets where credits should apply.
 
 Leave preserves its existing sample settings; the other four office models default to explicit protected-administrator handling and rejection when nobody is available. Review them for your own organization.
 
-Native clocking and office assistant application tools were publicly released in v1.10.0 but do not ship in the current v1.15.0 composition. The [attendance page](/en/features/attendance) is a historical reference, not a current installation step.
+The current public version does not include attendance (clock-in/out).
 
 ## Troubleshooting
 

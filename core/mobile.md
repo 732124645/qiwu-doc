@@ -601,7 +601,7 @@ export const bookApi = {
 
 语音使用系统 RecorderManager，先申请麦克风权限，再复查当前账号和操作代次；录音文件随发件箱持久保存。实时音视频通过同模块 `uni_modules/qw-livekit` 的 UTS API 和 `.nvue` 兼容视频组件接入官方 Swift/Android SDK；临时媒体票据只留在 App-service，不通过页面参数或组件属性传递。
 
-`manifest.json` 已登记 SQLite、Record、Android 麦克风/摄像头权限和 iOS 用途说明。**重新编译原生整包或自定义基座**，旧安装包只发 wgt 无法增加这些能力。原生依赖版本、最低系统配置和构建适配以[插件说明](https://github.com/732124645/qiwu-vue-admin/blob/v1.16.0/mobile/src/uni_modules/qw-livekit/README.md)为准。
+`manifest.json` 已登记 SQLite、Record、Android 麦克风/摄像头权限和 iOS 用途说明。**重新编译原生整包或自定义基座**，旧安装包只发 wgt 无法增加这些能力。原生依赖版本、最低系统配置和构建适配以[插件说明](https://github.com/732124645/qiwu-vue-admin/blob/v1.17.0/mobile/src/uni_modules/qw-livekit/README.md)为准。
 
 本版没有已签名安装包，也没有真实 LiveKit/TURN 和目标设备媒体的验收结果。Android SDK 传递依赖许可仍待澄清，原生编译或模拟器通过不能替代最终包的分发核对。部署和跨网络检查见[LiveKit 接入](/core/livekit)。
 
@@ -668,7 +668,7 @@ try {
 
 App 图标和启动图是 `mobile/unpackage/res/{icons,splash}/` 下的 PNG，`manifest.json` 按相对路径引用它们。它们不放在 `src/static`，否则会打进小程序的主包。换图标时，在 HBuilderX 的 manifest 可视化编辑器里用一张 1024×1024 的原图重新生成各种尺寸。
 
-新增 UTS 插件后，须先用匹配工具链编译插件 API、兼容视频组件和官方 SDK，再完成最终宿主打包。现有 HBuilderX/Xcode 验证链有已记录的链接适配点，不能把 App 源构建成功当作 GUI 可直接签名安装，详情见[插件构建限制](https://github.com/732124645/qiwu-vue-admin/blob/v1.16.0/mobile/src/uni_modules/qw-livekit/README.md#hbuilderx--xcode-兼容限制)。签名证书、隐私政策和上架见下文的[发布清单](#发布清单)。
+新增 UTS 插件后，须先用匹配工具链编译插件 API、兼容视频组件和官方 SDK，再完成最终宿主打包。现有 HBuilderX/Xcode 验证链有已记录的链接适配点，不能把 App 源构建成功当作 GUI 可直接签名安装，详情见[插件构建限制](https://github.com/732124645/qiwu-vue-admin/blob/v1.17.0/mobile/src/uni_modules/qw-livekit/README.md#hbuilderx--xcode-兼容限制)。签名证书、隐私政策和上架见下文的[发布清单](#发布清单)。
 
 ## 微信小程序登录
 
@@ -738,17 +738,15 @@ App 这边的代码在 `mobile/src/core/update.ts`：
 有 `settings.appVersion.create` 或 `settings.appVersion.modify` 权限的人，可以给所有装了 App 的手机下发代码。只把这两个权限给负责发版的人。
 :::
 
-## 办公详情与原生打卡
+## 办公详情
 
-基础办公详情与审批属于当前公开组合。下面涉及原生打卡的内容是 v1.10.0 历史版本说明；v1.11.0 公开组合不包含考勤源码或入口，相关实现请查看旧标签，不能照此给当前包增加不存在的页面。
+基础办公详情与审批属于当前公开组合；当前公开版不含打卡考勤。
 
 手机提供请假、出差、报销和用印的完整只读决策信息，通用申请按当前节点字段权限显示；出差、报销、用印在电脑端创建和编辑。附件通过鉴权同源内容接口打开，上限 20 MiB，设备决定预览格式；恢复或读取失败时阻止业务决定。接口、事务和授权边界见 [OA 办公](/features/oa)。
 
-原生打卡使用 OA 能力，不依赖审批和钉钉。`none` 不定位，`site` 在点击时请求一次前台 WGS84 位置，失败不降级；结果不确定时先查持久请求结果，不自动重放打卡写入。小程序应在部署平台配置定位用途、授权和合法域名，详见 [打卡考勤](/features/attendance)。
-
 ## App 权限
 
-当前公开组合的 App 权限包括网络状态、相机和录音；iOS 用途说明覆盖相机、相册和麦克风。麦克风只在本人主动录制语音或参与通话时申请，不提供后台持续采集。不要从历史考勤版本推断当前源码包含定位能力。单元测试 `mobile/src/__tests__/mobile-manifest.spec.ts` 检查这两份列表：新增原生能力时，在同一次提交里改 `manifest.json`、这个测试和隐私政策，并发整包。见仓库的[移动端文档 · App 权限](https://github.com/732124645/qiwu-vue-admin/blob/main/docs/mobile.md#app-权限安卓)。
+当前公开组合的 App 权限包括网络状态、相机和录音；iOS 用途说明覆盖相机、相册和麦克风。麦克风只在本人主动录制语音或参与通话时申请，不提供后台持续采集。当前公开版不含打卡考勤，也不申请定位权限。单元测试 `mobile/src/__tests__/mobile-manifest.spec.ts` 检查这两份列表：新增原生能力时，在同一次提交里改 `manifest.json`、这个测试和隐私政策，并发整包。见仓库的[移动端文档 · App 权限](https://github.com/732124645/qiwu-vue-admin/blob/main/docs/mobile.md#app-权限安卓)。
 
 ## 发布清单
 

@@ -23,7 +23,7 @@ pnpm -r build
 
 普通配置写 `apps/server/.env`（`NODE_ENV=production`、库名、Redis 库号、`TRUST_PROXY`、`CORS_ORIGIN`、`SWAGGER_ENABLED=false` 等），账号和密钥只写 `.env.local` 或进程环境，`.env` 里连空值也不写。不要复制开发或测试环境的密钥，生产环境会拒绝带 `not-for-production` 标记的密钥。Redis 库号先确认空闲，不和开发、测试、演示共用；`.env.local` 设为 `600`。示例见[仓库](https://github.com/732124645/qiwu-vue-admin/blob/main/docs/deploy.md#构建产物与环境)，各项含义见[环境变量](/reference/env)。
 
-v1.15.0 起新增数据库连接池设置 `DB_POOL_SIZE`（默认 10）、`DB_POOL_ACQUIRE_TIMEOUT_MS` 和 `DB_POOL_QUEUE_LIMIT`，默认值与以前行为相同；拿不到连接的请求会返回 503 而不是一直等。`.env` 和 `.env.local` 同一个键写了不同值时，以 `.env` 为准，启动日志会给出一条警告（只列键名）。见[仓库](https://github.com/732124645/qiwu-vue-admin/blob/main/docs/deploy.md#构建产物与环境)。
+数据库连接池用 `DB_POOL_SIZE`（默认 10）、`DB_POOL_ACQUIRE_TIMEOUT_MS` 和 `DB_POOL_QUEUE_LIMIT`（默认 0，不限）设置；拿不到连接的请求会返回 503 而不是一直等。`.env` 和 `.env.local` 同一个键写了不同值时，以 `.env` 为准，启动日志会给出一条警告（只列键名）。见[仓库](https://github.com/732124645/qiwu-vue-admin/blob/main/docs/deploy.md#构建产物与环境)。
 
 Redis 还有两项要求，都来自任务队列（把耗时的工作交给后台执行的功能）：
 
@@ -141,18 +141,6 @@ git push origin v1.2.0
 
 见仓库的[智能体接入（MCP）](https://github.com/732124645/qiwu-vue-admin/blob/main/docs/deploy.md#智能体接入mcp)和 [nginx 反向代理与 CSP](https://github.com/732124645/qiwu-vue-admin/blob/main/docs/deploy.md#nginx-反向代理与-csp)。
 
-## 智能助手
-
-[智能助手](/features/agent)默认关闭。开关是 `apps/server/.env` 里的 `APP_AGENT`（不是秘密），只在启动时读取，改完要重启全部实例。关闭时 `/api/agent/*` 返回 404，不注册它的队列处理器，侧栏、角色授权树和租户套餐里也看不到 **智能体** 分组。数据表不管开关如何都由迁移创建，所以打开时不需要另外迁移。
-
-- 不需要新的服务：对话在现有的 Redis 任务队列里执行（Redis 的要求见上文[生产环境变量](#生产环境变量)），进度经现有的 Socket.IO 推送。
-- 出口防火墙要放行服务端访问所配置的模型服务（如 `api.deepseek.com`、`dashscope.aliyuncs.com`、`api.moonshot.cn`、`open.bigmodel.cn`、`api.openai.com`，或内网的 Ollama）、搜索服务（`api.bochaai.com`、`api.tavily.com`）、要读的公网网页和外部 MCP 服务器。联网读取和外部 MCP 直接连接，不经 HTTP 代理。
-- 模型、搜索和外部 MCP 的密钥在后台的 **智能体 → 智能体设置** 页填写，用 `APP_SECRET` 派生的密钥加密存库，不写进任何 env 文件；更换 `APP_SECRET` 后要重新填写。
-- 运行中要紧急停止，由超级管理员把参数 `agent.paused` 改成 `true`，不需要重启；用量和并发由 `agent.limit.*` 参数限制。
-- `ALLOW_PRIVATE_ENDPOINTS=true` 会同时放开联网读取和外部 MCP 的内网地址检查，生产环境保持 `false`。
-
-见仓库的[后台智能体（智能助手）](https://github.com/732124645/qiwu-vue-admin/blob/main/docs/deploy.md#后台智能体智能助手)。
-
 ## 演示模式
 
 公开演示站设 `APP_DEMO_MODE=true`，使用独立的库、Redis 库号和密钥。除登录、退出、标为已读等少数操作外，写操作一律返回 403，超级管理员也一样；OAuth2 授权和令牌接口也被拒绝，要演示单点登录请用非演示安装；智能体调用 `POST /api/mcp` 同样被拒绝；日志页面里访客的 IP 和浏览器信息脱敏显示。同时打开多租户时，还会创建两个示例租户，访客可以进入和退出租户。开关改回 `false` 不会让已公开的密码失效，正式环境请重新安装。放行清单见[仓库安全文档](https://github.com/732124645/qiwu-vue-admin/blob/main/docs/security.md#演示模式的精确豁免)，另见[部署文档](https://github.com/732124645/qiwu-vue-admin/blob/main/docs/deploy.md#演示模式与-oauth-边界)。
@@ -161,6 +149,6 @@ git push origin v1.2.0
 
 ## 多实例部署
 
-服务端可以运行多个实例，实时推送和限流经 Redis 共享。前提：Redis 7 及以上；同一部署的所有实例连同一个 MySQL 库和 Redis，`REDIS_DB`、`REDIS_KEY_PREFIX`、`APP_SECRET` 和程序版本都相同，不同部署用不同库号；所有实例的 `APP_MULTI_TENANT` 也要相同，切换时全部重启；本地文件放共享目录，跨机器建议用 S3。每个实例都运行全部队列的处理器，同一个任务只会被一个实例取走，加实例就加处理能力；任务可能执行不止一次，处理器要能安全地重复执行，见[仓库](https://github.com/732124645/qiwu-vue-admin/blob/main/docs/queue.md#每个实例都运行处理器)。只用 WebSocket，不需要粘性会话；迁移和种子仍只在发布时执行一次。模板只在同一台机器上用两个进程测试过，完整条件和限制见[仓库](https://github.com/732124645/qiwu-vue-admin/blob/main/docs/scale-out.md#启动前置条件)。
+服务端可以运行多个实例，实时推送和限流经 Redis 共享。前提：Redis 7 及以上；同一部署的所有实例连同一个 MySQL 库和 Redis，`REDIS_DB`、`REDIS_KEY_PREFIX`、`APP_SECRET` 和程序版本都相同，不同部署用不同库号；所有实例的 `APP_MULTI_TENANT` 也要相同，切换时全部重启；本地文件放共享目录，跨机器建议用 S3。默认（`APP_ROLE=all`）每个实例都运行全部队列的处理器，同一个任务只会被一个实例取走，加实例就加处理能力；任务可能执行不止一次，处理器要能安全地重复执行，见[仓库](https://github.com/732124645/qiwu-vue-admin/blob/main/docs/queue.md#哪些实例运行处理器)。只用 WebSocket，不需要粘性会话；迁移和种子仍只在发布时执行一次。模板只在同一台机器上用两个进程测试过，完整条件和限制见[仓库](https://github.com/732124645/qiwu-vue-admin/blob/main/docs/scale-out.md#启动前置条件)。
 
-v1.15.0 起可以用 `APP_ROLE`（`all` / `api` / `worker`，默认 `all`）让不同进程分工：`api` 只处理请求，`worker` 跑定时任务和队列。至少要保留一个 `all` 或 `worker` 实例，否则定时任务和队列任务不再执行；用 PM2 时见上文。同一台机器上 `QW_PM2_INSTANCES × DB_POOL_SIZE` 要小于 MySQL 的 `max_connections`。见[仓库](https://github.com/732124645/qiwu-vue-admin/blob/main/docs/scale-out.md#进程角色)。
+可以用 `APP_ROLE`（`all` / `api` / `worker`，默认 `all`）让不同进程分工：`api` 只处理请求，`worker` 跑定时任务和队列。至少要保留一个 `all` 或 `worker` 实例，否则定时任务和队列任务不再执行；用 PM2 时见上文。同一台机器上 `QW_PM2_INSTANCES × DB_POOL_SIZE` 要小于 MySQL 的 `max_connections`。见[仓库](https://github.com/732124645/qiwu-vue-admin/blob/main/docs/scale-out.md#进程角色)。

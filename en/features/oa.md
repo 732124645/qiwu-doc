@@ -4,7 +4,7 @@ description: 'Office requests for leave, travel, expenses, seal use and general 
 
 # Office requests
 
-The **Office** entry brings together leave, travel, expense claims, seal use and general requests. My requests, to-dos, handled tasks and CC use the existing [approval center](/en/features/workflow), with the same processes and status. Basic office requests need no DingTalk. Since v1.11.0, the public composition contains these requests, the existing approval center, required files/notices and basic mobile handling. Complete collaboration, meetings, knowledge, supplies, native attendance and office assistant application tools do not ship in that composition.
+The **Office** entry brings together leave, travel, expense claims, seal use and general requests. My requests, to-dos, handled tasks and CC use the existing [approval center](/en/features/workflow), with the same processes and status. Basic office requests need no DingTalk. The public composition contains these requests, the existing approval center, required files/notices and basic mobile handling. Complete collaboration, meetings, knowledge and supplies do not ship in that composition, and the current public version does not include attendance (clock-in/out).
 
 ## Five request types
 
@@ -48,14 +48,6 @@ To-dos, outcomes, returns, CC, cancellation and reminders reuse inbox and email 
 Mobile shows the full decision information for leave, travel, expenses and seal use. General forms follow current step field access. To-dos, handled tasks, my requests and CC share desktop data. Existing mobile leave submission, editing after return and dynamic-form submission remain available. **Creating or editing travel, expense and seal requests is done on desktop.**
 
 Attachments open through an authenticated same-origin interface, limited to 20 MiB. Supported preview formats depend on the device. Failure to load decision information or attachments blocks a business decision with an explanation. See [Mobile](/en/features/mobile).
-
-## Ask the assistant
-
-::: info v1.10.0 historical capability
-Office assistant application tools were publicly released in [v1.10.0](https://github.com/732124645/qiwu-vue-admin/tree/v1.10.0), but do not ship in the v1.11.0 public composition. The individual personal-confirmation rules and their source remain available in the old tag. The current general [assistant](/en/features/agent) does not imply these tools are included.
-:::
-
-In the current public version, fill requests on the Office pages and handle them in the existing approval center.
 
 ## Scope and acceptance checks
 
